@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="clients">
+    <div class="page-header">
+        <div>
+            <h2>👥 Clients</h2>
+            <p class="subtitle">Consultez et gérez votre base de clients</p>
+        </div>
+        <input type="text" id="searchClient" placeholder="Rechercher par nom ou téléphone..." onkeyup="searchClients()" style="width:280px; padding:9px 16px; border:1.5px solid #eee; border-radius:25px; font-size:13px; font-family:inherit; outline:none; transition:all 0.3s;">
+    </div>
+    <div class="table-card">
+        <div class="table-wrap" id="clientsList"></div>
+    </div>
+</div>
+</html>

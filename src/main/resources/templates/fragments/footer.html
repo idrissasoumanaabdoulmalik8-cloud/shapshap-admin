@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="footer" class="admin-footer">
+    <div class="footer-content">
+        <div class="footer-left">
+            <span class="footer-brand">🌸 Shashap</span>
+            <span class="footer-divider">|</span>
+            <span class="footer-text">Administration Panel v1.0</span>
+        </div>
+        <div class="footer-center">
+            <span class="footer-text">© 2024 Tous droits réservés</span>
+        </div>
+        <div class="footer-right">
+            <span class="footer-text">Made with ❤️</span>
+            <span class="footer-divider">|</span>
+            <span class="footer-text" id="footerDateTime"></span>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-footer {
+        background: white;
+        padding: 16px 24px;
+        margin-top: 30px;
+        border-top: 1px solid rgba(233,30,99,0.08);
+        border-radius: 0 0 var(--radius) var(--radius);
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
+    }
+
+    .footer-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .footer-left, .footer-center, .footer-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .footer-brand {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--rose), var(--rose-dark));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .footer-text {
+        font-size: 13px;
+        color: var(--gray);
+    }
+
+    .footer-divider {
+        color: var(--rose-light);
+        font-weight: 300;
+    }
+
+    @media (max-width: 768px) {
+        .admin-footer {
+            padding: 12px 16px;
+            margin-top: 20px;
+        }
+        .footer-content {
+            flex-direction: column;
+            text-align: center;
+        }
+        .footer-left, .footer-center, .footer-right {
+            justify-content: center;
+            width: 100%;
+        }
+        .footer-text {
+            font-size: 12px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .footer-divider {
+            display: none;
+        }
+        .footer-left, .footer-right {
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .footer-brand {
+            font-size: 14px;
+        }
+    }
+</style>
+
+<script>
+    // Mise à jour dynamique de la date/heure
+    document.addEventListener('DOMContentLoaded', function() {
+        function updateDateTime() {
+            const now = new Date();
+            const options = {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            const dateTimeStr = now.toLocaleDateString('fr-FR', options);
+            const footerDateTime = document.getElementById('footerDateTime');
+            if (footerDateTime) {
+                footerDateTime.textContent = '🕐 ' + dateTimeStr;
+            }
+        }
+        updateDateTime();
+        setInterval(updateDateTime, 60000);
+    });
+</script>
+</html>

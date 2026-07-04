@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌸 Shashap Admin</title>
+
+    <!-- CSS principal -->
+    <link rel="stylesheet" href="/css/shashap.css">
+    <!-- Icônes Tabler -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+
+    <!-- Libs JS -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>window.jsPDF = window.jspdf.jsPDF;</script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+
+<!-- ── Toast notification ────────────────────────────────── -->
+<div id="toast" class="toast"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     LAYOUT (sidebar + main)
+     ══════════════════════════════════════════════════════════ -->
+<div class="layout">
+
+    <!-- ── SIDEBAR ─────────────────────────────────────────── -->
+    <aside class="sidebar">
+
+        <div class="sidebar-logo">
+            <div class="logo-inner">
+                <div class="logo-icon">🌸</div>
+                <div class="logo-text">
+                    <h2>Shashap</h2>
+                    <p>Administration</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-section-label">Navigation</div>
+
+        <nav>
+            <a href="#" class="active" data-page="dashboard">
+                <div class="nav-icon"><i class="ti ti-layout-dashboard"></i></div>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" data-page="orders">
+                <div class="nav-icon"><i class="ti ti-package"></i></div>
+                <span>Commandes</span>
+                <span class="badge" id="ordersBadge" style="display:none;">0</span>
+            </a>
+            <a href="#" data-page="products">
+                <div class="nav-icon"><i class="ti ti-salad"></i></div>
+                <span>Produits</span>
+            </a>
+            <a href="#" data-page="clients">
+                <div class="nav-icon"><i class="ti ti-users"></i></div>
+                <span>Clients</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <div class="user-avatar">A</div>
+                <div class="user-info">
+                    <p>Admin</p>
+                    <span>Administrateur</span>
+                </div>
+            </div>
+        </div>
+    </aside><!-- /sidebar -->
+
+    <!-- ── MAIN ────────────────────────────────────────────── -->
+    <div class="main">
+
+        <!-- ════════════════════════════════════════════════════
+             PAGE : DASHBOARD
+             ════════════════════════════════════════════════════ -->
+        <!-- ══════════════════════════════════════════════════════════
+             PAGE : DASHBOARD (VERSION ARTISTIQUE & PROFESSIONNELLE)
+             ══════════════════════════════════════════════════════════ -->
+        <div id="dashboard" class="page active" style="font-family: 'Poppins', 'Segoe UI', sans-serif; background: #faf7f9; padding: 0 0 30px 0; min-height: 100vh;">
+
+            <!-- 🌟 TOPBAR PREMIUM (Conserve tes fonctions d'origine) -->
+            <div class="topbar" style="display: flex; justify-content: space-between; align-items: center; padding: 20px 25px; background: #fff; border-bottom: 1px solid #f0e6eb; box-shadow: 0 4px 15px rgba(0,0,0,0.01); margin-bottom: 25px;">
+                <div>
+                    <div class="page-title" id="pageTitle" style="font-size: 24px; font-weight: 800; background: linear-gradient(45deg, #1e1e2f, #E91E63); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Tableau de bord</div>
+                    <div class="page-sub" id="pageSub" style="color: #8c8c9b; font-size: 13px; margin-top: 4px;">Vue d'ensemble en temps réel • Shashap Backend</div>
+                </div>
+
+                <!-- Groupe de boutons d'origine stylisés -->
+                <div class="topbar-right" style="display: flex; align-items: center; gap: 12px;">
+                    <!-- Indicateur de Prod Local -->
+                    <div style="display: flex; align-items: center; gap: 6px; background: #E8F5E9; padding: 6px 12px; border-radius: 20px; margin-right: 10px;">
+                        <span style="width: 7px; height: 7px; background: #43A047; border-radius: 50%; display: inline-block; animation: pulse 2s infinite;"></span>
+                        <span style="font-size: 11px; font-weight: 700; color: #43A047; letter-spacing: 0.5px;">LOCAL</span>
+                    </div>
+
+                    <button class="tb-btn" title="Notifications" style="background: #fff; border: 1px solid #eee; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; color: #555; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                        <i class="ti ti-bell"></i>
+                    </button>
+
+                    <button class="tb-btn" onclick="loadDashboard()" style="background: #fff; border: 1px solid #eee; padding: 0 14px; height: 38px; border-radius: 20px; cursor: pointer; color: #555; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                        <i class="ti ti-refresh"></i> Actualiser
+                    </button>
+
+                    <button class="btn-primary-sm" onclick="switchPage('orders')" style="background: #E91E63; color: #fff; border: none; padding: 0 16px; height: 38px; border-radius: 20px; cursor: pointer; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(233,30,99,0.2); transition: all 0.2s;">
+                        <i class="ti ti-plus"></i> Nouvelle commande
+                    </button>
+                </div>
+            </div>
+
+            <!-- 📦 CONTENU DU DASHBOARD (KPI & GRAPHIQUES) -->
+            <div style="padding: 0 25px;">
+
+                <!-- 📊 GRILLE DES KPI (CARTES STATISTIQUES) -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px;">
+
+                    <!-- Carte 1 : Chiffre d'affaires -->
+                    <div class="kpi-card" style="background: #fff; border: 1px solid #f9ebf2; padding: 22px; border-radius: 20px; box-shadow: 0 10px 25px rgba(233,30,99,0.02); position: relative; overflow: hidden; transition: all 0.3s ease;">
+                        <div style="position: absolute; right: -10px; bottom: -10px; font-size: 70px; opacity: 0.03; color: #E91E63; font-weight: 900;">💰</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 12px; font-weight: 700; color: #8c8c9b; text-transform: uppercase; letter-spacing: 0.5px;">Recettes du Jour</span>
+                            <span style="background: #FFEbee; color: #E91E63; padding: 3px 8px; border-radius: 20px; font-size: 10px; font-weight: 700;">+12.5%</span>
+                        </div>
+                        <div style="font-size: 24px; font-weight: 800; color: #1e1e2f; margin: 12px 0 4px 0;" id="dbRevenue">145,500 FCFA</div>
+                        <div style="font-size: 11px; color: #aaa;">Encaissé aujourd'hui</div>
+                    </div>
+
+                    <!-- Carte 2 : Commandes Actives -->
+                    <div class="kpi-card" style="background: #fff; border: 1px solid #eef2f8; padding: 22px; border-radius: 20px; box-shadow: 0 10px 25px rgba(30,136,229,0.02); position: relative; overflow: hidden; transition: all 0.3s ease;">
+                        <div style="position: absolute; right: -10px; bottom: -10px; font-size: 70px; opacity: 0.03; color: #1E88E5; font-weight: 900;">🍳</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 12px; font-weight: 700; color: #8c8c9b; text-transform: uppercase; letter-spacing: 0.5px;">En Cuisine</span>
+                            <span style="background: #E3F2FD; color: #1E88E5; padding: 3px 8px; border-radius: 20px; font-size: 10px; font-weight: 700;">Flux</span>
+                        </div>
+                        <div style="font-size: 24px; font-weight: 800; color: #1e1e2f; margin: 12px 0 4px 0;" id="dbActiveOrders">18 Commandes</div>
+                        <div style="font-size: 11px; color: #aaa;">En cours de préparation</div>
+                    </div>
+
+                    <!-- Carte 3 : Panier Moyen -->
+                    <div class="kpi-card" style="background: #fff; border: 1px solid #eaf5ee; padding: 22px; border-radius: 20px; box-shadow: 0 10px 25px rgba(67,160,71,0.02); position: relative; overflow: hidden; transition: all 0.3s ease;">
+                        <div style="position: absolute; right: -10px; bottom: -10px; font-size: 70px; opacity: 0.03; color: #43A047; font-weight: 900;">⭐</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 12px; font-weight: 700; color: #8c8c9b; text-transform: uppercase; letter-spacing: 0.5px;">Panier Moyen</span>
+                            <span style="background: #E8F5E9; color: #43A047; padding: 3px 8px; border-radius: 20px; font-size: 10px; font-weight: 700;">Stable</span>
+                        </div>
+                        <div style="font-size: 24px; font-weight: 800; color: #1e1e2f; margin: 12px 0 4px 0;" id="dbAvgBasket">5,800 FCFA</div>
+                        <div style="font-size: 11px; color: #aaa;">Valeur moyenne par ticket</div>
+                    </div>
+
+                    <!-- Carte 4 : Taux de Fidélité -->
+                    <div class="kpi-card" style="background: #fff; border: 1px solid #f3eef7; padding: 22px; border-radius: 20px; box-shadow: 0 10px 25px rgba(156,39,176,0.02); position: relative; overflow: hidden; transition: all 0.3s ease;">
+                        <div style="position: absolute; right: -10px; bottom: -10px; font-size: 70px; opacity: 0.03; color: #9C27B0; font-weight: 900;">👑</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 12px; font-weight: 700; color: #8c8c9b; text-transform: uppercase; letter-spacing: 0.5px;">Fidélisation</span>
+                            <span style="background: #F3E5F5; color: #9C27B0; padding: 3px 8px; border-radius: 20px; font-size: 10px; font-weight: 700;">VIP</span>
+                        </div>
+                        <div style="font-size: 24px; font-weight: 800; color: #1e1e2f; margin: 12px 0 4px 0;" id="dbLoyaltyRate">84 %</div>
+                        <div style="font-size: 11px; color: #aaa;">Taux de retour mensuel</div>
+                    </div>
+                </div>
+
+                <!-- ⚡ ZONE MIXTE : ACTIONS RAPIDES & VENTES PAR PRODUIT -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px;">
+
+                    <!-- Bloc Gauche : Ventes de produits phares -->
+                    <div style="background: #fff; border-radius: 24px; padding: 25px; border: 1px solid #f0e6eb; box-shadow: 0 10px 35px rgba(0,0,0,0.01);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1e1e2f;">🔥 Produits les plus vendus</h3>
+                            <span style="font-size: 11px; color: #8c8c9b; background: #f5f5f7; padding: 4px 12px; border-radius: 15px; font-weight: 600;">Aujourd'hui</span>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <!-- Produit 1 -->
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; border-radius: 16px; background: #fffcfd; border: 1px solid #fff0f5;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span style="font-size: 20px; background: #fff; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">🍔</span>
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 13.5px;">CHICKEN CRISPY BURGER</div>
+                                        <div style="font-size: 11px; color: #9c9cb2; margin-top: 2px;">42 unités vendues</div>
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-weight: 700; color: #E91E63; font-size: 13.5px;">117,600 F</div>
+                                    <div style="font-size: 10px; color: #43A047; font-weight: 600; margin-top: 2px;">📈 Top 1</div>
+                                </div>
+                            </div>
+
+                            <!-- Produit 2 -->
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; border-radius: 16px; background: #fafbfc; border: 1px solid #f0f4f8;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span style="font-size: 20px; background: #fff; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">🍟</span>
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 13.5px;">FRITES MAISON ÉPICÉES</div>
+                                        <div style="font-size: 11px; color: #9c9cb2; margin-top: 2px;">35 unités vendues</div>
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-weight: 700; color: #1e1e2f; font-size: 13.5px;">52,500 F</div>
+                                    <div style="font-size: 10px; color: #8c8c9b; margin-top: 2px;">Accompagnement</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bloc Droite : Raccourcis Cuisinier & Rappels -->
+                    <div style="background: linear-gradient(135deg, #1e1e2f 0%, #12121c 100%); border-radius: 24px; padding: 25px; color: #fff; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 12px 30px rgba(0,0,0,0.12);">
+                        <div>
+                            <h3 style="margin: 0 0 6px 0; font-size: 15px; font-weight: 700; color: #fff;">⚡ Actions Flash</h3>
+                            <p style="margin: 0 0 20px 0; color: #a2a2b5; font-size: 12px; line-height: 1.5;">Pilotez votre restaurant en un seul clic.</p>
+
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                <button onclick="switchPage('orders')" style="background: #E91E63; color: white; border: none; padding: 11px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;" onmouseover="this.style.background='#ff2e76';" onmouseout="this.style.background='#E91E63';">
+                                    🍳 Gérer les Cuissons
+                                </button>
+                                <button onclick="switchPage('products')" style="background: rgba(255,255,255,0.08); color: white; border: 1px solid rgba(255,255,255,0.1); padding: 11px; border-radius: 12px; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">
+                                    📦 Modifier la Carte / Menu
+                                </button>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 20px; background: rgba(233,30,99,0.1); border: 1px dashed rgba(233,30,99,0.3); padding: 10px; border-radius: 12px; text-align: center; font-size: 11px; color: #ff6097;">
+                            💡 <strong>Conseil :</strong> Pensez à actualiser régulièrement pour synchroniser les commandes clients.
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ✨ ANIMATIONS & HOVER CSS -->
+        <style>
+            @keyframes pulse {
+                0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(67, 160, 71, 0.7); }
+                70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(67, 160, 71, 0); }
+                100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(67, 160, 71, 0); }
+            }
+            .kpi-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 12px 25px rgba(0,0,0,0.04) !important;
+                border-color: #E91E6330 !important;
+            }
+        </style>
+
+        <!-- ════════════════════════════════════════════════════
+             PAGE : COMMANDES
+             ════════════════════════════════════════════════════ -->
+        <div id="orders" class="page">
+
+            <div class="topbar">
+                <div>
+                    <div class="page-title">Commandes</div>
+                    <div class="page-sub">Suivi en temps réel</div>
+                </div>
+                <div class="topbar-right">
+                    <select id="orderStatusFilter" onchange="loadOrders()"
+                            style="padding:9px 16px;border:1.5px solid #eee;border-radius:25px;
+                         font-size:13px;font-family:inherit;outline:none;
+                         background:#fff;cursor:pointer;color:#333;">
+                        <option value="all">Tous les statuts</option>
+                        <option value="PENDING">En attente</option>
+                        <option value="PREPARING">En préparation</option>
+                        <option value="READY">Prête</option>
+                        <option value="COMPLETED">Terminée</option>
+                        <option value="CANCELLED">Annulée</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="content">
+                <!-- table-card : classe requise par la pagination JS -->
+                <div class="table-card">
+                    <div class="table-wrap" id="ordersList"></div>
+                </div>
+            </div>
+        </div><!-- /page orders -->
+
+
+        <!-- ════════════════════════════════════════════════════
+             PAGE : PRODUITS
+             ════════════════════════════════════════════════════ -->
+        <div id="products" class="page">
+
+            <div class="topbar">
+                <div>
+                    <div class="page-title">Produits</div>
+                    <div class="page-sub">Catalogue et gestion du menu</div>
+                </div>
+                <div class="topbar-right">
+                    <!-- Bouton stats -->
+                    <button class="btn-stats" onclick="toggleStats()" id="statsToggleBtn">
+                        <span><i class="ti ti-chart-bar"></i></span>
+                        <span class="stats-text">Statistiques</span>
+                        <span class="stats-arrow">▼</span>
+                    </button>
+                    <!-- Toggle vue liste / grille -->
+                    <div class="view-toggle">
+                        <button class="btn btn-sm active" onclick="setView('list')" id="viewListBtn">
+                            📋 Liste
+                        </button>
+                        <button class="btn btn-sm" onclick="setView('grid')" id="viewGridBtn">
+                            🖼️ Grille
+                        </button>
+                    </div>
+                    <button class="btn-primary-sm" onclick="openProductModal()">
+                        <i class="ti ti-plus"></i> Nouveau produit
+                    </button>
+                    <button class="btn-primary-sm" onclick="exportTablePDF()"
+                            style="background:linear-gradient(135deg,#E91E63,#C2185B);">
+                        <i class="ti ti-file-text"></i> Catalogue PDF
+                    </button>
+                </div>
+            </div>
+
+            <div class="content">
+
+                <!-- ── Stories ─────────────────────────────────── -->
+                <div class="stories-block">
+                    <div class="stories-block-header">
+                        <div class="stories-block-title">
+                            <div class="s-icon"><i class="ti ti-device-mobile"></i></div>
+                            Stories produits
+                            <span class="s-count" id="storiesCount">0</span>
+                        </div>
+                        <div class="stories-block-actions">
+                            <button class="btn-stories-manage" onclick="openStoryManager()">
+                                ✦ Gérer les stories
+                            </button>
+                        </div>
+                    </div>
+                    <div class="stories-rail" id="storiesContainer">
+                        <!-- Injecté par renderStories() -->
+                    </div>
+                </div>
+
+                <!-- ── Panel statistiques produits ───────────── -->
+                <div class="stats-panel" id="statsPanel">
+                    <div class="stats-panel-header">
+                        <div class="stats-panel-title">
+                            <span>📊</span> Analytique des produits
+                            <span class="title-badge">temps réel</span>
+                        </div>
+                        <button class="stats-panel-close" onclick="toggleStats()">✕</button>
+                    </div>
+                    <div class="stats-panel-body">
+                        <div class="stats-grid-professional">
+                            <div class="stat-card-pro">
+                                <div class="stat-card-pro-icon"
+                                     style="background:linear-gradient(135deg,#E91E63,#C2185B);">📦</div>
+                                <div class="stat-card-pro-content">
+                                    <span class="stat-card-pro-label">Total produits</span>
+                                    <span class="stat-card-pro-value" id="totalProductsCount">0</span>
+                                    <span class="stat-card-pro-trend">Catalogue complet</span>
+                                </div>
+                            </div>
+                            <div class="stat-card-pro">
+                                <div class="stat-card-pro-icon"
+                                     style="background:linear-gradient(135deg,#43A047,#2E7D32);">✅</div>
+                                <div class="stat-card-pro-content">
+                                    <span class="stat-card-pro-label">Disponibles</span>
+                                    <span class="stat-card-pro-value" id="availableProductsCount">0</span>
+                                    <span class="stat-card-pro-trend">En vente</span>
+                                </div>
+                            </div>
+                            <div class="stat-card-pro">
+                                <div class="stat-card-pro-icon"
+                                     style="background:linear-gradient(135deg,#FF9800,#E65100);">❌</div>
+                                <div class="stat-card-pro-content">
+                                    <span class="stat-card-pro-label">Indisponibles</span>
+                                    <span class="stat-card-pro-value" id="unavailableProductsCount">0</span>
+                                    <span class="stat-card-pro-trend neg">Hors stock</span>
+                                </div>
+                            </div>
+                            <div class="stat-card-pro">
+                                <div class="stat-card-pro-icon"
+                                     style="background:linear-gradient(135deg,#9C27B0,#6A1B9A);">⭐</div>
+                                <div class="stat-card-pro-content">
+                                    <span class="stat-card-pro-label">Populaires</span>
+                                    <span class="stat-card-pro-value" id="popularProductsCount">0</span>
+                                    <span class="stat-card-pro-trend">Best-sellers</span>
+                                </div>
+                            </div>
+                            <div class="stat-card-pro">
+                                <div class="stat-card-pro-icon"
+                                     style="background:linear-gradient(135deg,#1E88E5,#0D47A1);">💰</div>
+                                <div class="stat-card-pro-content">
+                                    <span class="stat-card-pro-label">Prix moyen</span>
+                                    <span class="stat-card-pro-value" id="averagePrice">0 FCFA</span>
+                                    <span class="stat-card-pro-trend">Moyenne catalogue</span>
+                                </div>
+                            </div>
+                            <div class="stat-card-pro">
+                                <div class="stat-card-pro-icon"
+                                     style="background:linear-gradient(135deg,#FF5722,#BF360C);">🏷️</div>
+                                <div class="stat-card-pro-content">
+                                    <span class="stat-card-pro-label">Catégories</span>
+                                    <span class="stat-card-pro-value" id="categoriesCount">0</span>
+                                    <span class="stat-card-pro-trend">Familles de produits</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Graphique mini catégories -->
+                        <div class="stats-chart-mini">
+                            <div class="stats-chart-mini-header">📈 Répartition par catégorie</div>
+                            <div class="stats-chart-mini-body" id="categoryChart"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Filtres avancés ─────────────────────────
+                     Classe .filters-advanced requise par le JS
+                     pour injecter la bulk-actions bar juste après -->
+                <div class="filters-advanced">
+                    <div class="filters-row">
+                        <div class="filter-group">
+                            <label>🔍 Recherche</label>
+                            <input type="text" id="searchProduct"
+                                   placeholder="Nom du produit..."
+                                   onkeyup="debounceSearch()">
+                        </div>
+                        <div class="filter-group">
+                            <label>📂 Catégorie</label>
+                            <select id="categoryFilter" onchange="loadProducts()">
+                                <option value="all">Toutes</option>
+                                <option value="Burger">🍔 Burgers</option>
+                                <option value="Pizza">🍕 Pizzas</option>
+                                <option value="Boisson">🥤 Boissons</option>
+                                <option value="Dessert">🍰 Desserts</option>
+                                <option value="Accompagnement">🍟 Accompagnements</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>💰 Prix</label>
+                            <select id="priceFilter" onchange="loadProducts()">
+                                <option value="all">Tous les prix</option>
+                                <option value="0-1000">Moins de 1 000 FCFA</option>
+                                <option value="1000-2000">1 000 – 2 000 FCFA</option>
+                                <option value="2000-3000">2 000 – 3 000 FCFA</option>
+                                <option value="3000-5000">3 000 – 5 000 FCFA</option>
+                                <option value="5000-999999">Plus de 5 000 FCFA</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>📦 Disponibilité</label>
+                            <select id="availabilityFilter" onchange="loadProducts()">
+                                <option value="all">Tous</option>
+                                <option value="available">✅ Disponibles</option>
+                                <option value="unavailable">❌ Indisponibles</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="filters-row">
+                        <div class="filter-group">
+                            <label>🏷️ Tags</label>
+                            <select id="tagFilter" onchange="loadProducts()">
+                                <option value="all">Tous les tags</option>
+                                <option value="nouveau">🌟 Nouveau</option>
+                                <option value="promo">🔥 Promo</option>
+                                <option value="bio">🌿 Bio</option>
+                                <option value="populaire">⭐ Populaire</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>📊 Trier par</label>
+                            <select id="sortFilter" onchange="loadProducts()">
+                                <option value="name-asc">Nom (A–Z)</option>
+                                <option value="name-desc">Nom (Z–A)</option>
+                                <option value="price-asc">Prix croissant</option>
+                                <option value="price-desc">Prix décroissant</option>
+                                <option value="id-asc">🔢 ID croissant</option>
+                                <option value="id-desc">🔢 ID décroissant</option>
+                                <option value="popularity">⭐ Plus vendus</option>
+                                <option value="newest">📅 Plus récents</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>📅 Date</label>
+                            <select id="dateFilter" onchange="loadProducts()">
+                                <option value="all">Toutes les dates</option>
+                                <option value="today">Aujourd'hui</option>
+                                <option value="week">Cette semaine</option>
+                                <option value="month">Ce mois</option>
+                                <option value="year">Cette année</option>
+                            </select>
+                        </div>
+                        <div class="filter-group filter-actions">
+                            <button class="btn btn-secondary" onclick="resetFilters()">
+                                🔄 Réinitialiser
+                            </button>
+                            <span class="filter-count" id="filterCount">0 produits</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- bulkActions injecté par le JS juste après .filters-advanced -->
+
+                <!-- ── Table / Grille produits ─────────────────
+                     .table-card requis par renderPagination() -->
+                <div class="table-card">
+                    <div id="productsListView" class="table-wrap"></div>
+                    <div id="productsGridView" class="products-grid" style="display:none;"></div>
+                    <!-- .pagination-container injectée ici par renderPagination() -->
+                </div>
+
+            </div><!-- /content products -->
+        </div><!-- /page products -->
+
+
+        <!-- ════════════════════════════════════════════════════
+             PAGE : CLIENTS
+             ════════════════════════════════════════════════════ -->
+        <div id="clients" class="page">
+
+            <div class="topbar">
+                <div>
+                    <div class="page-title">Clients</div>
+                    <div class="page-sub">Base de données clients</div>
+                </div>
+                <div class="topbar-right">
+                    <input type="text" id="searchClient"
+                           placeholder="Rechercher par nom ou téléphone..."
+                           onkeyup="searchClients()"
+                           style="width:280px;padding:9px 18px;border:1.5px solid #eee;
+                        border-radius:25px;font-size:13px;font-family:inherit;
+                        outline:none;color:#333;background:#fff;">
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="table-card">
+                    <div class="table-wrap" id="clientsList"></div>
+                </div>
+            </div>
+        </div><!-- /page clients -->
+
+    </div><!-- /main -->
+</div><!-- /layout -->
+
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL : AJOUTER / MODIFIER PRODUIT
+     ══════════════════════════════════════════════════════════ -->
+<div id="productModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">➕ Ajouter un produit</h3>
+            <button class="close-btn" onclick="closeModal()">✕</button>
+        </div>
+
+        <input type="hidden" id="productId">
+
+        <div class="form-group">
+            <label>Nom du produit</label>
+            <input type="text" id="productName" placeholder="Ex: Cheeseburger Maison">
+        </div>
+        <div class="form-group">
+            <label>Catégorie</label>
+            <select id="productCategory">
+                <option value="Burger">🍔 Burger</option>
+                <option value="Pizza">🍕 Pizza</option>
+                <option value="Boisson">🥤 Boisson</option>
+                <option value="Dessert">🍰 Dessert</option>
+                <option value="Accompagnement">🍟 Accompagnement</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Prix (FCFA)</label>
+            <input type="number" id="productPrice" placeholder="Ex: 2500">
+        </div>
+
+        <!-- Upload image -->
+        <div class="form-group" style="grid-column:span 2;">
+            <label>Image du produit 📸</label>
+            <div id="dropZone" class="drop-zone">
+                <span class="drop-icon">☁️</span>
+                <p>Glissez-déposez une image ici ou <strong>cliquez pour parcourir</strong></p>
+                <input type="file" id="productImageFile" accept="image/*" hidden>
+                <img id="imagePreview" src="" alt="Aperçu" style="display:none;">
+            </div>
+            <div style="margin-top:12px;text-align:center;position:relative;">
+        <span style="background:#fff;padding:0 10px;color:#aaa;font-size:12px;
+                     position:relative;z-index:1;">OU</span>
+                <hr style="position:absolute;top:50%;left:0;width:100%;
+                   border:none;border-top:1px solid #eee;margin:0;z-index:0;">
+            </div>
+            <input type="text" id="productImageUrl"
+                   placeholder="Coller une URL d'image existante..."
+                   style="margin-top:12px;">
+        </div>
+
+        <div class="form-group checkbox-row">
+            <input type="checkbox" id="productAvailable" checked>
+            <label for="productAvailable">✅ Produit disponible à la vente</label>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
+            <button class="btn btn-primary" onclick="saveProduct()">💾 Enregistrer</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL : CONFIRMATION SUPPRESSION
+     ══════════════════════════════════════════════════════════ -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content" style="max-width:400px;">
+        <div class="modal-header">
+            <h3>⚠️ Confirmer la suppression</h3>
+            <button class="close-btn" onclick="closeDeleteModal()">✕</button>
+        </div>
+        <div style="padding:4px 0 16px;">
+            <p style="font-size:14px;color:#555;margin-bottom:8px;">
+                Voulez-vous vraiment supprimer <strong id="deleteProductName"></strong> ?
+            </p>
+            <p style="font-size:12px;color:#e53935;">Cette action est irréversible.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeDeleteModal()">Annuler</button>
+            <button class="btn btn-danger"  onclick="confirmDelete()">🗑️ Supprimer</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     QUICK VIEW PANEL
+     ══════════════════════════════════════════════════════════ -->
+<div id="quickViewOverlay" class="qv-overlay" onclick="closeQuickView(event)">
+    <div class="qv-panel" onclick="event.stopPropagation()">
+
+        <div class="qv-header">
+            <div class="qv-header-left">
+                <span class="qv-category-dot"></span>
+                <span id="qvCategory">Catégorie</span>
+            </div>
+            <button class="qv-close" onclick="closeQuickView()">✕</button>
+        </div>
+
+        <div class="qv-img-zone">
+            <img id="qvImage" src="" alt="" style="display:none;">
+            <div class="qv-img-fallback" id="qvFallback">
+                <span id="qvEmoji">🍔</span>
+            </div>
+            <div class="qv-img-badge" id="qvAvailable">✅</div>
+        </div>
+
+        <div class="qv-body">
+            <h2 id="qvName">Nom du produit</h2>
+            <div class="qv-info-row">
+                <div class="qv-info-item">
+                    <span class="qv-info-label">Prix</span>
+                    <span class="qv-info-value" id="qvPrice">0 FCFA</span>
+                </div>
+                <div class="qv-info-item">
+                    <span class="qv-info-label">ID</span>
+                    <span class="qv-info-value" id="qvId">#0</span>
+                </div>
+                <div class="qv-info-item">
+                    <span class="qv-info-label">Popularité</span>
+                    <span class="qv-info-value" id="qvPopularity">0 ⭐</span>
+                </div>
+            </div>
+            <div class="qv-tags" id="qvTags"></div>
+            <div class="qv-actions">
+                <button class="btn btn-primary" onclick="quickViewEdit()">✏️ Modifier</button>
+                <button class="btn btn-outline" onclick="quickViewDelete()">🗑️ Supprimer</button>
+            </div>
+        </div>
+
+    </div>
+</div><!-- /quick-view -->
+
+
+<!-- ══════════════════════════════════════════════════════════
+     JS PRINCIPAL
+     ══════════════════════════════════════════════════════════ -->
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL : DÉTAILS AVANCÉS D'UNE COMMANDE (PRESTIGE)
+     ══════════════════════════════════════════════════════════ -->
+<div id="orderDetailModal" class="modal">
+    <div class="modal-content" style="max-width: 600px; border-left: 5px solid #E91E63;">
+        <div class="modal-header">
+            <h3><span id="detOrderIcon">📦</span> Détails de la Commande <span id="detOrderId" style="color:#E91E63;">#...</span></h3>
+            <button class="close-btn" onclick="closeOrderDetailModal()">✕</button>
+        </div>
+
+        <div class="modal-body-rich" style="padding: 15px 0;">
+            <!-- Infos Client & Statut -->
+            <div style="display: flex; justify-content: space-between; background: #fbf5f7; padding: 12px; border-radius: 12px; margin-bottom: 15px;">
+                <div>
+                    <h4 style="margin:0 0 4px 0; color:#181823;">👤 Client & Contact</h4>
+                    <p id="detClientName" style="margin:2px 0; font-size:14px; font-weight:bold;"></p>
+                    <p id="detClientPhone" style="margin:2px 0; font-size:13px; color:#666;"></p>
+                </div>
+                <div style="text-align: right;">
+                    <h4 style="margin:0 0 4px 0; color:#181823;">⏱️ Horodatage</h4>
+                    <p id="detOrderDate" style="margin:2px 0; font-size:13px; color:#555;"></p>
+                    <span id="detStatusBadge" class="status-badge" style="display:inline-block; margin-top:5px;">—</span>
+                </div>
+            </div>
+
+            <!-- Liste des Articles -->
+            <h4 style="margin: 15px 0 8px 0; color:#181823; display:flex; align-items:center; gap:6px;">
+                🍳 Composition du Chef-d'Œuvre
+            </h4>
+            <div id="detItemsList" style="background:#fff; border:1px solid #eee; border-radius:12px; overflow:hidden;">
+                <!-- Injecté dynamiquement -->
+            </div>
+
+            <!-- Notes spéciales -->
+            <div style="margin-top: 15px;">
+                <h4 style="margin:0 0 4px 0; color:#181823;">📝 Note ou Instructions Particulières</h4>
+                <p id="detOrderNotes" style="margin:0; font-size:13px; font-style:italic; color:#777; background:#fff8fa; padding:10px; border-radius:8px; border-left:3px solid #ffb3cd;"></p>
+            </div>
+
+            <!-- Total Financier -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-top:15px; border-top:2px dashed #eee;">
+                <span style="font-size:16px; font-weight:bold; color:#181823;">Montant Total à Encaisser</span>
+                <span id="detOrderTotal" style="font-size:22px; font-weight:900; color:#E91E63;">0 FCFA</span>
+            </div>
+        </div>
+
+        <div class="modal-footer" style="margin-top: 15px;">
+            <button class="btn btn-outline" onclick="closeOrderDetailModal()">Fermer la vue</button>
+            <button class="btn btn-primary" id="detPrintBtn"><i class="ti ti-printer"></i> Imprimer Ticket</button>
+        </div>
+    </div>
+</div>
+
+<div id="storyAnalyticsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(24, 24, 35, 0.4); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 9999;">
+    <div style="background: #fff; width: 100%; max-width: 460px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); overflow: hidden; border: 1px solid rgba(255,255,255,0.8); animation: modalSlideUp 0.25s ease-out;">
+
+        <div style="padding: 20px 25px; border-bottom: 1px solid #f5edf1; display: flex; justify-content: space-between; align-items: center; background: #fffcfd;">
+            <div>
+                <h3 id="analyticsStoryTitle" style="margin: 0; font-size: 16px; font-weight: 700; color: #1e1e2f;">—</h3>
+                <p style="margin: 3px 0 0 0; font-size: 12px; color: #8c8c9b;">Audience exclusive au cours des dernières 24 heures</p>
+            </div>
+            <button onclick="closeStoryAnalytics()" style="background: #f5f5f7; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; color: #555; font-weight: bold; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">✕</button>
+        </div>
+
+        <div style="padding: 22px 25px;">
+            <div style="display: flex; align-items: center; gap: 15px; background: linear-gradient(135deg, #fff5f8, #fdf6fc); padding: 15px; border-radius: 16px; margin-bottom: 20px; border: 1px solid #fce4ec;">
+                <div style="font-size: 26px; background: #fff; width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(233,30,99,0.05);">📊</div>
+                <div>
+                    <div style="font-size: 22px; font-weight: 800; color: #E91E63;" id="analyticsTotalViews">0 vue</div>
+                    <div style="font-size: 11.5px; color: #7b7b8c; font-weight: 500;">Portée unique sur ton catalogue Shashap</div>
+                </div>
+            </div>
+
+            <h4 style="margin: 0 0 12px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #8c8c9b; font-weight: 700;">👥 Spectateurs identifiés</h4>
+
+            <div style="max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px;" id="analyticsViewersList">
+            </div>
+        </div>
+
+        <div style="padding: 15px 25px; background: #faf8fa; border-top: 1px solid #f5edf1;">
+            <button onclick="closeStoryAnalytics()" style="background: #1e1e2f; color: white; border: none; padding: 11px; border-radius: 14px; font-weight: 600; font-size: 13px; cursor: pointer; width: 100%; transition: opacity 0.2s;">
+                Fermer l'analyse
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes modalSlideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    /* Personnalisation de la scrollbar de la modal */
+    #analyticsViewersList::-webkit-scrollbar { width: 5px; }
+    #analyticsViewersList::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 10px; }
+</style>
+
+<script src="/js/shashap.js"></script>
+<script src="/js/orders.js"></script>
+<script src="/js/clients.js"></script>
+</body>
+</html>

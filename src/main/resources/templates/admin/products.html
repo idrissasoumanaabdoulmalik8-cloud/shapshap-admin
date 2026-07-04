@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="products">
+    <div class="page-header">
+        <div>
+            <h2>🍔 Produits</h2>
+            <p class="subtitle">Gérez votre catalogue de produits et menus</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <!-- Bouton Statistiques -->
+            <button class="btn btn-stats" onclick="toggleStats()" id="statsToggleBtn">
+                <span class="stats-icon">📊</span>
+                <span class="stats-text">Statistiques</span>
+                <span class="stats-arrow">▼</span>
+            </button>
+            <!-- Vue Toggle -->
+            <div class="view-toggle">
+                <button class="btn btn-sm btn-secondary active" onclick="setView('list')" id="viewListBtn">
+                    📋 Liste
+                </button>
+                <button class="btn btn-sm btn-secondary" onclick="setView('grid')" id="viewGridBtn">
+                    🖼️ Grille
+                </button>
+            </div>
+            <button class="btn btn-primary" onclick="openProductModal()">➕ Nouveau produitS</button>
+        </div>
+    </div>
+
+    <!-- ===== PANEL STATISTIQUES ===== -->
+    <div class="stats-panel" id="statsPanel">
+        <div class="stats-panel-header">
+            <div class="stats-panel-title">
+                <span class="title-icon">📊</span>
+                <span>Analytique des produits</span>
+                <span class="title-badge">en temps réel</span>
+            </div>
+            <button class="stats-panel-close" onclick="toggleStats()">✕</button>
+        </div>
+        <div class="stats-panel-body">
+            <div class="stats-grid-professional">
+                <div class="stat-card-pro">
+                    <div class="stat-card-pro-icon" style="background:linear-gradient(135deg,#E91E63,#C2185B);">
+                        📦
+                    </div>
+                    <div class="stat-card-pro-content">
+                        <span class="stat-card-pro-label">Total produits</span>
+                        <span class="stat-card-pro-value" id="totalProductsCount">0</span>
+                        <span class="stat-card-pro-trend">+12% ce mois</span>
+                    </div>
+                </div>
+                <div class="stat-card-pro">
+                    <div class="stat-card-pro-icon" style="background:linear-gradient(135deg,#4CAF50,#2E7D32);">
+                        ✅
+                    </div>
+                    <div class="stat-card-pro-content">
+                        <span class="stat-card-pro-label">Disponibles</span>
+                        <span class="stat-card-pro-value" id="availableProductsCount">0</span>
+                        <span class="stat-card-pro-trend">+8% ce mois</span>
+                    </div>
+                </div>
+                <div class="stat-card-pro">
+                    <div class="stat-card-pro-icon" style="background:linear-gradient(135deg,#FF9800,#E65100);">
+                        ❌
+                    </div>
+                    <div class="stat-card-pro-content">
+                        <span class="stat-card-pro-label">Indisponibles</span>
+                        <span class="stat-card-pro-value" id="unavailableProductsCount">0</span>
+                        <span class="stat-card-pro-trend">-3% ce mois</span>
+                    </div>
+                </div>
+                <div class="stat-card-pro">
+                    <div class="stat-card-pro-icon" style="background:linear-gradient(135deg,#9C27B0,#6A1B9A);">
+                        ⭐
+                    </div>
+                    <div class="stat-card-pro-content">
+                        <span class="stat-card-pro-label">Populaires</span>
+                        <span class="stat-card-pro-value" id="popularProductsCount">0</span>
+                        <span class="stat-card-pro-trend">+15% ce mois</span>
+                    </div>
+                </div>
+                <div class="stat-card-pro">
+                    <div class="stat-card-pro-icon" style="background:linear-gradient(135deg,#2196F3,#0D47A1);">
+                        💰
+                    </div>
+                    <div class="stat-card-pro-content">
+                        <span class="stat-card-pro-label">Prix moyen</span>
+                        <span class="stat-card-pro-value" id="averagePrice">0 FCFA</span>
+                        <span class="stat-card-pro-trend">+5% ce mois</span>
+                    </div>
+                </div>
+                <div class="stat-card-pro">
+                    <div class="stat-card-pro-icon" style="background:linear-gradient(135deg,#FF5722,#BF360C);">
+                        🏷️
+                    </div>
+                    <div class="stat-card-pro-content">
+                        <span class="stat-card-pro-label">Catégories</span>
+                        <span class="stat-card-pro-value" id="categoriesCount">0</span>
+                        <span class="stat-card-pro-trend">5 catégories</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mini graphique -->
+            <div class="stats-chart-mini">
+                <div class="stats-chart-mini-header">
+                    <span>📈 Répartition par catégorie</span>
+                </div>
+                <div class="stats-chart-mini-body" id="categoryChart"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FILTRES AVANCÉS ===== -->
+    <div class="filters-advanced">
+        <div class="filters-row">
+            <div class="filter-group">
+                <label>🔍 Recherche</label>
+                <input type="text" id="searchProduct" placeholder="Nom du produit..." onkeyup="debounceSearch()">
+            </div>
+            <div class="filter-group">
+                <label>📂 Catégorie</label>
+                <select id="categoryFilter" onchange="loadProducts()">
+                    <option value="all">Toutes les catégories</option>
+                    <option value="Burger">🍔 Burgers</option>
+                    <option value="Pizza">🍕 Pizzas</option>
+                    <option value="Boisson">🥤 Boissons</option>
+                    <option value="Dessert">🍰 Desserts</option>
+                    <option value="Accompagnement">🍟 Accompagnements</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>💰 Prix</label>
+                <select id="priceFilter" onchange="loadProducts()">
+                    <option value="all">Tous les prix</option>
+                    <option value="0-1000">Moins de 1 000 FCFA</option>
+                    <option value="1000-2000">1 000 - 2 000 FCFA</option>
+                    <option value="2000-3000">2 000 - 3 000 FCFA</option>
+                    <option value="3000-5000">3 000 - 5 000 FCFA</option>
+                    <option value="5000-999999">Plus de 5 000 FCFA</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>📦 Disponibilité</label>
+                <select id="availabilityFilter" onchange="loadProducts()">
+                    <option value="all">Tous</option>
+                    <option value="available">✅ Disponibles</option>
+                    <option value="unavailable">❌ Indisponibles</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="filters-row">
+            <div class="filter-group">
+                <label>🏷️ Tags</label>
+                <select id="tagFilter" onchange="loadProducts()">
+                    <option value="all">Tous les tags</option>
+                    <option value="nouveau">🌟 Nouveau</option>
+                    <option value="promo">🔥 Promo</option>
+                    <option value="bio">🌿 Bio</option>
+                    <option value="populaire">⭐ Populaire</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>📊 Trier par</label>
+                <select id="sortFilter" onchange="loadProducts()">
+                    <option value="name-asc">Nom (A-Z)</option>
+                    <option value="name-desc">Nom (Z-A)</option>
+                    <option value="price-asc">Prix (croissant)</option>
+                    <option value="price-desc">Prix (décroissant)</option>
+                    <option value="popularity">⭐ Les plus vendus</option>
+                    <option value="newest">📅 Plus récents</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>📅 Date d'ajout</label>
+                <select id="dateFilter" onchange="loadProducts()">
+                    <option value="all">Toutes les dates</option>
+                    <option value="today">Aujourd'hui</option>
+                    <option value="week">Cette semaine</option>
+                    <option value="month">Ce mois</option>
+                    <option value="year">Cette année</option>
+                </select>
+            </div>
+            <div class="filter-group filter-actions">
+                <button class="btn btn-secondary" onclick="resetFilters()">🔄 Réinitialiser</button>
+                <span class="filter-count" id="filterCount">0 produits</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== LISTE DES PRODUITS ===== -->
+    <div class="table-card">
+        <div id="productsListView" class="table-wrap"></div>
+        <div id="productsGridView" class="products-grid" style="display:none;"></div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL PRODUIT -->
+<!-- ============================================================ -->
+<div th:fragment="productModal">
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">➕ Ajouter un produit</h3>
+                <button class="close-btn" onclick="closeModal()">✕</button>
+            </div>
+            <input type="hidden" id="productId">
+
+            <div class="form-group">
+                <label>Nom du produit</label>
+                <input type="text" id="productName" class="form-control" placeholder="Ex: Cheeseburger Maison">
+            </div>
+            <div class="form-group">
+                <label>Catégorie</label>
+                <select id="productCategory" class="form-control">
+                    <option value="Burger">🍔 Burger</option>
+                    <option value="Pizza">🍕 Pizza</option>
+                    <option value="Boisson">🥤 Boisson</option>
+                    <option value="Dessert">🍰 Dessert</option>
+                    <option value="Accompagnement">🍟 Accompagnement</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Prix (FCFA)</label>
+                <input type="number" id="productPrice" class="form-control" placeholder="Ex: 2500">
+            </div>
+            <div class="form-group">
+                <label>Image du produit</label>
+                <div class="file-upload-area" onclick="document.getElementById('productImageFile').click()">
+                    📤 Cliquer pour choisir une image &nbsp;·&nbsp; PNG, JPG, WEBP – max 2 MB
+                    <input type="file" id="productImageFile" accept="image/*" style="display:none;">
+                </div>
+                <div class="img-preview-row">
+                    <img id="imagePreview" src="/uploads/default-product.png" class="img-preview" loading="lazy" onerror="this.style.display='none'">
+                    <div style="flex:1;">
+                        <input type="text" id="productImageUrl" class="form-control" placeholder="Ou collez une URL d'image">
+                        <small style="color:#bbb;font-size:11px;display:block;margin-top:4px;">Laisser vide si vous utilisez l'image uploadée</small>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group checkbox-row">
+                <input type="checkbox" id="productAvailable" checked>
+                <label for="productAvailable">✅ Produit disponible à la vente</label>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
+                <button class="btn btn-primary" onclick="saveProduct()">💾 Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL SUPPRESSION -->
+<!-- ============================================================ -->
+<div th:fragment="deleteModal">
+    <div id="deleteModal" class="modal">
+        <div class="modal-content" style="max-width:400px;">
+            <div class="modal-header">
+                <h3>⚠️ Confirmer la suppression</h3>
+                <button class="close-btn" onclick="closeDeleteModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <p>Voulez-vous vraiment supprimer <strong id="deleteProductName"></strong> ?</p>
+                <p style="color:#e53935;font-size:13px;">Cette action est irréversible.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeDeleteModal()">Annuler</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">🗑️ Supprimer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- STYLES STATISTIQUES PROFESSIONNELLES -->
+<!-- ============================================================ -->
+<style>
+    /* ===== BOUTON STATISTIQUES ===== */
+    .btn-stats {
+        background: linear-gradient(135deg, #E91E63, #C2185B);
+        color: white;
+        border: none;
+        padding: 9px 20px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(233,30,99,0.3);
+        font-family: var(--font);
+    }
+
+    .btn-stats:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(233,30,99,0.4);
+    }
+
+    .btn-stats .stats-arrow {
+        transition: transform 0.3s ease;
+        font-size: 10px;
+    }
+
+    .btn-stats.active .stats-arrow {
+        transform: rotate(180deg);
+    }
+
+    .btn-stats .stats-icon {
+        font-size: 16px;
+    }
+
+    /* ===== PANEL STATISTIQUES ===== */
+    .stats-panel {
+        display: none;
+        background: white;
+        border-radius: var(--radius);
+        margin-bottom: 20px;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+        border: 1px solid rgba(233,30,99,0.08);
+        overflow: hidden;
+        animation: slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .stats-panel.open {
+        display: block;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.98);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .stats-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 24px;
+        background: linear-gradient(135deg, #fce4ec 0%, #f8f4f6 100%);
+        border-bottom: 1px solid rgba(233,30,99,0.06);
+    }
+
+    .stats-panel-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 18px;
+        font-weight: 700;
+        color: #1a1a2e;
+    }
+
+    .stats-panel-title .title-icon {
+        font-size: 22px;
+    }
+
+    .stats-panel-title .title-badge {
+        font-size: 10px;
+        font-weight: 600;
+        background: rgba(233,30,99,0.12);
+        color: var(--rose);
+        padding: 2px 12px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stats-panel-close {
+        background: rgba(233,30,99,0.08);
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 16px;
+        color: #888;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stats-panel-close:hover {
+        background: rgba(233,30,99,0.15);
+        color: var(--rose);
+        transform: rotate(90deg);
+    }
+
+    .stats-panel-body {
+        padding: 24px;
+    }
+
+    /* ===== STATS GRID PROFESSIONNEL ===== */
+    .stats-grid-professional {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card-pro {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 20px;
+        background: #fafafa;
+        border-radius: 12px;
+        border: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card-pro::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--rose), var(--pink-light));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .stat-card-pro:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        border-color: var(--rose-light);
+    }
+
+    .stat-card-pro:hover::before {
+        opacity: 1;
+    }
+
+    .stat-card-pro-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
+        color: white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .stat-card-pro-content {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
+
+    .stat-card-pro-label {
+        font-size: 12px;
+        color: #888;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .stat-card-pro-value {
+        font-size: 24px;
+        font-weight: 800;
+        color: #1a1a2e;
+        line-height: 1.2;
+        margin-top: 2px;
+    }
+
+    .stat-card-pro-trend {
+        font-size: 11px;
+        color: #4CAF50;
+        font-weight: 500;
+        margin-top: 2px;
+    }
+
+    .stat-card-pro-trend.negative {
+        color: #F44336;
+    }
+
+    /* ===== CHART MINI ===== */
+    .stats-chart-mini {
+        background: #fafafa;
+        border-radius: 12px;
+        padding: 16px 20px;
+        border: 1px solid #f0f0f0;
+    }
+
+    .stats-chart-mini-header {
+        font-size: 13px;
+        font-weight: 600;
+        color: #666;
+        margin-bottom: 12px;
+    }
+
+    .stats-chart-mini-body {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .chart-category-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        padding: 6px 14px 6px 10px;
+        border-radius: 20px;
+        border: 1px solid #f0f0f0;
+        font-size: 13px;
+        font-weight: 500;
+        color: #444;
+    }
+
+    .chart-category-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .chart-category-count {
+        font-weight: 700;
+        color: #1a1a2e;
+        margin-left: 4px;
+    }
+
+    /* ===== FILTRES AVANCÉS ===== */
+    .filters-advanced {
+        background: white;
+        padding: 20px;
+        border-radius: var(--radius);
+        margin-bottom: 20px;
+        box-shadow: var(--shadow);
+        border: 1px solid rgba(233,30,99,0.05);
+    }
+
+    .filters-row {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+    }
+
+    .filters-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1;
+        min-width: 140px;
+    }
+
+    .filter-group label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .filter-group input,
+    .filter-group select {
+        padding: 8px 12px;
+        border: 1.5px solid #eee;
+        border-radius: 10px;
+        font-size: 13px;
+        font-family: var(--font);
+        background: #fff;
+        transition: var(--transition);
+        outline: none;
+        width: 100%;
+    }
+
+    .filter-group input:focus,
+    .filter-group select:focus {
+        border-color: var(--rose);
+        box-shadow: 0 0 0 3px rgba(233,30,99,0.08);
+    }
+
+    .filter-group input::placeholder {
+        color: #bbb;
+    }
+
+    .filter-actions {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-end;
+        gap: 10px;
+        min-width: 200px;
+    }
+
+    .filter-actions .btn {
+        padding: 8px 16px;
+        font-size: 13px;
+        height: 38px;
+        white-space: nowrap;
+    }
+
+    .filter-count {
+        display: flex;
+        align-items: center;
+        font-size: 13px;
+        color: #888;
+        font-weight: 500;
+        white-space: nowrap;
+        height: 38px;
+        padding: 0 8px;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1024px) {
+        .stats-grid-professional {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .stats-grid-professional {
+            grid-template-columns: 1fr;
+        }
+        .stats-panel-header {
+            padding: 14px 16px;
+        }
+        .stats-panel-title {
+            font-size: 15px;
+        }
+        .stats-panel-title .title-badge {
+            display: none;
+        }
+        .stats-panel-body {
+            padding: 16px;
+        }
+        .stat-card-pro {
+            padding: 12px 16px;
+        }
+        .stat-card-pro-value {
+            font-size: 20px;
+        }
+        .btn-stats .stats-text {
+            display: none;
+        }
+        .filters-row {
+            flex-direction: column;
+        }
+        .filter-group {
+            min-width: 100%;
+        }
+        .filter-actions {
+            flex-wrap: wrap;
+        }
+        .filter-actions .btn {
+            flex: 1;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .stats-panel {
+            border-radius: 12px;
+        }
+        .stats-grid-professional {
+            gap: 10px;
+        }
+        .stat-card-pro-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+        }
+        .stat-card-pro-value {
+            font-size: 18px;
+        }
+        .stats-chart-mini-body {
+            gap: 8px;
+        }
+        .chart-category-item {
+            font-size: 12px;
+            padding: 4px 10px 4px 8px;
+        }
+        .filters-advanced {
+            padding: 12px;
+        }
+        .filter-actions {
+            flex-direction: column;
+        }
+        .filter-actions .btn {
+            width: 100%;
+        }
+    }
+</style>
+</html>
