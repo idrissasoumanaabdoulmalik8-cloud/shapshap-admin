@@ -18,23 +18,40 @@ repositories {
 }
 
 dependencies {
-
+	// Web & Templates
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
+	// Sécurité
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+
+	// Base de données (JPA & MySQL)
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 
+	// Lombok (Productivité)
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
+	// Tests
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+// --- CONFIGURATION POUR LE DÉPLOIEMENT CLOUD ---
+
+// Désactive le jar standard "plain" non exécutable
+jar {
+	enabled = false
+}
+
+// Force un nom unique et prévisible pour le JAR exécutable final
+bootJar {
+	archiveFileName = 'app.jar'
 }
