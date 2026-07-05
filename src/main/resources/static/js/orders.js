@@ -98,12 +98,12 @@ function hideNewOrderBadge() {
 // ============================================================================
 
 function connectOrdersWebSocket() {
-    const wsUrl = 'ws://localhost:8080/ws';
+    const wsUrl = 'wss://shapshap-admin-malik.up.railway.app/ws';
     const socket = new WebSocket(wsUrl);
 
     socket.onopen = () => {
         console.log('📡 WebSocket commandes connecté');
-        socket.send('CONNECT\naccept-version:1.1,1.2\nhost:localhost\n\n\0');
+        socket.send('CONNECT\naccept-version:1.1,1.2\nhost:shapshap-admin-malik.up.railway.app\n\n\0');
         socket.send('SUBSCRIBE\nid:sub-orders\ndestination:/topic/orders\n\n\0');
         console.log('📡 Abonné à /topic/orders ✅');
     };
