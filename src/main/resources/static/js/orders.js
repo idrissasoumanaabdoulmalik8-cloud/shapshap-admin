@@ -2,7 +2,7 @@
 // 📦 ORDERS.JS — GESTION COMPLÈTE DES COMMANDES (TEMPS RÉEL + NOTIFICATIONS)
 // ============================================================================
 
-const API_ORDERS = '/api/orders';
+const API_ORDERS = 'https://shapshap-admin-malik.up.railway.app/api/orders';
 let allOrders = [];
 let notificationAlarm = null;
 

@@ -1,6 +1,5 @@
 // API URL
-const API_URL = '/api';
-
+const API_URL = 'https://shapshap-admin-malik.up.railway.app/api';
 // Service Produits
 const ProductService = {
     // Récupérer tous les produits

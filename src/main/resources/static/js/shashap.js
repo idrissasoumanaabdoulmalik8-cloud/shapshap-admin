@@ -2,7 +2,7 @@
    SHASHAP ADMIN — JS v3.0
    Adapté au nouveau dashboard harmonieux
    ============================================================ */
-const API = 'https://tonprojet.up.railway.app/api';
+const API = 'https://shapshap-admin-malik.up.railway.app/api';
 //const API = "http://localhost:8080/api";
 // ── État global ──────────────────────────────────────────────
 let allProducts        = [];
@@ -1763,7 +1763,7 @@ async function exportTablePDF() {
     showToast('Génération de l\'expérience premium...', 'info');
 
     // 1. Chargement asynchrone des images rondes et du QR Code artistique
-    const menuUrl = 'https://shashap.com/menu';
+    const menuUrl = 'https://shapshap-admin-malik.up.railway.app';
     const [qrCodeImg] = await Promise.all([
       fetchQrCodeBase64(menuUrl),
       ...products.map(async (p) => {
