@@ -102,6 +102,9 @@ public class ProductController {
             if (productDetails.getIsStory() != null) {
                 existingProduct.setIsStory(productDetails.getIsStory());
             }
+            if (productDetails.getDescription() != null) {
+                existingProduct.setDescription(productDetails.getDescription());
+            }
 
             Product updatedProduct = productRepository.save(existingProduct);
             return ResponseEntity.ok(updatedProduct);
@@ -227,7 +230,7 @@ public class ProductController {
                 }
             }
 
-            result.add(new ProductStory(
+            ProductStory productStory = new ProductStory(
                     p.getName(),
                     p.getImageUrl(),
                     0,
@@ -235,7 +238,15 @@ public class ProductController {
                     originalPrice,
                     discountedPrice,
                     s.isSeen()
-            ));
+            );
+
+            // ✅ Champs événement (soirée artiste, DJ, etc.)
+            productStory.setEvent(s.isEvent());
+            productStory.setEventDate(s.getEventDate());
+            productStory.setArtistName(s.getArtistName());
+            productStory.setDescription(s.getDescription());
+
+            result.add(productStory);
 
             System.out.println("✅ Story #" + s.getOrderIndex() + " : " + p.getName()
                     + " | image=" + p.getImageUrl()
@@ -278,6 +289,12 @@ public class ProductController {
                 story.setPromo(ps.getPromoLabel());
                 story.setOrderIndex(i);
                 story.setSeen(ps.isSeen());
+
+                // ✅ Champs événement
+                story.setEvent(ps.isEvent());
+                story.setEventDate(ps.getEventDate());
+                story.setArtistName(ps.getArtistName());
+                story.setDescription(ps.getDescription());
 
                 storyRepository.save(story);
 

@@ -27,4 +27,17 @@ public class Story {
 
     @Column(name = "seen")
     private boolean seen;
+
+    // ✅ NOUVEAU : champs pour les stories "ÉVÉNEMENT" (soirée artiste, DJ, etc.)
+    @Column(name = "is_event")
+    private boolean isEvent;
+
+    @Column(name = "event_date")
+    private String eventDate; // ex: "Ven 12 Juil · 20h"
+
+    @Column(name = "artist_name")
+    private String artistName; // ex: "DJ Malik"
+
+    @Column(name = "description", length = 1000)
+    private String description; // description libre de l'événement
 }

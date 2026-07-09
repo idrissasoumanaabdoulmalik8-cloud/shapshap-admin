@@ -1,5 +1,6 @@
 package shashap_backand.demo.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
 public class ProductStory implements Serializable {
@@ -11,6 +12,22 @@ public class ProductStory implements Serializable {
     private int originalPrice;
     private int discountedPrice;
     private boolean isSeen;
+
+    // ✅ NOUVEAU : champs pour les stories "ÉVÉNEMENT"
+    // @JsonProperty garantit que le nom JSON envoyé à l'app Android correspond
+    // EXACTEMENT à ce qu'attend @SerializedName côté Gson (Android), sans
+    // dépendre des conventions de nommage automatiques de Jackson.
+    @JsonProperty("isEvent")
+    private boolean isEvent;
+
+    @JsonProperty("eventDate")
+    private String eventDate;
+
+    @JsonProperty("artistName")
+    private String artistName;
+
+    @JsonProperty("description")
+    private String description;
 
     // ==========================================
     // ✅ CONSTRUCTEUR VIDE (obligatoire pour la sérialisation)
@@ -91,6 +108,38 @@ public class ProductStory implements Serializable {
 
     public void setSeen(boolean seen) {
         this.isSeen = seen;
+    }
+
+    public boolean isEvent() {
+        return isEvent;
+    }
+
+    public void setEvent(boolean event) {
+        this.isEvent = event;
+    }
+
+    public String getEventDate() {
+        return eventDate;
+    }
+
+    public void setEventDate(String eventDate) {
+        this.eventDate = eventDate;
+    }
+
+    public String getArtistName() {
+        return artistName;
+    }
+
+    public void setArtistName(String artistName) {
+        this.artistName = artistName;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override

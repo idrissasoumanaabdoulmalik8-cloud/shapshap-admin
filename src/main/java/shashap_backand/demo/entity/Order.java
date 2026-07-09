@@ -23,6 +23,10 @@ public class Order {
     private Boolean isTakeaway;
     private String address;
 
+    // ✅ NOUVEAU : coordonnées GPS choisies via la carte intégrée (Android)
+    private Double latitude;
+    private Double longitude;
+
     @Column(name = "client_id")
     private Long clientId;
 
@@ -125,6 +129,22 @@ public class Order {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
     }
 
     public Long getClientId() {

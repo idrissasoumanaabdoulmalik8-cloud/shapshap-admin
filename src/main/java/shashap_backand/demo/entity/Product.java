@@ -25,6 +25,10 @@ public class Product {
     // 🎯 NOUVEAU : true si le produit doit être affiché dans la frise des stories, false sinon
     private Boolean isStory;
 
+    // ✅ NOUVEAU : description affichée sur l'écran détail produit (app Android)
+    @Column(length = 1000)
+    private String description;
+
     // Constructeurs
     public Product() {}
 
@@ -48,6 +52,7 @@ public class Product {
     public Boolean getIsAvailable() { return isAvailable; }
     public Integer getDiscount() { return discount; }
     public Boolean getIsStory() { return isStory; } // 👈 AJOUTÉ
+    public String getDescription() { return description; }
 
     // Setters
     public void setId(Long id) { this.id = id; }
@@ -58,4 +63,5 @@ public class Product {
     public void setIsAvailable(Boolean isAvailable) { this.isAvailable = isAvailable; }
     public void setDiscount(Integer discount) { this.discount = discount; }
     public void setIsStory(Boolean isStory) { this.isStory = isStory; } // 👈 AJOUTÉ
+    public void setDescription(String description) { this.description = description; }
 }
