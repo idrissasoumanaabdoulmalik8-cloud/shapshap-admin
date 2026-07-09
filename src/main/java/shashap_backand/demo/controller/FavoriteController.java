@@ -1,6 +1,7 @@
 package shashap_backand.demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import shashap_backand.demo.entity.Favorite;
 import shashap_backand.demo.entity.Product;
@@ -65,7 +66,12 @@ public class FavoriteController {
     // Retirer un favori
     // ================================================
     @DeleteMapping("/{phoneNumber}/{productId}")
-    public void removeFavorite(@PathVariable String phoneNumber, @PathVariable Long productId) {
-        favoriteRepository.deleteByPhoneNumberAndProductId(phoneNumber, productId);
+    public ResponseEntity<Void> removeFavorite(@PathVariable String phoneNumber, @PathVariable Long productId) {
+        return favoriteRepository.findByPhoneNumberAndProductId(phoneNumber, productId)
+                .map(fav -> {
+                    favoriteRepository.delete(fav);
+                    return ResponseEntity.ok().<Void>build();
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 }
