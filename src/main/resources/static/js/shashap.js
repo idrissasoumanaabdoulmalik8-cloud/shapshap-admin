@@ -1277,6 +1277,17 @@ function openStoryManager() {
             <input type="text" id="storyArtistName" placeholder="Nom de l'artiste / DJ" style="padding:10px;border:1px solid #eee;border-radius:8px;font-size:13px;">
             <input type="text" id="storyEventDate" placeholder="Date (ex: Ven 12 Juil · 20h)" style="padding:10px;border:1px solid #eee;border-radius:8px;font-size:13px;">
             <textarea id="storyEventDesc" placeholder="Description de l'événement..." rows="2" style="padding:10px;border:1px solid #eee;border-radius:8px;font-size:13px;resize:vertical;"></textarea>
+            <!-- 🖼️ Photo événement -->
+            <div>
+              <label style="font-size:12px;color:#888;margin-bottom:4px;display:block;">🖼️ Affiche / Photo de l'événement</label>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input type="text" id="storyEventImage" placeholder="URL de l'image..." style="flex:1;padding:10px;border:1px solid #eee;border-radius:8px;font-size:13px;">
+                <span style="font-size:11px;color:#aaa;">ou</span>
+                <button type="button" onclick="document.getElementById('storyEventImageFile').click()" style="background:#fff;border:1px solid #E91E63;color:#E91E63;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:12px;white-space:nowrap;">📁 Upload</button>
+                <input type="file" id="storyEventImageFile" accept="image/*" onchange="uploadEventImage()" style="display:none;">
+              </div>
+              <img id="storyEventPreview" src="" style="display:none;max-width:100%;max-height:120px;border-radius:8px;margin-top:8px;border:1px solid #eee;">
+            </div>
           </div>
         </div>
 
@@ -1365,25 +1376,50 @@ function openStoryManager() {
   }).catch(() => showToast('❌ Erreur chargement produits', 'error'));
 }
 
-// ✅ Nouvelle fonction pour afficher/masquer les champs événement
+// ✅ Afficher/masquer les champs événement
 function toggleEventFields() {
   const checked = document.getElementById('storyIsEvent')?.checked;
   const fields = document.getElementById('eventFields');
   if (fields) fields.style.display = checked ? 'flex' : 'none';
 }
 
-// ✅ Modifier saveStories() pour inclure les champs événement
+// ✅ Upload image événement
+async function uploadEventImage() {
+  const fileInput = document.getElementById('storyEventImageFile');
+  const preview = document.getElementById('storyEventPreview');
+  const urlInput = document.getElementById('storyEventImage');
+
+  if (!fileInput.files || !fileInput.files[0]) return;
+
+  const formData = new FormData();
+  formData.append('file', fileInput.files[0]);
+
+  try {
+    const response = await axios.post(API + '/products/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    urlInput.value = response.data;
+    preview.src = response.data;
+    preview.style.display = 'block';
+    showToast('✅ Image uploadée !');
+  } catch(e) {
+    showToast('❌ Erreur upload', 'error');
+  }
+}
+
+// ✅ Sauvegarde des stories avec événement
 function saveStories() {
   const isEvent = document.getElementById('storyIsEvent')?.checked || false;
   const artistName = document.getElementById('storyArtistName')?.value || '';
   const eventDate = document.getElementById('storyEventDate')?.value || '';
   const eventDesc = document.getElementById('storyEventDesc')?.value || '';
+  const eventImage = document.getElementById('storyEventImage')?.value || '';
 
   if (isEvent && (artistName || eventDate)) {
     const eventStory = {
       id: Date.now(),
       name: artistName || 'Événement',
-      image: null,
+      image: eventImage || null,
       category: 'Événement',
       price: 0,
       promo: null,
