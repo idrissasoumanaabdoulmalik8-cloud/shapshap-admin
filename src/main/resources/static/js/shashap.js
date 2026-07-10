@@ -1185,6 +1185,7 @@ function renderViewerContent(overlay, index) {
   const imgSrc       = story.image ? freshImg(story.image) : null;
   const hasPromo     = !!story.promo;
   const discounted   = hasPromo ? Math.round((story.price||0) * (1 - parseInt(story.promo)/100)) : null;
+  const isEvent      = story.isEvent === true;
 
   const imgZone = imgSrc
     ? `<img src="${imgSrc}"
@@ -1199,6 +1200,29 @@ function renderViewerContent(overlay, index) {
          <p>${story.category||'Produit'}</p>
        </div>`;
 
+  // ✅ Corps de la story (prix caché pour les événements)
+  const storyBody = isEvent ? `
+    <div class="viewer-cat-label"><span class="viewer-cat-dot"></span>🎤 Événement</div>
+    <div class="viewer-product-name">${story.artistName || story.name || 'Événement'}</div>
+    <div style="color:#F5A623;font-size:14px;font-weight:600;margin-top:6px;">📅 ${story.eventDate || ''}</div>
+    <div style="color:#888;font-size:13px;margin-top:8px;line-height:1.4;">${story.description || ''}</div>
+    <div class="story-viewer-cta" style="margin-top:16px;">
+      <button class="btn-view" onclick="editStoryEvent(${index})">✏️ Modifier l'événement</button>
+    </div>
+  ` : `
+    <div class="viewer-cat-label"><span class="viewer-cat-dot"></span>${story.category||''}</div>
+    <div class="viewer-product-name">${story.name||'Sans nom'}</div>
+    <div class="viewer-price-row">
+      <span class="viewer-price-main">${fmtPrice(hasPromo ? discounted : story.price)}</span>
+      <span class="viewer-price-unit">FCFA</span>
+      ${hasPromo ? `<span class="viewer-old-price">${fmtPrice(story.price)} FCFA</span>
+                    <span class="viewer-promo-chip">${story.promo}</span>` : ''}
+    </div>
+    <div class="story-viewer-cta">
+      <button class="btn-view" onclick="closeStoryViewer()">🛒 Voir le produit</button>
+    </div>
+  `;
+
   overlay.innerHTML = `
     <div class="story-viewer-card">
       <div class="story-progress-bar">
@@ -1209,24 +1233,14 @@ function renderViewerContent(overlay, index) {
           <div class="viewer-brand-icon">🌸</div>
           <div class="viewer-brand-info">
             <p>Shashap</p>
-            <small>${story.category||'Produit'}</small>
+            <small>${isEvent ? 'Événement' : story.category||'Produit'}</small>
           </div>
         </div>
         <button class="story-viewer-close-btn" onclick="closeStoryViewer()">✕</button>
       </div>
       <div class="story-viewer-img-zone">${imgZone}</div>
       <div class="story-viewer-body">
-        <div class="viewer-cat-label"><span class="viewer-cat-dot"></span>${story.category||''}</div>
-        <div class="viewer-product-name">${story.name||'Sans nom'}</div>
-        <div class="viewer-price-row">
-          <span class="viewer-price-main">${fmtPrice(hasPromo ? discounted : story.price)}</span>
-          <span class="viewer-price-unit">FCFA</span>
-          ${hasPromo ? `<span class="viewer-old-price">${fmtPrice(story.price)} FCFA</span>
-                        <span class="viewer-promo-chip">${story.promo}</span>` : ''}
-        </div>
-        <div class="story-viewer-cta">
-          <button class="btn-view" onclick="closeStoryViewer()">🛒 Voir le produit</button>
-        </div>
+        ${storyBody}
       </div>
       <div class="story-dots">
         ${storiesData.map((_,i) =>
@@ -1239,12 +1253,11 @@ function renderViewerContent(overlay, index) {
       ` : ''}
     </div>`;
 
-  // Reset barre de progression (force re-animation CSS)
   const fill = overlay.querySelector('#storyProgressFill');
   if (fill) {
     const clone = fill.cloneNode(true);
     fill.parentNode.replaceChild(clone, fill);
-    void clone.offsetHeight; // reflow
+    void clone.offsetHeight;
     clone.style.animation = 'progress-fill 4s linear forwards';
   }
 
@@ -1257,6 +1270,46 @@ function renderViewerContent(overlay, index) {
     () => index < storiesData.length - 1 ? nextStory() : closeStoryViewer(),
     4000
   );
+}
+function editStoryEvent(index) {
+  const story = storiesData[index];
+  if (!story) return;
+
+  // Fermer le viewer
+  closeStoryViewer();
+
+  // Ouvrir le gestionnaire de stories
+  openStoryManager();
+
+  // Pré-remplir les champs événement après un court délai (le temps que le modal s'ouvre)
+  setTimeout(() => {
+    const isEventCheck = document.getElementById('storyIsEvent');
+    if (isEventCheck) {
+      isEventCheck.checked = true;
+      toggleEventFields();
+    }
+    const artistInput = document.getElementById('storyArtistName');
+    const dateInput = document.getElementById('storyEventDate');
+    const descInput = document.getElementById('storyEventDesc');
+    const imageInput = document.getElementById('storyEventImage');
+    const preview = document.getElementById('storyEventPreview');
+
+    if (artistInput) artistInput.value = story.artistName || '';
+    if (dateInput) dateInput.value = story.eventDate || '';
+    if (descInput) descInput.value = story.description || '';
+    if (imageInput && story.image) {
+      imageInput.value = story.image;
+      if (preview) {
+        preview.src = story.image;
+        preview.style.display = 'block';
+      }
+    }
+
+    // Supprimer l'ancienne story événement pour éviter les doublons
+    storiesData = storiesData.filter(s => s.id !== story.id);
+    saveStoriesToStorage();
+    renderStories();
+  }, 500);
 }
 
 function nextStory() {
