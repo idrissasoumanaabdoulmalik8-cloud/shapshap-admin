@@ -1281,7 +1281,7 @@ function openStoryManager() {
             <div>
               <label style="font-size:12px;color:#888;margin-bottom:4px;display:block;">🖼️ Affiche / Photo de l'événement</label>
               <div style="display:flex;gap:8px;align-items:center;">
-                <input type="text" id="storyEventImage" placeholder="URL de l'image..." style="flex:1;padding:10px;border:1px solid #eee;border-radius:8px;font-size:13px;">
+                <input type="text" id="storyEventImage" placeholder="URL de l'image..." oninput="previewEventImageUrl()" style="flex:1;padding:10px;border:1px solid #eee;border-radius:8px;font-size:13px;">
                 <span style="font-size:11px;color:#aaa;">ou</span>
                 <button type="button" onclick="document.getElementById('storyEventImageFile').click()" style="background:#fff;border:1px solid #E91E63;color:#E91E63;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:12px;white-space:nowrap;">📁 Upload</button>
                 <input type="file" id="storyEventImageFile" accept="image/*" onchange="uploadEventImage()" style="display:none;">
@@ -1383,6 +1383,13 @@ function toggleEventFields() {
   if (fields) fields.style.display = checked ? 'flex' : 'none';
 }
 
+function previewEventImageUrl() {
+  const urlInput = document.getElementById('storyEventImage');
+  const preview = document.getElementById('storyEventPreview');
+  if (urlInput && preview && urlInput.value) {
+    preview.src = urlInput.value;
+    preview.style.display = 'block';
+  }
 // ✅ Upload image événement
 async function uploadEventImage() {
   const fileInput = document.getElementById('storyEventImageFile');
@@ -1394,15 +1401,29 @@ async function uploadEventImage() {
   const formData = new FormData();
   formData.append('file', fileInput.files[0]);
 
+  // ✅ Afficher l'aperçu immédiatement (avant l'upload)
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    preview.src = e.target.result;
+    preview.style.display = 'block';
+  };
+  reader.readAsDataURL(fileInput.files[0]);
+
   try {
+    showToast('⏳ Upload en cours...');
     const response = await axios.post(API + '/products/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    urlInput.value = response.data;
-    preview.src = response.data;
+
+    // ✅ Mettre à jour l'URL et l'aperçu
+    const imageUrl = response.data;
+    urlInput.value = imageUrl;
+    preview.src = imageUrl;
     preview.style.display = 'block';
+    console.log("🖼️ Image uploadée:", imageUrl);
     showToast('✅ Image uploadée !');
   } catch(e) {
+    console.error("❌ Erreur upload:", e);
     showToast('❌ Erreur upload', 'error');
   }
 }
@@ -1410,26 +1431,38 @@ async function uploadEventImage() {
 // ✅ Sauvegarde des stories avec événement
 function saveStories() {
   const isEvent = document.getElementById('storyIsEvent')?.checked || false;
-  const artistName = document.getElementById('storyArtistName')?.value || '';
-  const eventDate = document.getElementById('storyEventDate')?.value || '';
-  const eventDesc = document.getElementById('storyEventDesc')?.value || '';
-  const eventImage = document.getElementById('storyEventImage')?.value || '';
 
-  if (isEvent && (artistName || eventDate)) {
-    const eventStory = {
-      id: Date.now(),
-      name: artistName || 'Événement',
-      image: eventImage || null,
-      category: 'Événement',
-      price: 0,
-      promo: null,
-      seen: false,
-      isEvent: true,
-      eventDate: eventDate,
-      artistName: artistName,
-      description: eventDesc
-    };
-    storiesData.unshift(eventStory);
+  if (isEvent) {
+    const artistName = document.getElementById('storyArtistName')?.value || '';
+    const eventDate = document.getElementById('storyEventDate')?.value || '';
+    const eventDesc = document.getElementById('storyEventDesc')?.value || '';
+    const eventImage = document.getElementById('storyEventImage')?.value || '';
+    const previewImg = document.getElementById('storyEventPreview');
+
+    // ✅ Récupérer l'image depuis l'aperçu si pas d'URL dans le champ texte
+    let finalImage = eventImage;
+    if (!finalImage && previewImg && previewImg.src && previewImg.style.display !== 'none') {
+      finalImage = previewImg.src;
+    }
+
+    console.log("🖼️ Image événement sauvegardée:", finalImage);
+
+    if (artistName || eventDate) {
+      const eventStory = {
+        id: Date.now(),
+        name: artistName || 'Événement',
+        image: finalImage || null,
+        category: 'Événement',
+        price: 0,
+        promo: null,
+        seen: false,
+        isEvent: true,
+        eventDate: eventDate,
+        artistName: artistName,
+        description: eventDesc
+      };
+      storiesData.unshift(eventStory);
+    }
   }
 
   saveStoriesToStorage();
