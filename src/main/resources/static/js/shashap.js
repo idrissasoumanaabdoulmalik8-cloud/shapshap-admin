@@ -1052,31 +1052,76 @@ function syncStoriesImages() {
 }
 
 function renderStories() {
-  // 🎯 On cible exactement le conteneur de ton HTML
   const c = document.getElementById('storiesContainer');
   if (!c) return;
   c.innerHTML = '';
 
-  // 📈 Mise à jour automatique de ton compteur de stories de la page produit
   const countEl = document.getElementById('storiesCount');
   if (countEl) {
     countEl.textContent = storiesData ? storiesData.length : 0;
   }
 
-  // Si le tableau est vraiment vide (aucune story créée)
   if (!storiesData || storiesData.length === 0) {
     c.innerHTML = '<p style="color:#8c8c9b; font-size:12px; padding: 15px; margin:0;">Aucune story active</p>';
     return;
   }
 
-  // On boucle sur TES vraies stories issues de ton ajout/modification
   storiesData.forEach((story, index) => {
+    // 🎤 STORY ÉVÉNEMENT → carte rectangulaire
+    if (story.isEvent) {
+      const eventCard = document.createElement('div');
+      eventCard.className = 'story-item';
+      eventCard.style.cssText = `
+        display: flex; flex-direction: column; cursor: pointer; min-width: 130px; max-width: 130px;
+        height: 150px; border-radius: 16px; overflow: hidden; position: relative;
+        background: linear-gradient(135deg, #F5A623, #8E24AA); transition: transform 0.2s;
+        flex-shrink: 0; margin-right: 10px;
+      `;
+
+      // Image de fond si présente
+      let bgStyle = '';
+      if (story.image) {
+        bgStyle = `background-image: url('${story.image}'); background-size: cover; background-position: center;`;
+      }
+
+      eventCard.innerHTML = `
+        <div style="position:absolute;inset:0;${bgStyle}"></div>
+        <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(245,166,35,0.7),rgba(142,36,170,0.7));"></div>
+        <div style="position:relative;z-index:1;display:flex;flex-direction:column;height:100%;padding:8px;">
+          <span style="background:rgba(255,255,255,0.25);border:1px solid rgba(245,166,35,0.6);color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;align-self:flex-start;">
+            🎤 ÉVÉNEMENT
+          </span>
+          <div style="flex:1;"></div>
+          <div style="font-weight:700;color:#fff;font-size:12px;line-height:1.2;text-shadow:0 1px 3px rgba(0,0,0,0.5);">
+            ${story.artistName || story.name || 'Événement'}
+          </div>
+          <div style="color:#FFD54F;font-size:10px;margin-top:2px;text-shadow:0 1px 2px rgba(0,0,0,0.5);">
+            ${story.eventDate || ''}
+          </div>
+        </div>
+      `;
+
+      eventCard.addEventListener('click', () => {
+        if (typeof openStoryViewer === 'function') {
+          openStoryViewer(index);
+        } else {
+          openStoryAnalytics(index);
+        }
+      });
+
+      eventCard.addEventListener('mouseenter', () => eventCard.style.transform = 'scale(1.04)');
+      eventCard.addEventListener('mouseleave', () => eventCard.style.transform = 'scale(1)');
+
+      c.appendChild(eventCard);
+      return;
+    }
+
+    // 🍔 STORY PRODUIT CLASSIQUE → cercle (inchangé)
     let imgSrc = story.image || null;
     if (typeof freshImg === 'function' && story.image) {
       try { imgSrc = freshImg(story.image); } catch(e) {}
     }
 
-    // Calcul de l'émoji selon la catégorie de ton produit
     let emoji = "🍔";
     const cat = (story.category || "").toLowerCase();
     if (cat.includes("pizz")) emoji = "🍕";
