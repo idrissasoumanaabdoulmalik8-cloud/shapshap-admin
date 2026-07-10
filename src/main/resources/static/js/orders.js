@@ -355,6 +355,107 @@ async function updateOrderStatus(orderId, newStatus) {
 }
 
 // ============================================================================
+// 🗺️ MINI-CARTE (Leaflet / OpenStreetMap) — position de livraison
+// Même famille de cartes que l'appli Android (osmdroid), donc cohérent
+// visuellement, et surtout : PAS besoin de clé API Google Maps.
+// ============================================================================
+
+let detOrderMapInstance = null;
+
+function ensureLeafletLoaded(callback) {
+    if (window.L) {
+        callback();
+        return;
+    }
+    if (!document.getElementById('leaflet-css')) {
+        const link = document.createElement('link');
+        link.id = 'leaflet-css';
+        link.rel = 'stylesheet';
+        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        document.head.appendChild(link);
+    }
+    if (!document.getElementById('leaflet-js')) {
+        const script = document.createElement('script');
+        script.id = 'leaflet-js';
+        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        script.onload = callback;
+        document.body.appendChild(script);
+    } else {
+        // Script déjà en cours de chargement ailleurs, on patiente un peu
+        setTimeout(() => ensureLeafletLoaded(callback), 200);
+    }
+}
+
+function ensureMapContainer() {
+    let mapContainer = document.getElementById('detOrderMapContainer');
+    if (!mapContainer) {
+        const notesEl = document.getElementById('detOrderNotes');
+        mapContainer = document.createElement('div');
+        mapContainer.id = 'detOrderMapContainer';
+        mapContainer.style.cssText = 'margin-top:16px;';
+        mapContainer.innerHTML = `
+            <div style="font-size:12px; font-weight:600; color:#888; margin-bottom:6px;">
+                📍 Position de livraison
+            </div>
+            <div id="detOrderMap" style="width:100%; height:200px; border-radius:12px; overflow:hidden; border:1px solid #eee;"></div>
+            <a id="detOrderMapLink" href="#" target="_blank" rel="noopener"
+               style="display:inline-block; margin-top:6px; font-size:12px; color:#E91E63; font-weight:600; text-decoration:none;">
+               🔗 Ouvrir dans Google Maps
+            </a>
+        `;
+        if (notesEl && notesEl.parentElement) {
+            notesEl.parentElement.insertAdjacentElement('afterend', mapContainer);
+        } else {
+            document.body.appendChild(mapContainer);
+        }
+    }
+    return mapContainer;
+}
+
+function renderOrderMap(order) {
+    const container = ensureMapContainer();
+
+    if (!order.latitude || !order.longitude) {
+        container.style.display = 'none';
+        return;
+    }
+    container.style.display = 'block';
+
+    const lat = order.latitude;
+    const lng = order.longitude;
+
+    document.getElementById('detOrderMapLink').href =
+        `https://www.google.com/maps?q=${lat},${lng}`;
+
+    ensureLeafletLoaded(() => {
+        const mapDiv = document.getElementById('detOrderMap');
+        if (!mapDiv) return;
+
+        // Détruire l'ancienne instance avant d'en recréer une
+        // (sinon Leaflet plante en réutilisant le même <div>)
+        if (detOrderMapInstance) {
+            detOrderMapInstance.remove();
+            detOrderMapInstance = null;
+        }
+
+        detOrderMapInstance = L.map('detOrderMap').setView([lat, lng], 15);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap',
+            maxZoom: 19
+        }).addTo(detOrderMapInstance);
+
+        L.marker([lat, lng]).addTo(detOrderMapInstance)
+            .bindPopup(`📍 ${order.customerName || order.clientName || 'Client'}`)
+            .openPopup();
+
+        // Correctif classique Leaflet : recalcule la taille une fois le
+        // conteneur réellement visible (sinon la carte reste grise/coupée)
+        setTimeout(() => detOrderMapInstance.invalidateSize(), 200);
+    });
+}
+
+// ============================================================================
 // 🔎 MODAL DÉTAILS COMMANDE
 // ============================================================================
 
@@ -395,6 +496,8 @@ function openOrderDetailModal(orderId) {
 
     document.getElementById('orderDetailModal').style.display = 'flex';
 
+    renderOrderMap(order);
+
     document.getElementById('detPrintBtn').onclick = () => {
         window.print();
     };
@@ -402,6 +505,13 @@ function openOrderDetailModal(orderId) {
 
 function closeOrderDetailModal() {
     document.getElementById('orderDetailModal').style.display = 'none';
+
+    // Nettoyage : on détruit la carte pour éviter les fuites mémoire
+    // et les bugs si on rouvre une commande différente juste après
+    if (detOrderMapInstance) {
+        detOrderMapInstance.remove();
+        detOrderMapInstance = null;
+    }
 }
 
 // ============================================================================
