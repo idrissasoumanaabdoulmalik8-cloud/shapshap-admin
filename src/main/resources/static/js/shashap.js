@@ -58,12 +58,14 @@ function switchPage(page) {
     orders    : 'Commandes',
     products  : 'Produits',
     clients   : 'Clients',
+    favorites : '❤️ Favoris',
   };
   const subs = {
     dashboard : 'Vue d\'ensemble en temps réel',
     orders    : 'Suivi en temps réel',
     products  : 'Catalogue et gestion du menu',
     clients   : 'Base de données clients',
+    favorites : 'Produits likés par vos clients',
   };
   const titleEl = document.getElementById('pageTitle');
   const subEl   = document.getElementById('pageSub');
@@ -75,6 +77,7 @@ function switchPage(page) {
   else if (page === 'orders')    loadOrders();
   else if (page === 'products')  loadProducts();
   else if (page === 'clients')   loadClients();
+  else if (page === 'favorites') loadFavorites();
 }
 
 // ============================================================
