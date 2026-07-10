@@ -1258,16 +1258,30 @@ function openStoryManager() {
       document.body.appendChild(modal);
     }
     modal.innerHTML = `
-      <div class="modal-content" style="max-width:580px;">
+      <div class="modal-content" style="max-width:650px;">
         <div class="modal-header">
           <h3>📱 Gestion des Stories</h3>
           <button class="close-btn" onclick="closeStoryManager()">✕</button>
         </div>
-        <p style="font-size:13px;color:#aaa;margin-bottom:13px;">
+        <p style="font-size:13px;color:#aaa;margin-bottom:6px;">
           Sélectionnez les produits à afficher. Vous pouvez ajouter une promotion.
         </p>
+
+        <!-- 🎤 SECTION ÉVÉNEMENT -->
+        <div style="background:linear-gradient(135deg,#fff5f8,#fdf6fc);border:1px solid #fce4ec;border-radius:12px;padding:14px;margin-bottom:14px;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:700;color:#E91E63;font-size:14px;">
+            <input type="checkbox" id="storyIsEvent" onchange="toggleEventFields()" style="accent-color:#E91E63;width:18px;height:18px;">
+            🎤 C'est un événement (soirée DJ, artiste, live...)
+          </label>
+          <div id="eventFields" style="display:none;margin-top:12px;flex-direction:column;gap:10px;">
+            <input type="text" id="storyArtistName" placeholder="Nom de l'artiste / DJ" style="padding:10px;border:1px solid #eee;border-radius:8px;font-size:13px;">
+            <input type="text" id="storyEventDate" placeholder="Date (ex: Ven 12 Juil · 20h)" style="padding:10px;border:1px solid #eee;border-radius:8px;font-size:13px;">
+            <textarea id="storyEventDesc" placeholder="Description de l'événement..." rows="2" style="padding:10px;border:1px solid #eee;border-radius:8px;font-size:13px;resize:vertical;"></textarea>
+          </div>
+        </div>
+
         <div class="story-manager-list" id="storyManagerList"></div>
-        <div class="modal-footer">
+        <div class="modal-footer" style="margin-top:14px;">
           <button class="btn btn-outline" onclick="closeStoryManager()">Annuler</button>
           <button class="btn btn-primary" onclick="saveStories()">💾 Enregistrer les stories</button>
         </div>
@@ -1321,6 +1335,7 @@ function openStoryManager() {
               id: product.id, name: product.name,
               image: product.imageUrl||null, category: product.category,
               price: product.price, promo: promoSel.value||null, seen: false,
+              isEvent: false, eventDate: '', artistName: '', description: ''
             });
           }
         } else {
@@ -1328,7 +1343,6 @@ function openStoryManager() {
           item.classList.remove('selected');
           storiesData = storiesData.filter(s => s.id !== id);
         }
-        // Mise à jour ordres
         list.querySelectorAll('.story-checkbox').forEach(c2 => {
           const i2  = parseInt(c2.dataset.id);
           const si  = storiesData.findIndex(s => s.id === i2);
@@ -1340,7 +1354,6 @@ function openStoryManager() {
       });
     });
 
-    // Events promo selects
     list.querySelectorAll('.promo-select').forEach(sel => {
       sel.addEventListener('change', function() {
         const id    = parseInt(this.dataset.id);
@@ -1350,6 +1363,44 @@ function openStoryManager() {
     });
 
   }).catch(() => showToast('❌ Erreur chargement produits', 'error'));
+}
+
+// ✅ Nouvelle fonction pour afficher/masquer les champs événement
+function toggleEventFields() {
+  const checked = document.getElementById('storyIsEvent')?.checked;
+  const fields = document.getElementById('eventFields');
+  if (fields) fields.style.display = checked ? 'flex' : 'none';
+}
+
+// ✅ Modifier saveStories() pour inclure les champs événement
+function saveStories() {
+  const isEvent = document.getElementById('storyIsEvent')?.checked || false;
+  const artistName = document.getElementById('storyArtistName')?.value || '';
+  const eventDate = document.getElementById('storyEventDate')?.value || '';
+  const eventDesc = document.getElementById('storyEventDesc')?.value || '';
+
+  if (isEvent && (artistName || eventDate)) {
+    const eventStory = {
+      id: Date.now(),
+      name: artistName || 'Événement',
+      image: null,
+      category: 'Événement',
+      price: 0,
+      promo: null,
+      seen: false,
+      isEvent: true,
+      eventDate: eventDate,
+      artistName: artistName,
+      description: eventDesc
+    };
+    storiesData.unshift(eventStory);
+  }
+
+  saveStoriesToStorage();
+  renderStories();
+  closeStoryManager();
+  syncStoriesToBackend();
+  showToast('✅ Stories enregistrées et synchronisées');
 }
 // Fonction d'ouverture de l'analyse d'audience
 function openStoryAnalytics(index) {
