@@ -1390,6 +1390,7 @@ function previewEventImageUrl() {
     preview.src = urlInput.value;
     preview.style.display = 'block';
   }
+ }
 // ✅ Upload image événement
 async function uploadEventImage() {
   const fileInput = document.getElementById('storyEventImageFile');
@@ -1521,16 +1522,7 @@ function closeStoryAnalytics() {
   document.getElementById('storyAnalyticsModal').style.display = 'none';
 }
 
-function saveStories() {
-    saveStoriesToStorage();
-    renderStories();
-    closeStoryManager();
 
-    // ✅ SYNCHRONISER AVEC LE BACKEND POUR L'APP ANDROID
-    syncStoriesToBackend();
-
-    showToast('✅ Stories enregistrées et synchronisées');
-}
 function closeStoryManager() { const m = document.getElementById('storyManagerModal'); if (m) m.style.display = 'none'; }
 
 // ============================================================
