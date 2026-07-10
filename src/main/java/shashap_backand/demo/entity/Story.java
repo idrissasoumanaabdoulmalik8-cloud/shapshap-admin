@@ -16,8 +16,8 @@ public class Story {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "product_id", nullable = false)
-    private Long productId;
+    @Column(name = "product_id", nullable = true)
+    private Long productId; // ✅ NULLABLE maintenant : un événement n'a pas de produit lié
 
     @Column(name = "promo")
     private String promo;  // ex: "-20%", "-15%", ou null
@@ -40,4 +40,13 @@ public class Story {
 
     @Column(name = "description", length = 1000)
     private String description; // description libre de l'événement
+
+    // ✅ NOUVEAU : nom et image PROPRES à la story, utilisés uniquement
+    // pour les événements (puisqu'il n'y a pas de Product lié dont on
+    // pourrait tirer ces infos comme pour une story produit classique)
+    @Column(name = "event_name")
+    private String eventName;
+
+    @Column(name = "event_image_url", length = 500)
+    private String eventImageUrl;
 }

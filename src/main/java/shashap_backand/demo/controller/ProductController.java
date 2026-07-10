@@ -195,6 +195,28 @@ public class ProductController {
 
         for (Story s : dbStories) {
 
+            // ✅ CAS ÉVÉNEMENT : pas de produit lié, on utilise les champs
+            // propres de la Story (eventName / eventImageUrl)
+            if (s.isEvent()) {
+                ProductStory eventStory = new ProductStory(
+                        s.getEventName() != null ? s.getEventName() : "Événement",
+                        s.getEventImageUrl(),
+                        0,
+                        null,   // pas de promo sur un événement
+                        0,
+                        0,
+                        s.isSeen()
+                );
+                eventStory.setEvent(true);
+                eventStory.setEventDate(s.getEventDate());
+                eventStory.setArtistName(s.getArtistName());
+                eventStory.setDescription(s.getDescription());
+
+                result.add(eventStory);
+                System.out.println("✅ Story ÉVÉNEMENT #" + s.getOrderIndex() + " : " + s.getArtistName());
+                continue;
+            }
+
             Product p = productRepository.findById(s.getProductId()).orElse(null);
 
             if (p == null) {
@@ -275,6 +297,27 @@ public class ProductController {
             for (int i = 0; i < stories.size(); i++) {
                 ProductStory ps = stories.get(i);
 
+                // ✅ CAS ÉVÉNEMENT : pas besoin de produit existant, on
+                // stocke le nom/image directement sur la Story elle-même
+                if (ps.isEvent()) {
+                    Story eventStory = new Story();
+                    eventStory.setProductId(null);
+                    eventStory.setOrderIndex(i);
+                    eventStory.setSeen(ps.isSeen());
+                    eventStory.setEvent(true);
+                    eventStory.setEventDate(ps.getEventDate());
+                    eventStory.setArtistName(ps.getArtistName());
+                    eventStory.setDescription(ps.getDescription());
+                    eventStory.setEventName(ps.getName());
+                    eventStory.setEventImageUrl(ps.getImageUrl());
+
+                    storyRepository.save(eventStory);
+
+                    System.out.println("💾 Story ÉVÉNEMENT sauvegardée #" + i + " : " + ps.getArtistName()
+                            + " | image=" + ps.getImageUrl());
+                    continue;
+                }
+
                 // Trouver le produit par son nom
                 Product product = productRepository.findByName(ps.getName());
 
@@ -290,11 +333,12 @@ public class ProductController {
                 story.setOrderIndex(i);
                 story.setSeen(ps.isSeen());
 
-                // ✅ Champs événement
-                story.setEvent(ps.isEvent());
-                story.setEventDate(ps.getEventDate());
-                story.setArtistName(ps.getArtistName());
-                story.setDescription(ps.getDescription());
+                // ✅ Champs événement (toujours false ici, mais on les
+                // initialise proprement pour éviter des valeurs nulles)
+                story.setEvent(false);
+                story.setEventDate(null);
+                story.setArtistName(null);
+                story.setDescription(null);
 
                 storyRepository.save(story);
 
