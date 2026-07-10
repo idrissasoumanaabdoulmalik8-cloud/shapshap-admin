@@ -42,6 +42,8 @@ function showToast(msg, type = 'success') {
 // NAVIGATION (sidebar + topbar titre)
 // ============================================================
 function switchPage(page) {
+  console.log("🔄 switchPage appelé avec:", page);
+
   // Sidebar links
   document.querySelectorAll('.sidebar nav a').forEach(l => l.classList.remove('active'));
   const link = document.querySelector(`.sidebar nav a[data-page="${page}"]`);
@@ -52,7 +54,7 @@ function switchPage(page) {
   const pageEl = document.getElementById(page);
   if (pageEl) pageEl.classList.add('active');
 
-  // Topbar titre (nouveau dashboard)
+  // Topbar titre
   const titles = {
     dashboard : 'Tableau de bord',
     orders    : 'Commandes',
