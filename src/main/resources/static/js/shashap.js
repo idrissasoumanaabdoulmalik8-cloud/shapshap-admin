@@ -1275,13 +1275,16 @@ function editStoryEvent(index) {
   const story = storiesData[index];
   if (!story) return;
 
+  // Stocker l'index de l'événement à modifier
+  window._editingEventIndex = index;
+
   // Fermer le viewer
   closeStoryViewer();
 
   // Ouvrir le gestionnaire de stories
   openStoryManager();
 
-  // Pré-remplir les champs événement après un court délai (le temps que le modal s'ouvre)
+  // Pré-remplir les champs événement après un court délai
   setTimeout(() => {
     const isEventCheck = document.getElementById('storyIsEvent');
     if (isEventCheck) {
@@ -1304,11 +1307,6 @@ function editStoryEvent(index) {
         preview.style.display = 'block';
       }
     }
-
-    // Supprimer l'ancienne story événement pour éviter les doublons
-    storiesData = storiesData.filter(s => s.id !== story.id);
-    saveStoriesToStorage();
-    renderStories();
   }, 500);
 }
 
@@ -1531,6 +1529,12 @@ async function uploadEventImage() {
 function saveStories() {
   const isEvent = document.getElementById('storyIsEvent')?.checked || false;
 
+  // ✅ Supprimer l'ancien événement si on est en mode édition
+  if (window._editingEventIndex !== undefined && window._editingEventIndex !== null) {
+    storiesData.splice(window._editingEventIndex, 1);
+    window._editingEventIndex = null;
+  }
+
   if (isEvent) {
     const artistName = document.getElementById('storyArtistName')?.value || '';
     const eventDate = document.getElementById('storyEventDate')?.value || '';
@@ -1538,13 +1542,10 @@ function saveStories() {
     const eventImage = document.getElementById('storyEventImage')?.value || '';
     const previewImg = document.getElementById('storyEventPreview');
 
-    // ✅ Récupérer l'image depuis l'aperçu si pas d'URL dans le champ texte
     let finalImage = eventImage;
     if (!finalImage && previewImg && previewImg.src && previewImg.style.display !== 'none') {
       finalImage = previewImg.src;
     }
-
-    console.log("🖼️ Image événement sauvegardée:", finalImage);
 
     if (artistName || eventDate) {
       const eventStory = {
