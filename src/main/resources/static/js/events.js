@@ -45,6 +45,7 @@ function loadEvents() {
 function openEventModal(editIndex = null) {
   const existing = editIndex !== null ? storiesData[editIndex] : null;
   const isEdit = existing !== null;
+  const today = new Date().toISOString().split('T')[0];
 
   let modal = document.getElementById('eventModal');
   if (!modal) {
@@ -67,13 +68,14 @@ function openEventModal(editIndex = null) {
         <div style="display:flex;gap:10px;">
           <div style="flex:1;">
             <label style="font-size:11px;color:#888;">📅 Début</label>
-            <input type="date" id="evStartDate" value="${existing?.startDate || ''}" style="width:100%;padding:10px;border:1px solid #eee;border-radius:8px;">
+            <input type="date" id="evStartDate" value="${existing?.startDate || today}" onchange="validateEventDates()" style="width:100%;padding:10px;border:1px solid #eee;border-radius:8px;">
           </div>
           <div style="flex:1;">
             <label style="font-size:11px;color:#888;">📅 Fin</label>
-            <input type="date" id="evEndDate" value="${existing?.endDate || ''}" style="width:100%;padding:10px;border:1px solid #eee;border-radius:8px;">
+            <input type="date" id="evEndDate" value="${existing?.endDate || today}" onchange="validateEventDates()" style="width:100%;padding:10px;border:1px solid #eee;border-radius:8px;">
           </div>
         </div>
+        <span id="evDateError" style="color:#E53935; font-size:12px; display:none;"></span>
         <div>
           <label style="font-size:12px;color:#888;">🖼️ Image (URL)</label>
           <input type="text" id="evImageUrl" value="${existing?.image || ''}" placeholder="https://..." style="width:100%;padding:10px;border:1px solid #eee;border-radius:8px;">
@@ -82,12 +84,12 @@ function openEventModal(editIndex = null) {
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="closeEventModal()">Annuler</button>
-        <button class="btn btn-primary" id="evSaveBtn">💾 Enregistrer</button>
+        <button class="btn btn-primary" id="evSaveBtn" disabled>💾 Enregistrer</button>
       </div>
     </div>`;
   modal.style.display = 'flex';
 
-  // Prévisualisation
+  // Prévisualisation image
   const imgInput = document.getElementById('evImageUrl');
   const preview = document.getElementById('evPreview');
   if (imgInput && preview) {
@@ -101,9 +103,21 @@ function openEventModal(editIndex = null) {
     });
   }
 
+  // Validation initiale des dates (active le bouton si OK)
+  validateEventDates();
+
   document.getElementById('evSaveBtn').onclick = () => {
     const artistName = document.getElementById('evArtistName').value.trim();
     if (!artistName) { showToast('⚠️ Nom de l\'artiste requis', 'error'); return; }
+
+    const startDate = document.getElementById('evStartDate').value;
+    const endDate = document.getElementById('evEndDate').value;
+
+    // Vérification finale des dates
+    if (startDate && endDate && endDate < startDate) {
+      showToast('⚠️ La date de fin doit être après la date de début', 'error');
+      return;
+    }
 
     const eventData = {
       id: existing?.id || Date.now(),
@@ -111,8 +125,8 @@ function openEventModal(editIndex = null) {
       artistName: artistName,
       eventDate: document.getElementById('evEventDate').value.trim(),
       description: document.getElementById('evDescription').value.trim(),
-      startDate: document.getElementById('evStartDate').value,
-      endDate: document.getElementById('evEndDate').value,
+      startDate: startDate,
+      endDate: endDate,
       image: document.getElementById('evImageUrl').value.trim(),
       category: 'Événement',
       price: 0,
@@ -134,6 +148,51 @@ function openEventModal(editIndex = null) {
     loadEvents();
     showToast('✅ Événement enregistré');
   };
+}
+
+// ✅ Validation en temps réel des dates
+function validateEventDates() {
+  const startInput = document.getElementById('evStartDate');
+  const endInput = document.getElementById('evEndDate');
+  const saveBtn = document.getElementById('evSaveBtn');
+  const errorSpan = document.getElementById('evDateError');
+
+  if (!startInput || !endInput || !saveBtn || !errorSpan) return;
+
+  const start = startInput.value;
+  const end = endInput.value;
+
+  // Réinitialiser
+  errorSpan.style.display = 'none';
+  saveBtn.disabled = false;
+  startInput.style.border = '1px solid #eee';
+  endInput.style.border = '1px solid #eee';
+
+  // Vérifier que les dates sont valides
+  if (!start || !end) {
+    saveBtn.disabled = true;
+    return;
+  }
+
+  // La date de fin ne doit pas être avant la date de début
+  if (end < start) {
+    errorSpan.textContent = '⚠️ La date de fin doit être après la date de début';
+    errorSpan.style.display = 'block';
+    saveBtn.disabled = true;
+    endInput.style.border = '1px solid #E53935';
+    return;
+  }
+
+  // Empêcher les dates trop lointaines (> 1 an)
+  const maxDate = new Date();
+  maxDate.setFullYear(maxDate.getFullYear() + 1);
+  const maxDateStr = maxDate.toISOString().split('T')[0];
+  if (end > maxDateStr) {
+    errorSpan.textContent = '⚠️ La date de fin ne peut pas dépasser ' + maxDate.toLocaleDateString('fr-FR');
+    errorSpan.style.display = 'block';
+    saveBtn.disabled = true;
+    endInput.style.border = '1px solid #E53935';
+  }
 }
 
 function editEventByIndex(index) {
