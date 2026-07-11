@@ -49,4 +49,10 @@ public class Story {
 
     @Column(name = "event_image_url", length = 500)
     private String eventImageUrl;
+
+    @Column(name = "start_date")
+    private String startDate; // ex: "2026-07-19"
+
+    @Column(name = "end_date")
+    private String endDate;   // ex: "2026-07-20"
 }

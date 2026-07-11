@@ -25,6 +25,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/products")
@@ -189,20 +190,45 @@ public class ProductController {
         System.out.println("📱 STORIES API appelée - Stories en BDD: " + dbStories.size());
 
         if (dbStories.isEmpty()) {
-            System.out.println("⚠️ Aucune story en BDD - L'admin doit d'abord enregistrer les stories sur le site");
+            System.out.println("⚠️ Aucune story en BDD");
             return result;
         }
 
+        LocalDate today = LocalDate.now();
+
         for (Story s : dbStories) {
 
-            // ✅ CAS ÉVÉNEMENT : pas de produit lié, on utilise les champs
-            // propres de la Story (eventName / eventImageUrl)
+            // ✅ CAS ÉVÉNEMENT
             if (s.isEvent()) {
+                // 📅 Filtrage par date
+                if (s.getStartDate() != null && !s.getStartDate().isEmpty()) {
+                    try {
+                        LocalDate start = LocalDate.parse(s.getStartDate());
+                        if (today.isBefore(start)) {
+                            System.out.println("⏭️ Événement ignoré (pas encore commencé): " + s.getEventName());
+                            continue;
+                        }
+                    } catch (Exception e) {
+                        System.out.println("⚠️ Date début invalide: " + s.getStartDate());
+                    }
+                }
+                if (s.getEndDate() != null && !s.getEndDate().isEmpty()) {
+                    try {
+                        LocalDate end = LocalDate.parse(s.getEndDate());
+                        if (today.isAfter(end)) {
+                            System.out.println("⏭️ Événement ignoré (terminé): " + s.getEventName());
+                            continue;
+                        }
+                    } catch (Exception e) {
+                        System.out.println("⚠️ Date fin invalide: " + s.getEndDate());
+                    }
+                }
+
                 ProductStory eventStory = new ProductStory(
                         s.getEventName() != null ? s.getEventName() : "Événement",
                         s.getEventImageUrl(),
                         0,
-                        null,   // pas de promo sur un événement
+                        null,
                         0,
                         0,
                         s.isSeen()
@@ -211,19 +237,20 @@ public class ProductController {
                 eventStory.setEventDate(s.getEventDate());
                 eventStory.setArtistName(s.getArtistName());
                 eventStory.setDescription(s.getDescription());
+                eventStory.setStartDate(s.getStartDate());
+                eventStory.setEndDate(s.getEndDate());
 
                 result.add(eventStory);
                 System.out.println("✅ Story ÉVÉNEMENT #" + s.getOrderIndex() + " : " + s.getArtistName());
                 continue;
             }
 
+            // 🍔 CAS PRODUIT
             Product p = productRepository.findById(s.getProductId()).orElse(null);
-
             if (p == null) {
                 System.out.println("⏭️ Story ignorée : produit ID " + s.getProductId() + " introuvable");
                 continue;
             }
-
             if (p.getIsAvailable() != null && !p.getIsAvailable()) {
                 System.out.println("⏭️ Story ignorée : " + p.getName() + " (indisponible)");
                 continue;
@@ -237,44 +264,25 @@ public class ProductController {
                 try {
                     String cleaned = promoLabel.replace("-", "").replace("%", "").trim();
                     int discountPercent = Integer.parseInt(cleaned);
-
                     if (discountPercent > 0 && discountPercent <= 100) {
                         discountedPrice = originalPrice - (originalPrice * discountPercent / 100);
-                        System.out.println("🏷️ Promo " + p.getName() + ": " + promoLabel
-                                + " | Prix: " + originalPrice + " → " + discountedPrice);
-                    } else {
-                        System.out.println("⚠️ Pourcentage invalide pour " + p.getName() + ": " + discountPercent);
-                        promoLabel = null;
                     }
                 } catch (NumberFormatException e) {
-                    System.out.println("⚠️ Promo mal formatée pour " + p.getName() + ": " + promoLabel);
                     promoLabel = null;
                 }
             }
 
             ProductStory productStory = new ProductStory(
-                    p.getName(),
-                    p.getImageUrl(),
-                    0,
-                    promoLabel,
-                    originalPrice,
-                    discountedPrice,
-                    s.isSeen()
+                    p.getName(), p.getImageUrl(), 0,
+                    promoLabel, originalPrice, discountedPrice, s.isSeen()
             );
-
-            // ✅ Champs événement (soirée artiste, DJ, etc.)
-            productStory.setIsEvent(s.isEvent());
+            productStory.setIsEvent(false);
             productStory.setEventDate(s.getEventDate());
             productStory.setArtistName(s.getArtistName());
             productStory.setDescription(s.getDescription());
 
             result.add(productStory);
-
-            System.out.println("✅ Story #" + s.getOrderIndex() + " : " + p.getName()
-                    + " | image=" + p.getImageUrl()
-                    + " | promo=" + promoLabel
-                    + " | prix=" + originalPrice + "/" + discountedPrice
-                    + " | seen=" + s.isSeen());
+            System.out.println("✅ Story #" + s.getOrderIndex() + " : " + p.getName());
         }
 
         System.out.println("📱 STORIES API - Total envoyé à l'app Android: " + result.size());
@@ -289,16 +297,13 @@ public class ProductController {
         try {
             System.out.println("📥 Réception de " + stories.size() + " stories depuis le site admin");
 
-            // Supprimer toutes les anciennes stories
             storyRepository.deleteAll();
             System.out.println("🗑️ Anciennes stories supprimées");
 
-            // Insérer les nouvelles stories dans l'ordre reçu
             for (int i = 0; i < stories.size(); i++) {
                 ProductStory ps = stories.get(i);
 
-                // ✅ CAS ÉVÉNEMENT : pas besoin de produit existant, on
-                // stocke le nom/image directement sur la Story elle-même
+                // ✅ CAS ÉVÉNEMENT
                 if (ps.getIsEvent()) {
                     Story eventStory = new Story();
                     eventStory.setProductId(null);
@@ -310,49 +315,41 @@ public class ProductController {
                     eventStory.setDescription(ps.getDescription());
                     eventStory.setEventName(ps.getName());
                     eventStory.setEventImageUrl(ps.getImageUrl());
+                    eventStory.setStartDate(ps.getStartDate());
+                    eventStory.setEndDate(ps.getEndDate());
 
                     storyRepository.save(eventStory);
-
-                    System.out.println("💾 Story ÉVÉNEMENT sauvegardée #" + i + " : " + ps.getArtistName()
-                            + " | image=" + ps.getImageUrl());
+                    System.out.println("💾 Story ÉVÉNEMENT #" + i + " : " + ps.getArtistName()
+                            + " | début=" + ps.getStartDate() + " | fin=" + ps.getEndDate());
                     continue;
                 }
 
-                // Trouver le produit par son nom
+                // 🍔 CAS PRODUIT
                 Product product = productRepository.findByName(ps.getName());
-
                 if (product == null) {
-                    System.out.println("⚠️ Produit introuvable pour la story: " + ps.getName());
+                    System.out.println("⚠️ Produit introuvable: " + ps.getName());
                     continue;
                 }
 
-                // Créer la story
                 Story story = new Story();
                 story.setProductId(product.getId());
                 story.setPromo(ps.getPromoLabel());
                 story.setOrderIndex(i);
                 story.setSeen(ps.isSeen());
-
-                // ✅ Champs événement (toujours false ici, mais on les
-                // initialise proprement pour éviter des valeurs nulles)
                 story.setEvent(false);
                 story.setEventDate(null);
                 story.setArtistName(null);
                 story.setDescription(null);
 
                 storyRepository.save(story);
-
-                System.out.println("💾 Story sauvegardée #" + i + " : " + product.getName()
-                        + " | promo=" + ps.getPromoLabel()
-                        + " | seen=" + ps.isSeen());
+                System.out.println("💾 Story #" + i + " : " + product.getName()
+                        + " | promo=" + ps.getPromoLabel());
             }
 
-            // ✅ ENVOYER UNE NOTIFICATION WEBSOCKET À TOUS LES CLIENTS CONNECTÉS
             StoryUpdateMessage msg = new StoryUpdateMessage("SYNC", stories.size());
             messagingTemplate.convertAndSend("/topic/stories", msg);
             System.out.println("📡 WebSocket envoyé : /topic/stories → SYNC (" + stories.size() + " stories)");
 
-            System.out.println("✅ Synchronisation terminée : " + stories.size() + " stories");
             return ResponseEntity.ok("OK - " + stories.size() + " stories synchronisées");
 
         } catch (Exception e) {
