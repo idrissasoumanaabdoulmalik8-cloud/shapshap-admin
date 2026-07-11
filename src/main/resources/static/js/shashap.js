@@ -1946,11 +1946,15 @@ async function syncStoriesToBackend() {
         const payload = storiesData.map((s, i) => ({
             name: s.name || "Sans nom",
             imageUrl: s.image || "",
-            imageResId: 0,                    // ✅ Toujours un int
-            promoLabel: s.promo || "",        // ✅ Chaîne vide au lieu de null
-            originalPrice: s.price || 0,      // ✅ Toujours un int
-            discountedPrice: s.promo ? Math.round((s.price || 0) * (1 - parseInt(s.promo) / 100)) : (s.price || 0), // ✅ Toujours un int
-            isSeen: s.seen || false           // ✅ Toujours un boolean
+            imageResId: 0,
+            promoLabel: s.promo || "",
+            originalPrice: s.price || 0,
+            discountedPrice: s.promo ? Math.round((s.price || 0) * (1 - parseInt(s.promo) / 100)) : (s.price || 0),
+            isSeen: s.seen || false,
+            isEvent: s.isEvent || false,
+            eventDate: s.eventDate || "",
+            artistName: s.artistName || "",
+            description: s.description || ""
         }));
 
         console.log('📤 Envoi synchro stories:', JSON.stringify(payload));
@@ -1961,7 +1965,6 @@ async function syncStoriesToBackend() {
         console.error('❌ Erreur synchro stories:', e.response ? e.response.data : e.message);
     }
 }
-
 
 // ============================================================
 // EXPORT PDF CATALOGUE
