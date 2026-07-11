@@ -1284,30 +1284,36 @@ function editStoryEvent(index) {
   // Ouvrir le gestionnaire de stories
   openStoryManager();
 
-  // Pré-remplir les champs événement après un court délai
+  // Pré-remplir APRÈS que le modal soit complètement chargé
   setTimeout(() => {
     const isEventCheck = document.getElementById('storyIsEvent');
     if (isEventCheck) {
       isEventCheck.checked = true;
       toggleEventFields();
     }
-    const artistInput = document.getElementById('storyArtistName');
-    const dateInput = document.getElementById('storyEventDate');
-    const descInput = document.getElementById('storyEventDesc');
-    const imageInput = document.getElementById('storyEventImage');
-    const preview = document.getElementById('storyEventPreview');
 
-    if (artistInput) artistInput.value = story.artistName || '';
-    if (dateInput) dateInput.value = story.eventDate || '';
-    if (descInput) descInput.value = story.description || '';
-    if (imageInput && story.image) {
-      imageInput.value = story.image;
-      if (preview) {
-        preview.src = story.image;
-        preview.style.display = 'block';
+    // Attendre que les champs événement soient visibles
+    setTimeout(() => {
+      const artistInput = document.getElementById('storyArtistName');
+      const dateInput = document.getElementById('storyEventDate');
+      const descInput = document.getElementById('storyEventDesc');
+      const imageInput = document.getElementById('storyEventImage');
+      const preview = document.getElementById('storyEventPreview');
+
+      if (artistInput) artistInput.value = story.artistName || '';
+      if (dateInput) dateInput.value = story.eventDate || '';
+      if (descInput) descInput.value = story.description || '';
+      if (imageInput && story.image) {
+        imageInput.value = story.image;
+        if (preview) {
+          preview.src = story.image;
+          preview.style.display = 'block';
+        }
       }
-    }
-  }, 500);
+
+      console.log("✅ Champs événement pré-remplis:", story.artistName, story.eventDate);
+    }, 300);
+  }, 800);
 }
 
 function nextStory() {
