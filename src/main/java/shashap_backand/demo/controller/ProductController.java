@@ -207,7 +207,7 @@ public class ProductController {
                         0,
                         s.isSeen()
                 );
-                eventStory.setEvent(true);
+                eventStory.setIsEvent(true);
                 eventStory.setEventDate(s.getEventDate());
                 eventStory.setArtistName(s.getArtistName());
                 eventStory.setDescription(s.getDescription());
@@ -263,7 +263,7 @@ public class ProductController {
             );
 
             // ✅ Champs événement (soirée artiste, DJ, etc.)
-            productStory.setEvent(s.isEvent());
+            productStory.setIsEvent(s.isEvent());
             productStory.setEventDate(s.getEventDate());
             productStory.setArtistName(s.getArtistName());
             productStory.setDescription(s.getDescription());
@@ -299,7 +299,7 @@ public class ProductController {
 
                 // ✅ CAS ÉVÉNEMENT : pas besoin de produit existant, on
                 // stocke le nom/image directement sur la Story elle-même
-                if (ps.isEvent()) {
+                if (ps.getIsEvent()) {
                     Story eventStory = new Story();
                     eventStory.setProductId(null);
                     eventStory.setOrderIndex(i);

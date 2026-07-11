@@ -110,12 +110,14 @@ public class ProductStory implements Serializable {
         this.isSeen = seen;
     }
 
-    public boolean isEvent() {
+    @JsonProperty("isEvent")
+    public boolean getIsEvent() {
         return isEvent;
     }
 
-    public void setEvent(boolean event) {
-        this.isEvent = event;
+    @JsonProperty("isEvent")
+    public void setIsEvent(boolean isEvent) {
+        this.isEvent = isEvent;
     }
 
     public String getEventDate() {
