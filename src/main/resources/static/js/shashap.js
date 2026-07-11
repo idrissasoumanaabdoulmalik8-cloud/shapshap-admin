@@ -61,6 +61,7 @@ function switchPage(page) {
     products  : 'Produits',
     clients   : 'Clients',
     favorites : '❤️ Favoris',
+    events    : '🎤 Événements',
   };
   const subs = {
     dashboard : 'Vue d\'ensemble en temps réel',
@@ -68,6 +69,7 @@ function switchPage(page) {
     products  : 'Catalogue et gestion du menu',
     clients   : 'Base de données clients',
     favorites : 'Produits likés par vos clients',
+    events    : 'Gestion des soirées et lives',
   };
   const titleEl = document.getElementById('pageTitle');
   const subEl   = document.getElementById('pageSub');
@@ -80,6 +82,7 @@ function switchPage(page) {
   else if (page === 'products')  loadProducts();
   else if (page === 'clients')   loadClients();
   else if (page === 'favorites') loadFavorites();
+  else if (page === 'events')    loadEvents();
 }
 
 // ============================================================
@@ -1360,59 +1363,16 @@ function openStoryManager() {
       document.body.appendChild(modal);
     }
     modal.innerHTML = `
-      <div class="modal-content" style="max-width:650px;">
+      <div class="modal-content" style="max-width:580px;">
         <div class="modal-header">
           <h3>📱 Gestion des Stories</h3>
           <button class="close-btn" onclick="closeStoryManager()">✕</button>
         </div>
-        <p style="font-size:13px;color:#aaa;margin-bottom:6px;">
+        <p style="font-size:13px;color:#aaa;margin-bottom:13px;">
           Sélectionnez les produits à afficher. Vous pouvez ajouter une promotion.
         </p>
-
-        <!-- 🎤 SECTION ÉVÉNEMENT -->
-        <div style="background:linear-gradient(135deg,#fff5f8,#fdf6fc);border:1px solid #fce4ec;border-radius:12px;padding:14px;margin-bottom:14px;">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:700;color:#E91E63;font-size:14px;">
-            <input type="checkbox" id="storyIsEvent" onchange="toggleEventFields()" style="accent-color:#E91E63;width:18px;height:18px;">
-            🎤 C'est un événement (soirée DJ, artiste, live...)
-          </label>
-          <div id="eventFields" style="display:none;margin-top:12px;flex-direction:column;gap:10px;">
-            <input type="text" id="storyArtistName" placeholder="Nom de l'artiste / DJ" style="padding:10px;border:1px solid #eee;border-radius:8px;font-size:13px;">
-            <input type="text" id="storyEventDate" placeholder="Date (ex: Ven 12 Juil · 20h)" style="padding:10px;border:1px solid #eee;border-radius:8px;font-size:13px;">
-            <textarea id="storyEventDesc" placeholder="Description de l'événement..." rows="2" style="padding:10px;border:1px solid #eee;border-radius:8px;font-size:13px;resize:vertical;"></textarea>
-            <!-- 📅 Dates de programmation -->
-            <div style="display:flex;gap:10px;">
-              <div style="flex:1;">
-                <label style="font-size:11px;color:#888;display:block;margin-bottom:4px;">📅 Début d'affichage</label>
-                <input type="date" id="storyStartDate" style="width:100%;padding:10px;border:1px solid #eee;border-radius:8px;font-size:13px;">
-              </div>
-              <div style="flex:1;">
-                <label style="font-size:11px;color:#888;display:block;margin-bottom:4px;">📅 Fin d'affichage</label>
-                <input type="date" id="storyEndDate" style="width:100%;padding:10px;border:1px solid #eee;border-radius:8px;font-size:13px;">
-              </div>
-            </div>
-            <!-- 🖼️ Photo événement -->
-            <div>
-              <label style="font-size:12px;color:#888;margin-bottom:4px;display:block;">🖼️ Affiche / Photo de l'événement</label>
-              <div style="display:flex;gap:8px;align-items:center;">
-                <input type="text" id="storyEventImage" placeholder="URL de l'image..." oninput="previewEventImageUrl()" style="flex:1;padding:10px;border:1px solid #eee;border-radius:8px;font-size:13px;">
-                <span style="font-size:11px;color:#aaa;">ou</span>
-                <button type="button" onclick="document.getElementById('storyEventImageFile').click()" style="background:#fff;border:1px solid #E91E63;color:#E91E63;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:12px;white-space:nowrap;">📁 Upload</button>
-                <input type="file" id="storyEventImageFile" accept="image/*" onchange="uploadEventImage()" style="display:none;">
-              </div>
-              <img id="storyEventPreview" src="" style="display:none;max-width:100%;max-height:120px;border-radius:8px;margin-top:8px;border:1px solid #eee;">
-            </div>
-          </div>
-        </div>
-
         <div class="story-manager-list" id="storyManagerList"></div>
-
-        <!-- 🎤 Événements existants -->
-        <div id="existingEventsList" style="margin-top:14px; border-top:1px solid #f0e6eb; padding-top:14px;">
-          <h4 style="font-size:13px; color:#888; margin-bottom:8px;">🎤 Événements existants</h4>
-          <div id="existingEventsContainer"></div>
-        </div>
-
-        <div class="modal-footer" style="margin-top:14px;">
+        <div class="modal-footer">
           <button class="btn btn-outline" onclick="closeStoryManager()">Annuler</button>
           <button class="btn btn-primary" onclick="saveStories()">💾 Enregistrer les stories</button>
         </div>
@@ -1451,25 +1411,6 @@ function openStoryManager() {
                  style="accent-color:var(--rose);">
         </div>`;
     }).join('');
-
-    // Événements existants
-    const eventsContainer = document.getElementById('existingEventsContainer');
-    const existingEvents = storiesData.filter(s => s.isEvent);
-    if (existingEvents.length === 0) {
-      eventsContainer.innerHTML = '<p style="color:#ccc; font-size:12px;">Aucun événement créé.</p>';
-    } else {
-      eventsContainer.innerHTML = existingEvents.map((ev, idx) => {
-        const realIndex = storiesData.indexOf(ev);
-        return `
-        <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:#fff; border:1px solid #fce4ec; border-radius:8px; margin-bottom:6px;">
-          <div>
-            <strong style="font-size:13px;">${ev.artistName || ev.name}</strong>
-            <span style="color:#888; font-size:11px; margin-left:8px;">📅 ${ev.eventDate || ''}</span>
-          </div>
-          <button onclick="deleteStoryEvent(${realIndex})" style="background:none; border:none; color:#E53935; cursor:pointer; font-size:18px;" title="Supprimer l'événement">🗑️</button>
-        </div>`;
-      }).join('');
-    }
 
     // Events checkboxes
     list.querySelectorAll('.story-checkbox').forEach(cb => {

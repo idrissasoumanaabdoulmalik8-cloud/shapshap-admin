@@ -55,6 +55,10 @@
                 <div class="nav-icon"><i class="ti ti-salad"></i></div>
                 <span>Produits</span>
             </a>
+            <a href="#" data-page="events">
+                <div class="nav-icon"><i class="ti ti-calendar-event"></i></div>
+                <span>Événements</span>
+            </a>
             <a href="#" data-page="clients">
                 <div class="nav-icon"><i class="ti ti-users"></i></div>
                 <span>Clients</span>
@@ -510,7 +514,30 @@
 
             </div><!-- /content products -->
         </div><!-- /page products -->
+        <!-- ════════════════════════════════════════════════════
+             PAGE : ÉVÉNEMENTS
+             ════════════════════════════════════════════════════ -->
 
+        <div id="events" class="page">
+
+            <div class="topbar">
+                <div>
+                    <div class="page-title">🎤 Événements</div>
+                    <div class="page-sub">Gestion des soirées et lives</div>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn-primary-sm" onclick="openEventModal()">
+                        <i class="ti ti-plus"></i> Nouvel événement
+                    </button>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="table-card">
+                    <div id="eventsList"></div>
+                </div>
+            </div>
+        </div><!-- /page events -->
 
         <!-- ════════════════════════════════════════════════════
              PAGE : CLIENTS
@@ -803,5 +830,6 @@
 <script src="/js/orders.js"></script>
 <script src="/js/clients.js"></script>
 <script src="/js/favorites.js"></script>
+<script src="/js/events.js"></script>
 </body>
 </html>
