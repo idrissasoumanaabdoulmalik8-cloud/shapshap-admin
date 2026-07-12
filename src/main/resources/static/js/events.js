@@ -208,12 +208,22 @@ function loadEvents() {
       onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 12px rgba(0,0,0,0.04)'"
       >
 
-        <!-- Image de l'événement -->
-        <div style="width:100%; height:160px; overflow:hidden;">
+        <!-- Image de l'événement (plus grande, toujours bien visible) -->
+        <div style="width:100%; height:200px; overflow:hidden; position:relative;">
           ${ ev.image
-            ? `<img src="${ev.image}" alt="${ev.artistName || ev.name}" style="width:100%; height:100%; object-fit:cover; display:block;" />`
-            : `<div style="width:100%; height:100%; background: linear-gradient(135deg, #667eea, #764ba2); display:flex; align-items:center; justify-content:center; color:#fff; font-size:48px;">🎤</div>`
+            ? `<img src="${ev.image}" alt="${ev.artistName || ev.name}"
+                   style="width:100%; height:100%; object-fit:cover; display:block;" />`
+            : `<div style="width:100%; height:100%;
+                       background: linear-gradient(135deg, #667eea, #764ba2);
+                       display:flex; align-items:center; justify-content:center;
+                       color:#fff; font-size:56px;">🎤</div>`
           }
+          <div style="position:absolute; bottom:12px; left:12px;
+                      background:rgba(0,0,0,0.45); backdrop-filter:blur(6px);
+                      padding:4px 12px; border-radius:20px;
+                      color:#fff; font-size:11px; font-weight:600;">
+            🎤 Événement
+          </div>
         </div>
 
         <!-- Informations -->
