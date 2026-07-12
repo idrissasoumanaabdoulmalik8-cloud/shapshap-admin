@@ -197,70 +197,77 @@ function loadEvents() {
     html += `
       <div style="
         background: #fff;
-        border-radius: 16px;
+        border-radius: 20px;
         overflow: hidden;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-        border: 1px solid #eef0f4;
-        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        border: 2px solid #D4AF37;
+        transition: transform 0.25s, box-shadow 0.25s;
         display: flex; flex-direction: column;
+        font-family: 'Poppins', 'Segoe UI', sans-serif;
       "
-      onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.06)'"
-      onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 12px rgba(0,0,0,0.04)'"
+      onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 12px 30px rgba(212,175,55,0.2)'"
+      onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.06)'"
       >
 
-        <!-- Image de l'événement (plus grande, toujours bien visible) -->
-        <div style="width:100%; height:200px; overflow:hidden; position:relative;">
+        <!-- Image de l'événement -->
+        <div style="width:100%; height:220px; overflow:hidden; position:relative;">
           ${ ev.image
             ? `<img src="${ev.image}" alt="${ev.artistName || ev.name}"
                    style="width:100%; height:100%; object-fit:cover; display:block;" />`
             : `<div style="width:100%; height:100%;
-                       background: linear-gradient(135deg, #667eea, #764ba2);
+                       background: linear-gradient(135deg, #1a1a2e, #16213e);
                        display:flex; align-items:center; justify-content:center;
                        color:#fff; font-size:56px;">🎤</div>`
           }
-          <div style="position:absolute; bottom:12px; left:12px;
-                      background:rgba(0,0,0,0.45); backdrop-filter:blur(6px);
-                      padding:4px 12px; border-radius:20px;
-                      color:#fff; font-size:11px; font-weight:600;">
-            🎤 Événement
-          </div>
+          <!-- Dégradé subtil en bas -->
+          <div style="position:absolute; bottom:0; left:0; right:0; height:60px;
+                      background:linear-gradient(to top, rgba(0,0,0,0.5), transparent);"></div>
         </div>
 
-        <!-- Informations -->
-        <div style="padding: 16px 18px; flex:1; display:flex; flex-direction:column;">
-          <h4 style="margin:0 0 4px 0; font-size:16px; font-weight:700; color:#1a1a2e;">
+        <!-- Contenu -->
+        <div style="padding: 20px 22px 22px 22px; flex:1; display:flex; flex-direction:column;">
+
+          <!-- Nom de l'artiste -->
+          <h3 style="margin:0 0 6px 0; font-size:19px; font-weight:700; color:#1a1a2e; letter-spacing:-0.3px;">
             ${ev.artistName || ev.name || 'Sans nom'}
-          </h4>
-          <div style="font-size:12px; color:#888; margin-bottom:8px;">
-            📅 ${ev.eventDate || '—'} &nbsp;•&nbsp; ${start} → ${end}
+          </h3>
+
+          <!-- Date et période -->
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+            <span style="font-size:13px; font-weight:600; color:#D4AF37; background:#FFF9E6; padding:3px 10px; border-radius:12px;">
+              📅 ${ev.eventDate || '—'}
+            </span>
+            <span style="font-size:11px; color:#aaa;">${start} → ${end}</span>
           </div>
-          <p style="margin:0 0 14px 0; font-size:13px; color:#555; line-height:1.4; flex:1;">
-            ${ev.description || 'Aucune description.'}
+
+          <!-- Description -->
+          <p style="margin:0 0 18px 0; font-size:13.5px; color:#4b5563; line-height:1.6; flex:1;">
+            ${ev.description || 'Aucune description pour cet événement.'}
           </p>
 
-          <!-- Actions -->
-          <div style="display:flex; gap:8px;">
+          <!-- Boutons d'action -->
+          <div style="display:flex; gap:10px;">
             <button onclick="editEventByIndex(${realIndex})"
               style="
                 flex:1; display:inline-flex; align-items:center; justify-content:center; gap:6px;
-                background:#fff; border:1px solid #d1d5db; border-radius:10px;
-                padding:8px 0; font-size:13px; font-weight:600; color:#374151;
-                cursor:pointer; transition: all 0.15s;
+                background:#1a1a2e; color:#fff; border:none; border-radius:10px;
+                padding:10px 0; font-size:13px; font-weight:600;
+                cursor:pointer; transition: all 0.2s;
               "
-              onmouseover="this.style.background='#f3f4f6'; this.style.borderColor='#9ca3af'"
-              onmouseout="this.style.background='#fff'; this.style.borderColor='#d1d5db'"
+              onmouseover="this.style.background='#2d2d44'"
+              onmouseout="this.style.background='#1a1a2e'"
             >
               <i class="ti ti-pencil"></i> Modifier
             </button>
             <button onclick="deleteEventByIndex(${realIndex})"
               style="
                 flex:1; display:inline-flex; align-items:center; justify-content:center; gap:6px;
-                background:#fff; border:1px solid #d1d5db; border-radius:10px;
-                padding:8px 0; font-size:13px; font-weight:600; color:#dc2626;
-                cursor:pointer; transition: all 0.15s;
+                background:#fff; color:#dc2626; border:1px solid #fecaca; border-radius:10px;
+                padding:10px 0; font-size:13px; font-weight:600;
+                cursor:pointer; transition: all 0.2s;
               "
-              onmouseover="this.style.background='#fef2f2'; this.style.borderColor='#fca5a5'"
-              onmouseout="this.style.background='#fff'; this.style.borderColor='#d1d5db'"
+              onmouseover="this.style.background='#fef2f2'; this.style.borderColor='#f87171'"
+              onmouseout="this.style.background='#fff'; this.style.borderColor='#fecaca'"
             >
               <i class="ti ti-trash"></i> Supprimer
             </button>
