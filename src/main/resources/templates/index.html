@@ -664,24 +664,27 @@
             </div>
         </div><!-- /page favorites -->
         <!-- ════════════════════════════════════════════════════
-     PAGE : ÉVÉNEMENTS
-     ════════════════════════════════════════════════════ -->
+       PAGE : ÉVÉNEMENTS (DESIGN PREMIUM)
+       ════════════════════════════════════════════════════ -->
         <div id="events" class="page">
-            <div class="topbar">
+
+            <!-- Entête dégradé -->
+            <div class="topbar" style="background: linear-gradient(135deg, #FF6B9D, #E91E63, #C2185B); border-radius: 0 0 24px 24px; padding: 28px 30px; margin-bottom: 24px;">
                 <div>
-                    <div class="page-title">🎤 Événements</div>
-                    <div class="page-sub">Gestion des soirées et lives</div>
+                    <div class="page-title" style="color: #fff; font-size: 26px; font-weight: 800;">🎤 Événements</div>
+                    <div class="page-sub" style="color: rgba(255,255,255,0.85); font-size: 14px; margin-top: 6px;">Gestion des soirées, lives et DJ sets</div>
                 </div>
                 <div class="topbar-right">
-                    <button class="btn-primary-sm" onclick="openEventModal()">
+                    <button class="btn-primary-sm" onclick="openEventModal()"
+                            style="background: #fff; color: #E91E63; border: none; padding: 12px 22px; border-radius: 28px; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
                         <i class="ti ti-plus"></i> Nouvel événement
                     </button>
                 </div>
             </div>
-            <div class="content">
-                <div class="table-card">
-                    <div id="eventsList"></div>
-                </div>
+
+            <div class="content" style="padding: 0 25px;">
+                <!-- Grille d'événements (injectée par loadEvents) -->
+                <div id="eventsList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; padding-bottom: 30px;"></div>
             </div>
         </div><!-- /page events -->
 

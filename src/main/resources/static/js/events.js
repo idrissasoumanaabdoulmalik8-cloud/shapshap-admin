@@ -213,3 +213,72 @@ function closeEventModal() {
   const m = document.getElementById('eventModal');
   if (m) m.style.display = 'none';
 }
+function loadEvents() {
+  const container = document.getElementById('eventsList');
+  if (!container) return;
+
+  const events = storiesData.filter(s => s.isEvent);
+
+  if (events.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding: 60px 20px; color: #aaa; grid-column: 1 / -1;">
+        <div style="font-size: 48px; margin-bottom: 16px;">🎤</div>
+        <h3 style="font-weight: 700; color: #1e1e2f;">Aucun événement pour le moment</h3>
+        <p style="color: #888; font-size: 14px;">Cliquez sur « Nouvel événement » pour créer une soirée.</p>
+      </div>`;
+    return;
+  }
+
+  let html = '';
+  events.forEach((ev, idx) => {
+    const realIndex = storiesData.indexOf(ev);
+    const start = ev.startDate || '?';
+    const end = ev.endDate || '?';
+
+    html += `
+      <div class="event-card" style="background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.05); border: 1px solid #fce4ec; transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column;"
+           onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 30px rgba(233,30,99,0.1)'"
+           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.05)'">
+
+        <!-- Bannière image ou dégradé -->
+        <div style="height: 120px; ${ev.image ? `background-image: url('${ev.image}'); background-size: cover; background-position: center;` : 'background: linear-gradient(135deg, #F5A623, #8E24AA);'} position: relative;">
+          <div style="position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); padding: 4px 12px; border-radius: 20px; color: #fff; font-size: 11px; font-weight: 700;">
+            🎤 ÉVÉNEMENT
+          </div>
+          <div style="position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.25); backdrop-filter: blur(8px); padding: 4px 10px; border-radius: 20px; color: #fff; font-size: 11px; font-weight: 600;">
+            ${start} → ${end}
+          </div>
+        </div>
+
+        <!-- Contenu de la carte -->
+        <div style="padding: 18px 20px; flex: 1; display: flex; flex-direction: column;">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #E91E63, #F5A623); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 14px;">
+              ${(ev.artistName || ev.name).charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #1e1e2f;">${ev.artistName || ev.name || 'Sans nom'}</h3>
+              <span style="font-size: 13px; color: #888;">📅 ${ev.eventDate || '—'}</span>
+            </div>
+          </div>
+          <p style="color: #555; font-size: 13px; line-height: 1.4; margin: 8px 0 12px 0; flex: 1;">${ev.description || 'Aucune description.'}</p>
+
+          <!-- Actions -->
+          <div style="display: flex; gap: 8px; margin-top: auto;">
+            <button class="btn btn-secondary btn-sm" onclick="editEventByIndex(${realIndex})"
+                    style="flex: 1; background: #f5f5f7; border: none; padding: 10px; border-radius: 12px; font-weight: 600; font-size: 13px; cursor: pointer; transition: background 0.2s;"
+                    onmouseover="this.style.background='#eee'" onmouseout="this.style.background='#f5f5f7'">
+              ✏️ Modifier
+            </button>
+            <button class="btn btn-danger btn-sm" onclick="deleteEventByIndex(${realIndex})"
+                    style="flex: 1; background: #ffebee; color: #E53935; border: none; padding: 10px; border-radius: 12px; font-weight: 600; font-size: 13px; cursor: pointer; transition: background 0.2s;"
+                    onmouseover="this.style.background='#ffcdd2'" onmouseout="this.style.background='#ffebee'">
+              🗑️ Supprimer
+            </button>
+          </div>
+        </div>
+      </div>`;
+  });
+
+  container.innerHTML = html;
+}
