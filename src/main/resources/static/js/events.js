@@ -341,12 +341,12 @@ async function exportEventToPDF(index) {
   const shashapAddress = "123 Avenue de la République, Niamey, Niger";
   const shashapWebsite = "www.shashap-niamey.com";
 
-  // ✅ Barre sponsors avec LOGOS + NOMS
+  // ✅ Barre sponsors (texte + emojis, pas d'images externes)
   const sponsors = [
-    { name: "Orange Niger",  logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Orange_logo.svg/1200px-Orange_logo.svg.png" },
-    { name: "MTN",          logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/MTN_Logo.svg/1200px-MTN_Logo.svg.png" },
-    { name: "Moov Africa",  logo: "https://www.moov-africa.com/themes/custom/moov/logo.svg" },
-    { name: "Shashap",      logo: "https://i.postimg.cc/X7N9X3fD/shashap-logo.png" } // placeholder à remplacer
+    { emoji: "🟠", name: "Orange Niger" },
+    { emoji: "🟡", name: "MTN" },
+    { emoji: "🔵", name: "Moov Africa" },
+    { emoji: "🌸", name: "Shashap" }
   ];
 
   // 2. Configuration du canevas A4
@@ -407,29 +407,30 @@ async function exportEventToPDF(index) {
 
       <!-- Pied de page : Adresse + Site web (bien séparés) -->
       <div style="position: absolute; bottom: 90px; left: 60px; right: 60px; display: flex; justify-content: space-between; align-items: flex-end; font-family: 'Oswald', sans-serif; font-size: 14px;">
+        <!-- Description / Adresse -->
         <div style="color: #AAAAAA; max-width: 50%;">
           <p style="margin:0 0 8px 0; color:#CCCCCC; font-size:14px;">${desc}</p>
           <p style="margin:0; color:#888888; font-size:13px;">📍 ${shashapAddress}</p>
         </div>
+        <!-- Site web -->
         <div style="text-align: right; color: #FFFFFF; line-height: 1.4;">
           <p style="margin:0 0 4px 0; font-size:12px; color:#AAAAAA;">PLUS D'INFOS SUR</p>
           <strong style="font-size: 18px; letter-spacing: 1px; color:#E2F000;">${shashapWebsite.toUpperCase()}</strong>
         </div>
       </div>
 
-      <!-- 🟫 BARRE SPONSORS ROSE AVEC LOGOS ET NOMS -->
+      <!-- 🟫 BARRE SPONSORS ROSE (texte + emojis) -->
       <div style="
-        position: absolute; bottom: 0; left: 0; width: 100%; height: 70px;
+        position: absolute; bottom: 0; left: 0; width: 100%; height: 60px;
         background: #E91E63;
         display: flex; align-items: center; justify-content: center;
-        gap: 30px; padding: 0 40px; box-sizing: border-box;
+        gap: 35px; padding: 0 40px; box-sizing: border-box;
         border-top: 2px solid rgba(255,255,255,0.2);
+        font-family: 'Oswald', sans-serif; font-size: 16px; font-weight: 600;
+        color: #FFFFFF; letter-spacing: 1px;
       ">
         ${sponsors.map(s => `
-          <div style="display: flex; align-items: center; gap: 10px; color: #fff; font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 500;">
-            <img src="${s.logo}" alt="${s.name}" style="height: 32px; max-width: 80px; object-fit: contain; background: #fff; padding: 4px; border-radius: 4px;" />
-            <span>${s.name}</span>
-          </div>
+          <span>${s.emoji} ${s.name}</span>
         `).join('')}
       </div>
 
