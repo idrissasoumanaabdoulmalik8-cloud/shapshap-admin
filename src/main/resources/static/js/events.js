@@ -326,6 +326,7 @@ function loadEvents() {
 
   container.innerHTML = html;
 }
+
 async function exportEventToPDF(index) {
   // 1. Récupération des données
   const ev = storiesData[index];
@@ -336,36 +337,18 @@ async function exportEventToPDF(index) {
   const desc = ev.description || 'Le meilleur artiste Nigerien';
   const imageSrc = ev.image || 'https://via.placeholder.com/600x800/2c3e50/ffffff?text=Photo+Artiste';
 
-  // ✅ Adresse réelle de Shashap (modifie-la ici si besoin)
+  // ✅ Adresse réelle de Shashap
   const shashapAddress = "123 Avenue de la République, Niamey, Niger";
   const shashapWebsite = "www.shashap-niamey.com";
 
-  // ✅ Bandeau sponsors (noms et images)
-// ✅ Barre sponsors avec LOGOS + NOMS
-const sponsors = [
-  { name: "Orange Niger",  logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Orange_logo.svg/1200px-Orange_logo.svg.png" },
-  { name: "MTN",          logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/MTN_Logo.svg/1200px-MTN_Logo.svg.png" },
-  { name: "Moov Africa",  logo: "https://www.moov-africa.com/themes/custom/moov/logo.svg" },
-  { name: "Shashap",      logo: "https://i.postimg.cc/X7N9X3fD/shashap-logo.png" } // placeholder
-];
+  // ✅ Barre sponsors avec LOGOS + NOMS
+  const sponsors = [
+    { name: "Orange Niger",  logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Orange_logo.svg/1200px-Orange_logo.svg.png" },
+    { name: "MTN",          logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/MTN_Logo.svg/1200px-MTN_Logo.svg.png" },
+    { name: "Moov Africa",  logo: "https://www.moov-africa.com/themes/custom/moov/logo.svg" },
+    { name: "Shashap",      logo: "https://i.postimg.cc/X7N9X3fD/shashap-logo.png" } // placeholder à remplacer
+  ];
 
-// Barre rose
-const barreHTML = `
-  <div style="
-    position: absolute; bottom: 0; left: 0; width: 100%; height: 70px;
-    background: #E91E63;
-    display: flex; align-items: center; justify-content: center;
-    gap: 30px; padding: 0 40px; box-sizing: border-box;
-    border-top: 2px solid rgba(255,255,255,0.2);
-  ">
-    ${sponsors.map(s => `
-      <div style="display: flex; align-items: center; gap: 10px; color: #fff; font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 500;">
-        <img src="${s.logo}" alt="${s.name}" style="height: 32px; max-width: 80px; object-fit: contain; background: #fff; padding: 4px; border-radius: 4px;" />
-        <span>${s.name}</span>
-      </div>
-    `).join('')}
-  </div>
-`;
   // 2. Configuration du canevas A4
   const poster = document.createElement('div');
   poster.id = "temp-poster-export";
@@ -424,40 +407,30 @@ const barreHTML = `
 
       <!-- Pied de page : Adresse + Site web (bien séparés) -->
       <div style="position: absolute; bottom: 90px; left: 60px; right: 60px; display: flex; justify-content: space-between; align-items: flex-end; font-family: 'Oswald', sans-serif; font-size: 14px;">
-        <!-- Description / Adresse -->
         <div style="color: #AAAAAA; max-width: 50%;">
           <p style="margin:0 0 8px 0; color:#CCCCCC; font-size:14px;">${desc}</p>
           <p style="margin:0; color:#888888; font-size:13px;">📍 ${shashapAddress}</p>
         </div>
-        <!-- Site web -->
         <div style="text-align: right; color: #FFFFFF; line-height: 1.4;">
           <p style="margin:0 0 4px 0; font-size:12px; color:#AAAAAA;">PLUS D'INFOS SUR</p>
           <strong style="font-size: 18px; letter-spacing: 1px; color:#E2F000;">${shashapWebsite.toUpperCase()}</strong>
         </div>
       </div>
 
-      <!-- 🟫 BARRE SPONSORS ROSE (ajoutée en bas, ne touche à rien) -->
+      <!-- 🟫 BARRE SPONSORS ROSE AVEC LOGOS ET NOMS -->
       <div style="
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 50px;
+        position: absolute; bottom: 0; left: 0; width: 100%; height: 70px;
         background: #E91E63;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0 60px;
-        box-sizing: border-box;
-        font-family: 'Oswald', sans-serif;
-        font-size: 13px;
-        font-weight: 500;
-        color: #FFFFFF;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        display: flex; align-items: center; justify-content: center;
+        gap: 30px; padding: 0 40px; box-sizing: border-box;
+        border-top: 2px solid rgba(255,255,255,0.2);
       ">
-        ${sponsorsText}
+        ${sponsors.map(s => `
+          <div style="display: flex; align-items: center; gap: 10px; color: #fff; font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 500;">
+            <img src="${s.logo}" alt="${s.name}" style="height: 32px; max-width: 80px; object-fit: contain; background: #fff; padding: 4px; border-radius: 4px;" />
+            <span>${s.name}</span>
+          </div>
+        `).join('')}
       </div>
 
     </div>
