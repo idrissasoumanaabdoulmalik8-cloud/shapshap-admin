@@ -29,14 +29,10 @@
     <!-- ── SIDEBAR ─────────────────────────────────────────── -->
     <aside class="sidebar">
 
-        <div class="sidebar-logo">
-            <div class="logo-inner">
-                <div class="logo-icon">🌸</div>
-                <div class="logo-text">
-                    <h2>Shashap</h2>
-                    <p>Administration</p>
-                </div>
-            </div>
+        <div class="sidebar-profile">
+            <div class="sidebar-profile-avatar">🌸</div>
+            <div class="sidebar-profile-name">Shashap</div>
+            <div class="sidebar-profile-sub">Administration</div>
         </div>
 
         <div class="sidebar-section-label">Navigation</div>
@@ -73,6 +69,9 @@
                     <span>Administrateur</span>
                 </div>
             </div>
+            <button class="sidebar-pill-btn" onclick="if(confirm('Se déconnecter ?')) window.location.reload();">
+                <i class="ti ti-logout"></i> Déconnexion
+            </button>
         </div>
     </aside><!-- /sidebar -->
 
@@ -170,6 +169,56 @@
 
                 <!-- Points indicateurs du carrousel -->
                 <div id="dashboardPromoDots" style="display:flex; justify-content:center; gap:8px; margin-bottom:26px; margin-top:-16px;"></div>
+
+                <!-- ✅ NOUVEAU : CARTES EN ANNEAU (donut/ring charts) -->
+                <div class="ring-stats-grid">
+
+                    <div class="ring-stat-card">
+                        <div class="ring-stat-svg-wrap">
+                            <svg width="84" height="84" viewBox="0 0 84 84">
+                                <circle class="ring-track" cx="42" cy="42" r="36"></circle>
+                                <circle class="ring-fill" id="ringAvailability" cx="42" cy="42" r="36" stroke="#E91E63"></circle>
+                            </svg>
+                            <div class="ring-stat-center" id="ringAvailabilityLabel">0%</div>
+                        </div>
+                        <div class="ring-stat-info">
+                            <div class="ring-stat-label">Disponibilité</div>
+                            <div class="ring-stat-value" id="ringAvailabilityValue">0 / 0</div>
+                            <div class="ring-stat-sub">Produits en vente</div>
+                        </div>
+                    </div>
+
+                    <div class="ring-stat-card">
+                        <div class="ring-stat-svg-wrap">
+                            <svg width="84" height="84" viewBox="0 0 84 84">
+                                <circle class="ring-track" cx="42" cy="42" r="36"></circle>
+                                <circle class="ring-fill" id="ringPopularity" cx="42" cy="42" r="36" stroke="#F5A623"></circle>
+                            </svg>
+                            <div class="ring-stat-center" id="ringPopularityLabel">0%</div>
+                        </div>
+                        <div class="ring-stat-info">
+                            <div class="ring-stat-label">Popularité</div>
+                            <div class="ring-stat-value" id="ringPopularityValue">0</div>
+                            <div class="ring-stat-sub">Produits best-sellers</div>
+                        </div>
+                    </div>
+
+                    <div class="ring-stat-card">
+                        <div class="ring-stat-svg-wrap">
+                            <svg width="84" height="84" viewBox="0 0 84 84">
+                                <circle class="ring-track" cx="42" cy="42" r="36"></circle>
+                                <circle class="ring-fill" id="ringRevenue" cx="42" cy="42" r="36" stroke="#9C27B0"></circle>
+                            </svg>
+                            <div class="ring-stat-center" style="font-size:11px;" id="ringRevenueLabel">0</div>
+                        </div>
+                        <div class="ring-stat-info">
+                            <div class="ring-stat-label">Recettes du jour</div>
+                            <div class="ring-stat-value" id="ringRevenueValue">0 FCFA</div>
+                            <div class="ring-stat-sub">Chiffre d'affaires</div>
+                        </div>
+                    </div>
+
+                </div>
 
                 <!-- 📊 GRILLE DES KPI (CARTES STATISTIQUES) -->
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px;">
