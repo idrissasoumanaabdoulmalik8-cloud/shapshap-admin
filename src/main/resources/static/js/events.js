@@ -350,9 +350,9 @@ async function exportEventToPDF(index) {
     position: 'absolute',
     left: '-9999px',
     top: '0',
-    width: '794px',   // Largeur A4
-    height: '1123px', // Hauteur A4
-    backgroundColor: '#040404', // Noir encore plus profond
+    width: '794px',
+    height: '1123px',
+    backgroundColor: '#040404',
     overflow: 'hidden',
     boxSizing: 'border-box'
   });
@@ -385,8 +385,8 @@ async function exportEventToPDF(index) {
         </span>
       </div>
 
-      <!-- 1. PHOTO DE L'ARTISTE (Largeur 72%, Centrée, Ombrée) -->
-      <div style="position: absolute; top: 11%; left: 50%; transform: translateX(-50%); width: 72%; height: 50%; z-index: 10; box-shadow: 0 40px 80px rgba(0,0,0,0.9);">
+      <!-- 1. PHOTO DE L'ARTISTE (Largeur 75%, Centrée, Ombrée) -->
+      <div style="position: absolute; top: 11%; left: 50%; transform: translateX(-50%); width: 75%; height: 50%; z-index: 10; box-shadow: 0 40px 80px rgba(0,0,0,0.9);">
         <img src="${imageSrc}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%) contrast(115%) brightness(95%);" />
         <!-- Fondu au noir sur le bas -->
         <div style="position: absolute; bottom: -2px; left: 0; width: 100%; height: 45%; background: linear-gradient(to top, #040404 5%, transparent 100%);"></div>
