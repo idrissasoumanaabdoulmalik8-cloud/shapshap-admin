@@ -336,7 +336,11 @@ async function exportEventToPDF(index) {
   const desc = ev.description || 'Le meilleur artiste Nigerien';
   const imageSrc = ev.image || 'https://via.placeholder.com/600x800/2c3e50/ffffff?text=Photo+Artiste';
 
-  // 2. Configuration du canevas A4 (794x1123 px pour une bonne réso web)
+  // ✅ Adresse réelle de Shashap (modifie-la ici si besoin)
+  const shashapAddress = "123 Avenue de la République, Niamey, Niger";
+  const shashapWebsite = "www.shashap-niamey.com";
+
+  // 2. Configuration du canevas A4
   const poster = document.createElement('div');
   poster.id = "temp-poster-export";
   Object.assign(poster.style, {
@@ -352,58 +356,57 @@ async function exportEventToPDF(index) {
     boxSizing: 'border-box'
   });
 
-  // 3. Injection du Design (HTML/CSS)
+  // 3. Design structuré
   poster.innerHTML = `
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
 
     <div style="padding: 60px; width: 100%; height: 100%; box-sizing: border-box; position: relative;">
 
-      <!-- Conteneur de la Photo (Le cadre blanc) - Largeur 3/4 -->
-      <div style="position: relative; width: 75%; height: 500px; background: #FFFFFF; padding: 15px; box-sizing: border-box; margin: 0 auto; box-shadow: 0 25px 50px rgba(0,0,0,0.6);">
-
-        <!-- Image avec filtre Grunge -->
+      <!-- Conteneur de la Photo (cadre blanc) -->
+      <div style="position: relative; width: 75%; height: 480px; background: #FFFFFF; padding: 15px; box-sizing: border-box; margin: 0 auto; box-shadow: 0 25px 50px rgba(0,0,0,0.6);">
         <img src="${imageSrc}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%) contrast(130%) brightness(85%);" />
 
-        <!-- Scotch Haut-Droit -->
+        <!-- Scotch haut-droit -->
         <div style="position: absolute; top: -20px; right: 20px; width: 150px; height: 35px; background: #E2F000; transform: rotate(20deg); box-shadow: 2px 4px 10px rgba(0,0,0,0.3); opacity: 0.95;"></div>
-
-        <!-- Scotch Bas-Gauche -->
+        <!-- Scotch bas-gauche -->
         <div style="position: absolute; bottom: -20px; left: -10px; width: 130px; height: 35px; background: #E2F000; transform: rotate(-15deg); box-shadow: 2px 4px 10px rgba(0,0,0,0.3); opacity: 0.95;"></div>
       </div>
 
-      <!-- Titre Massif (Superposé sur la photo) -->
+      <!-- Titre Massif -->
       <div style="position: relative; margin-top: -45px; z-index: 10; line-height: 0.85;">
-        <h1 style="margin: 0; font-family: 'Impact', sans-serif; font-size: 150px; color: #E2F000; text-transform: uppercase; letter-spacing: -2px; text-shadow: 0 10px 20px rgba(0,0,0,0.5);">MUSIC</h1>
-        <h1 style="margin: 0; font-family: 'Impact', sans-serif; font-size: 150px; color: #FFFFFF; text-transform: uppercase; letter-spacing: -2px; text-shadow: 0 10px 20px rgba(0,0,0,0.5);">EVENTS</h1>
+        <h1 style="margin: 0; font-family: 'Impact', sans-serif; font-size: 140px; color: #E2F000; text-transform: uppercase; letter-spacing: -2px; text-shadow: 0 10px 20px rgba(0,0,0,0.5);">MUSIC</h1>
+        <h1 style="margin: 0; font-family: 'Impact', sans-serif; font-size: 140px; color: #FFFFFF; text-transform: uppercase; letter-spacing: -2px; text-shadow: 0 10px 20px rgba(0,0,0,0.5);">EVENTS</h1>
       </div>
 
-      <!-- Ligne fine de séparation -->
-      <div style="width: 100%; height: 1px; background: rgba(255,255,255,0.15); margin-top: 30px; margin-bottom: 40px;"></div>
+      <!-- Ligne de séparation -->
+      <div style="width: 100%; height: 1px; background: rgba(255,255,255,0.15); margin-top: 30px; margin-bottom: 30px;"></div>
 
-      <!-- Section Artiste et Détails -->
-      <div style="display: flex; justify-content: flex-end; align-items: flex-end;">
+      <!-- Section Artiste + Date (à droite) -->
+      <div style="display: flex; justify-content: flex-end; align-items: flex-end; margin-bottom: 30px;">
         <div style="text-align: right;">
-          <h2 style="font-family: 'Dancing Script', cursive; font-size: 70px; color: #E2F000; margin: 0 0 20px 0; font-weight: normal; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">${artistName}</h2>
+          <h2 style="font-family: 'Dancing Script', cursive; font-size: 65px; color: #E2F000; margin: 0 0 15px 0; font-weight: normal; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">${artistName}</h2>
 
-          <div style="background: #E2F000; display: inline-block; padding: 8px 16px; margin-bottom: 15px;">
-            <span style="font-family: 'Impact', sans-serif; font-size: 24px; color: #111; letter-spacing: 1px;">MUSIC - DRINKS - FOODS</span>
+          <div style="background: #E2F000; display: inline-block; padding: 8px 16px; margin-bottom: 10px;">
+            <span style="font-family: 'Impact', sans-serif; font-size: 22px; color: #111; letter-spacing: 1px;">MUSIC - DRINKS - FOODS</span>
           </div>
           <br>
           <div style="background: #E2F000; display: inline-block; padding: 8px 16px;">
-            <span style="font-family: 'Impact', sans-serif; font-size: 24px; color: #111; letter-spacing: 1px;">📅 ${displayDate}</span>
+            <span style="font-family: 'Impact', sans-serif; font-size: 22px; color: #111; letter-spacing: 1px;">📅 ${displayDate}</span>
           </div>
         </div>
       </div>
 
-      <!-- Pied de page -->
-      <div style="position: absolute; bottom: 40px; left: 60px; right: 60px; display: flex; justify-content: space-between; align-items: flex-end; font-family: 'Oswald', sans-serif; font-size: 14px;">
-        <div style="color: #AAAAAA; max-width: 40%;">
-          ${desc}
+      <!-- Pied de page : Adresse + Site web (bien séparés) -->
+      <div style="position: absolute; bottom: 50px; left: 60px; right: 60px; display: flex; justify-content: space-between; align-items: flex-end; font-family: 'Oswald', sans-serif; font-size: 14px;">
+        <!-- Description / Adresse -->
+        <div style="color: #AAAAAA; max-width: 50%;">
+          <p style="margin:0 0 8px 0; color:#CCCCCC; font-size:14px;">${desc}</p>
+          <p style="margin:0; color:#888888; font-size:13px;">📍 ${shashapAddress}</p>
         </div>
+        <!-- Site web -->
         <div style="text-align: right; color: #FFFFFF; line-height: 1.4;">
-          AV. LOREM IPSUM DOLOR 2045<br>
-          FOR MORE INFORMATION VISIT US AT<br>
-          <strong style="font-size: 18px; letter-spacing: 1px;">WWW.SHASHAP.COM</strong>
+          <p style="margin:0 0 4px 0; font-size:12px; color:#AAAAAA;">PLUS D'INFOS SUR</p>
+          <strong style="font-size: 18px; letter-spacing: 1px; color:#E2F000;">${shashapWebsite.toUpperCase()}</strong>
         </div>
       </div>
 
