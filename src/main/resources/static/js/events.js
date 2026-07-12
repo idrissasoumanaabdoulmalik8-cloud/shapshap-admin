@@ -327,96 +327,110 @@ function loadEvents() {
   container.innerHTML = html;
 }
 async function exportEventToPDF(index) {
+  // 1. Récupération des données
   const ev = storiesData[index];
-  if (!ev) {
-    console.error("❌ Aucun événement trouvé à l'index", index);
-    return;
-  }
+  if (!ev) return;
 
-  console.log("🟢 Export PDF démarré pour :", ev.artistName || ev.name);
+  const artistName = ev.artistName || ev.name || 'Barakina';
+  const displayDate = ev.eventDate || "VEN 19 JUIL • 21H";
+  const desc = ev.description || 'Le meilleur artiste Nigerien';
+  const imageSrc = ev.image || 'https://via.placeholder.com/600x800/2c3e50/ffffff?text=Photo+Artiste';
 
-  const title = ev.artistName || ev.name || 'MUSIC EVENTS';
-  const displayDate = ev.eventDate || "Saturday April 12, 2026";
-  const desc = ev.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
-  const imageSrc = ev.image || '';
-
-  // 1. Créer le conteneur du poster
+  // 2. Configuration du canevas A4 (794x1123 px pour une bonne réso web)
   const poster = document.createElement('div');
-  poster.style.position = 'absolute';
-  poster.style.left = '-9999px';
-  poster.style.top = '0';
-  poster.style.width = '794px';
-  poster.style.height = '1123px';
-  poster.style.backgroundColor = '#111111';
-  poster.style.color = '#FFFFFF';
-  poster.style.fontFamily = "'Impact', 'Inter', sans-serif";
-  poster.style.overflow = 'hidden';
-  poster.style.boxSizing = 'border-box';
-  poster.style.padding = '60px';
+  poster.id = "temp-poster-export";
+  Object.assign(poster.style, {
+    position: 'absolute',
+    left: '-9999px',
+    top: '0',
+    width: '794px',
+    height: '1123px',
+    backgroundColor: '#111111', // Fond quasi noir
+    backgroundImage: 'radial-gradient(circle at 50% 30%, #1e1e1e 0%, #111111 80%)', // Léger halo lumineux au centre
+    fontFamily: "'Oswald', 'Impact', sans-serif",
+    overflow: 'hidden',
+    boxSizing: 'border-box'
+  });
 
-  // ✅ Gestion de l'image avec fallback CORS
-  const imgTag = imageSrc
-    ? `<img src="${imageSrc}" crossorigin="anonymous"
-           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-           style="width:100%; height:100%; object-fit:cover; filter:grayscale(100%) contrast(120%);" />`
-    : '';
-  const fallbackDiv = imageSrc
-    ? `<div style="display:none; width:100%; height:100%; background:linear-gradient(135deg,#2c3e50,#000); align-items:center; justify-content:center;">
-         <span style="font-size:48px; opacity:0.5;">🎵</span>
-       </div>`
-    : `<div style="display:flex; width:100%; height:100%; background:linear-gradient(135deg,#2c3e50,#000); align-items:center; justify-content:center;">
-         <span style="font-size:48px; opacity:0.5;">🎵</span>
-       </div>`;
-
+  // 3. Injection du Design (HTML/CSS)
   poster.innerHTML = `
-    <div style="position:relative; width:100%; height:500px; background:#FFFFFF; padding:15px; box-sizing:border-box; margin-bottom:40px; transform:rotate(-1deg);">
-      ${imgTag}
-      ${fallbackDiv}
-      <div style="position:absolute; top:-15px; right:-20px; width:120px; height:35px; background:#D4DF00; transform:rotate(25deg); opacity:0.9; box-shadow:0 4px 6px rgba(0,0,0,0.3);"></div>
-      <div style="position:absolute; bottom:-20px; left:-15px; width:140px; height:35px; background:#D4DF00; transform:rotate(-15deg); opacity:0.9; box-shadow:0 4px 6px rgba(0,0,0,0.3);"></div>
-    </div>
+    <!-- Importation des polices -->
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
 
-    <div style="line-height:0.9; margin-bottom:30px;">
-      <h1 style="margin:0; font-size:110px; color:#D4DF00; text-transform:uppercase; letter-spacing:-2px;">MUSIC</h1>
-      <h1 style="margin:0; font-size:130px; color:#FFFFFF; text-transform:uppercase; letter-spacing:-3px;">EVENTS</h1>
-    </div>
+    <div style="padding: 60px; width: 100%; height: 100%; box-sizing: border-box; position: relative;">
 
-    <div style="display:flex; justify-content:space-between; align-items:flex-end; border-top:2px solid #333; padding-top:30px;">
-      <div style="width:55%;">
-        <p style="font-family:'Arial',sans-serif; font-size:14px; color:#AAAAAA; line-height:1.6; margin-bottom:20px;">${desc}</p>
-        <div style="display:flex; gap:20px; font-family:'Arial',sans-serif; font-size:14px; color:#FFFFFF;">
-          <span><strong style="color:#D4DF00;">𝕏</strong> @shashap_app</span>
-          <span><strong style="color:#D4DF00;">IG</strong> @shashap.events</span>
+      <!-- Conteneur de la Photo (Le cadre blanc) -->
+      <div style="position: relative; width: 100%; height: 500px; background: #FFFFFF; padding: 15px; box-sizing: border-box; margin: 0 auto; box-shadow: 0 25px 50px rgba(0,0,0,0.6);">
+
+        <!-- Image avec filtre Grunge -->
+        <img src="${imageSrc}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%) contrast(130%) brightness(85%);" />
+
+        <!-- Scotch Haut-Droit -->
+        <div style="position: absolute; top: -20px; right: 20px; width: 150px; height: 35px; background: #E2F000; transform: rotate(20deg); box-shadow: 2px 4px 10px rgba(0,0,0,0.3); opacity: 0.95;"></div>
+
+        <!-- Scotch Bas-Gauche -->
+        <div style="position: absolute; bottom: -20px; left: -10px; width: 130px; height: 35px; background: #E2F000; transform: rotate(-15deg); box-shadow: 2px 4px 10px rgba(0,0,0,0.3); opacity: 0.95;"></div>
+      </div>
+
+      <!-- Titre Massif (Superposé sur la photo) -->
+      <div style="position: relative; margin-top: -45px; z-index: 10; line-height: 0.85;">
+        <h1 style="margin: 0; font-family: 'Impact', sans-serif; font-size: 150px; color: #E2F000; text-transform: uppercase; letter-spacing: -2px; text-shadow: 0 10px 20px rgba(0,0,0,0.5);">MUSIC</h1>
+        <h1 style="margin: 0; font-family: 'Impact', sans-serif; font-size: 150px; color: #FFFFFF; text-transform: uppercase; letter-spacing: -2px; text-shadow: 0 10px 20px rgba(0,0,0,0.5);">EVENTS</h1>
+      </div>
+
+      <!-- Ligne fine de séparation -->
+      <div style="width: 100%; height: 1px; background: rgba(255,255,255,0.15); margin-top: 30px; margin-bottom: 40px;"></div>
+
+      <!-- Section Artiste et Détails -->
+      <div style="display: flex; justify-content: flex-end; align-items: flex-end;">
+        <div style="text-align: right;">
+          <!-- Nom de l'artiste en script -->
+          <h2 style="font-family: 'Dancing Script', cursive; font-size: 70px; color: #E2F000; margin: 0 0 20px 0; font-weight: normal; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">${artistName}</h2>
+
+          <!-- Tags Jaunes -->
+          <div style="background: #E2F000; display: inline-block; padding: 8px 16px; margin-bottom: 15px;">
+            <span style="font-family: 'Impact', sans-serif; font-size: 24px; color: #111; letter-spacing: 1px;">MUSIC - DRINKS - FOODS</span>
+          </div>
+          <br>
+          <div style="background: #E2F000; display: inline-block; padding: 8px 16px;">
+            <span style="font-family: 'Impact', sans-serif; font-size: 24px; color: #111; letter-spacing: 1px;">📅 ${displayDate}</span>
+          </div>
         </div>
       </div>
-      <div style="width:40%; text-align:right;">
-        <h2 style="font-family:'Brush Script MT',cursive; font-size:60px; color:#D4DF00; margin:0 0 10px 0; font-weight:normal;">${title}</h2>
-        <div style="background:#D4DF00; color:#111; padding:10px; font-size:18px; font-weight:bold; text-transform:uppercase; margin-bottom:15px; display:inline-block;">Music - Drinks - Foods</div>
-        <br>
-        <div style="background:#D4DF00; color:#111; padding:10px; font-size:16px; font-weight:bold; text-transform:uppercase; display:inline-block;">📅 ${displayDate}</div>
-        <p style="font-family:'Arial',sans-serif; font-size:12px; color:#FFFFFF; margin-top:20px; text-transform:uppercase; line-height:1.4;">
+
+      <!-- Pied de page -->
+      <div style="position: absolute; bottom: 40px; left: 60px; right: 60px; display: flex; justify-content: space-between; align-items: flex-end; font-family: 'Oswald', sans-serif; font-size: 14px;">
+        <div style="color: #AAAAAA; max-width: 40%;">
+          ${desc}
+        </div>
+        <div style="text-align: right; color: #FFFFFF; line-height: 1.4;">
           AV. LOREM IPSUM DOLOR 2045<br>
-          For more information visit us at<br>
-          <strong style="font-size:16px;">WWW.SHASHAP.COM</strong>
-        </p>
+          FOR MORE INFORMATION VISIT US AT<br>
+          <strong style="font-size: 18px; letter-spacing: 1px;">WWW.SHASHAP.COM</strong>
+        </div>
       </div>
+
     </div>
   `;
 
   document.body.appendChild(poster);
 
   try {
-    console.log("📸 Capture du poster avec html2canvas...");
+    // 4. Astuce cruciale : Attendre que les Google Fonts chargent avant de prendre la photo
+    await document.fonts.ready;
+    // Petite pause supplémentaire pour être sûr que l'image est bien rendue dans le DOM
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // 5. Capture avec html2canvas (scale: 2 = Qualité Retina/Impression)
     const canvas = await html2canvas(poster, {
       scale: 2,
       useCORS: true,
-      allowTaint: true,       // ✅ Autorise les images externes
       backgroundColor: '#111111'
     });
 
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
-    console.log("✅ Poster capturé, génération du PDF...");
 
+    // 6. Génération du PDF
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({
       orientation: 'portrait',
@@ -426,14 +440,15 @@ async function exportEventToPDF(index) {
 
     pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
 
-    const safeTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    pdf.save(`affiche_${safeTitle}.pdf`);
-    console.log("✅ PDF téléchargé !");
+    // 7. Téléchargement avec un nom de fichier propre
+    const safeTitle = artistName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    pdf.save(`affiche_${safeTitle}_shashap.pdf`);
 
   } catch (error) {
-    console.error("❌ Erreur PDF:", error);
-    alert("Erreur lors de la génération du PDF. Vérifiez la console (F12) pour plus de détails.");
+    console.error("Erreur lors de la génération du PDF:", error);
+    alert("Oups, une erreur s'est produite. L'image de l'événement bloque peut-être la capture (CORS).");
   } finally {
+    // 8. On nettoie toujours le DOM à la fin
     document.body.removeChild(poster);
   }
 }
