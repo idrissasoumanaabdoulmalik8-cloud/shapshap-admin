@@ -928,14 +928,19 @@
     #analyticsViewersList::-webkit-scrollbar { width: 5px; }
     #analyticsViewersList::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 10px; }
 </style>
+<!-- Librairies externes (chargées en premier) -->
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>window.jsPDF = window.jspdf.jsPDF;</script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 
+<!-- Scripts applicatifs (chargés après les librairies) -->
 <script src="/js/shashap.js"></script>
 <script src="/js/orders.js"></script>
 <script src="/js/clients.js"></script>
 <script src="/js/favorites.js"></script>
 <script src="/js/events.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
 <!-- ✅ NOUVEAU : script du carrousel de bannières promo du dashboard -->
 <script>
     (function initDashboardPromoCarousel() {
