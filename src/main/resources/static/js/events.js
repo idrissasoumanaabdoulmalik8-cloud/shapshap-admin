@@ -352,61 +352,68 @@ async function exportEventToPDF(index) {
     boxSizing: 'border-box'
   });
 
-  // 3. Injection du Design (HTML/CSS)
+// 3. Injection du Design (HTML/CSS - Version Structure Stricte)
   poster.innerHTML = `
     <!-- Importation des polices -->
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
 
-    <div style="padding: 60px; width: 100%; height: 100%; box-sizing: border-box; position: relative;">
+    <!-- Conteneur principal en Flexbox (empêche les chevauchements) -->
+    <div style="display: flex; flex-direction: column; padding: 50px; width: 100%; height: 100%; box-sizing: border-box; position: relative;">
 
-      <!-- Conteneur de la Photo (Le cadre blanc) -->
-      <div style="position: relative; width: 100%; height: 500px; background: #FFFFFF; padding: 15px; box-sizing: border-box; margin: 0 auto; box-shadow: 0 25px 50px rgba(0,0,0,0.6);">
+      <!-- ZONE IMAGE (Haut) -->
+      <div style="position: relative; width: 100%; height: 420px; background: #FFFFFF; padding: 12px; box-sizing: border-box; margin: 0 auto; box-shadow: 0 15px 35px rgba(0,0,0,0.8); z-index: 1;">
 
-        <!-- Image avec filtre Grunge -->
-        <img src="${imageSrc}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%) contrast(130%) brightness(85%);" />
-
-        <!-- Scotch Haut-Droit -->
-        <div style="position: absolute; top: -20px; right: 20px; width: 150px; height: 35px; background: #E2F000; transform: rotate(20deg); box-shadow: 2px 4px 10px rgba(0,0,0,0.3); opacity: 0.95;"></div>
-
-        <!-- Scotch Bas-Gauche -->
-        <div style="position: absolute; bottom: -20px; left: -10px; width: 130px; height: 35px; background: #E2F000; transform: rotate(-15deg); box-shadow: 2px 4px 10px rgba(0,0,0,0.3); opacity: 0.95;"></div>
-      </div>
-
-      <!-- Titre Massif (Superposé sur la photo) -->
-      <div style="position: relative; margin-top: -45px; z-index: 10; line-height: 0.85;">
-        <h1 style="margin: 0; font-family: 'Impact', sans-serif; font-size: 150px; color: #E2F000; text-transform: uppercase; letter-spacing: -2px; text-shadow: 0 10px 20px rgba(0,0,0,0.5);">MUSIC</h1>
-        <h1 style="margin: 0; font-family: 'Impact', sans-serif; font-size: 150px; color: #FFFFFF; text-transform: uppercase; letter-spacing: -2px; text-shadow: 0 10px 20px rgba(0,0,0,0.5);">EVENTS</h1>
-      </div>
-
-      <!-- Ligne fine de séparation -->
-      <div style="width: 100%; height: 1px; background: rgba(255,255,255,0.15); margin-top: 30px; margin-bottom: 40px;"></div>
-
-      <!-- Section Artiste et Détails -->
-      <div style="display: flex; justify-content: flex-end; align-items: flex-end;">
-        <div style="text-align: right;">
-          <!-- Nom de l'artiste en script -->
-          <h2 style="font-family: 'Dancing Script', cursive; font-size: 70px; color: #E2F000; margin: 0 0 20px 0; font-weight: normal; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">${artistName}</h2>
-
-          <!-- Tags Jaunes -->
-          <div style="background: #E2F000; display: inline-block; padding: 8px 16px; margin-bottom: 15px;">
-            <span style="font-family: 'Impact', sans-serif; font-size: 24px; color: #111; letter-spacing: 1px;">MUSIC - DRINKS - FOODS</span>
-          </div>
-          <br>
-          <div style="background: #E2F000; display: inline-block; padding: 8px 16px;">
-            <span style="font-family: 'Impact', sans-serif; font-size: 24px; color: #111; letter-spacing: 1px;">📅 ${displayDate}</span>
-          </div>
+        <div style="position: relative; width: 100%; height: 100%; overflow: hidden;">
+           <!-- L'image -->
+           <img src="${imageSrc}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover;" />
+           <!-- Hack pour assombrir et désaturer visuellement sans filtre CSS -->
+           <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); mix-blend-mode: color;"></div>
+           <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4);"></div>
         </div>
+
+        <!-- Les scotchs corrigés (Z-index élevé pour passer au-dessus) -->
+        <div style="position: absolute; top: -15px; right: 25px; width: 140px; height: 35px; background: #E2F000; transform: rotate(15deg); box-shadow: 2px 4px 8px rgba(0,0,0,0.4); z-index: 20;"></div>
+        <div style="position: absolute; bottom: -15px; left: -10px; width: 120px; height: 35px; background: #E2F000; transform: rotate(-12deg); box-shadow: 2px 4px 8px rgba(0,0,0,0.4); z-index: 20;"></div>
       </div>
 
-      <!-- Pied de page -->
-      <div style="position: absolute; bottom: 40px; left: 60px; right: 60px; display: flex; justify-content: space-between; align-items: flex-end; font-family: 'Oswald', sans-serif; font-size: 14px;">
-        <div style="color: #AAAAAA; max-width: 40%;">
+      <!-- ZONE TITRE (Milieu - Chevauchement contrôlé) -->
+      <div style="position: relative; margin-top: -30px; z-index: 10; line-height: 0.85;">
+        <h1 style="margin: 0; font-family: 'Impact', sans-serif; font-size: 130px; color: #E2F000; text-transform: uppercase; letter-spacing: -2px; text-shadow: 0 8px 16px rgba(0,0,0,0.8);">MUSIC</h1>
+        <h1 style="margin: 0; font-family: 'Impact', sans-serif; font-size: 130px; color: #FFFFFF; text-transform: uppercase; letter-spacing: -2px; text-shadow: 0 8px 16px rgba(0,0,0,0.8);">EVENTS</h1>
+      </div>
+
+      <!-- Ligne de séparation -->
+      <div style="width: 100%; height: 1px; background: rgba(255,255,255,0.2); margin: 25px 0;"></div>
+
+      <!-- ZONE DÉTAILS ET FOOTER (Bas - Structure Flex pour éviter le crash de l'image précédente) -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-grow: 1;">
+
+        <!-- Gauche (Description) -->
+        <div style="width: 45%; font-family: 'Oswald', sans-serif; font-size: 14px; color: #AAAAAA; line-height: 1.5; margin-bottom: 5px;">
           ${desc}
         </div>
-        <div style="text-align: right; color: #FFFFFF; line-height: 1.4;">
-          AV. LOREM IPSUM DOLOR 2045<br>
-          FOR MORE INFORMATION VISIT US AT<br>
-          <strong style="font-size: 18px; letter-spacing: 1px;">WWW.SHASHAP.COM</strong>
+
+        <!-- Droite (Artiste, Badges, Adresse) -->
+        <div style="width: 50%; text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 12px;">
+
+          <!-- Nom de l'artiste -->
+          <h2 style="font-family: 'Dancing Script', cursive; font-size: 65px; color: #E2F000; margin: 0; font-weight: normal; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">${artistName}</h2>
+
+          <!-- Badges -->
+          <div style="background: #E2F000; padding: 6px 14px;">
+            <span style="font-family: 'Impact', sans-serif; font-size: 22px; color: #111; letter-spacing: 1px;">MUSIC - DRINKS - FOODS</span>
+          </div>
+          <div style="background: #E2F000; padding: 6px 14px;">
+            <span style="font-family: 'Impact', sans-serif; font-size: 20px; color: #111; letter-spacing: 1px;">📅 ${displayDate}</span>
+          </div>
+
+          <!-- Adresse (Séparée avec une marge pour ne plus jamais toucher les badges) -->
+          <div style="font-family: 'Oswald', sans-serif; font-size: 13px; color: #FFFFFF; line-height: 1.4; margin-top: 10px;">
+            AV. LOREM IPSUM DOLOR 2045<br>
+            FOR MORE INFORMATION VISIT US AT<br>
+            <strong style="font-size: 16px; letter-spacing: 1px;">WWW.SHASHAP.COM</strong>
+          </div>
+
         </div>
       </div>
 
