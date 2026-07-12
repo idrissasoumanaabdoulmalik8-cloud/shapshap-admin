@@ -213,6 +213,7 @@ function closeEventModal() {
   const m = document.getElementById('eventModal');
   if (m) m.style.display = 'none';
 }
+
 function loadEvents() {
   const container = document.getElementById('eventsList');
   if (!container) return;
@@ -236,43 +237,66 @@ function loadEvents() {
     const end = ev.endDate || '?';
 
     html += `
-      <div class="event-card" style="background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.05); border: 1px solid #fce4ec; transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column;"
-           onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 30px rgba(233,30,99,0.1)'"
-           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.05)'">
+      <div class="event-card" style="
+        background: #fff;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+        border: 2px solid #D4AF37;          /* ✅ CADRE DORÉ */
+        transition: transform 0.3s, box-shadow 0.3s;
+        display: flex; flex-direction: column;
+        position: relative;
+      "
+      onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 16px 40px rgba(212,175,55,0.2)'"
+      onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.05)'"
+      >
+        <!-- ✨ Petit badge "OR" en haut à gauche -->
+        <div style="position: absolute; top: 12px; left: 12px; background: linear-gradient(135deg, #D4AF37, #F5A623); padding: 4px 10px; border-radius: 20px; color: #fff; font-size: 10px; font-weight: 800; z-index: 2; box-shadow: 0 2px 8px rgba(212,175,55,0.4); letter-spacing: 0.5px;">
+          ⭐ OR
+        </div>
 
-        <!-- Bannière image ou dégradé -->
-        <div style="height: 120px; ${ev.image ? `background-image: url('${ev.image}'); background-size: cover; background-position: center;` : 'background: linear-gradient(135deg, #F5A623, #8E24AA);'} position: relative;">
-          <div style="position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); padding: 4px 12px; border-radius: 20px; color: #fff; font-size: 11px; font-weight: 700;">
-            🎤 ÉVÉNEMENT
-          </div>
-          <div style="position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.25); backdrop-filter: blur(8px); padding: 4px 10px; border-radius: 20px; color: #fff; font-size: 11px; font-weight: 600;">
-            ${start} → ${end}
+        <!-- Bannière image -->
+        <div style="
+          height: 140px;
+          ${ev.image
+            ? `background-image: url('${ev.image}'); background-size: cover; background-position: center;`
+            : 'background: linear-gradient(135deg, #F5A623, #8E24AA);'}
+          position: relative;
+          border-radius: 18px 18px 0 0;
+        ">
+          <!-- Overlay dégradé pour lisibilité -->
+          <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);"></div>
+          <div style="position: absolute; bottom: 12px; left: 16px; color: #fff; font-size: 13px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">
+            🎤 ${ev.artistName || ev.name}
           </div>
         </div>
 
-        <!-- Contenu de la carte -->
-        <div style="padding: 18px 20px; flex: 1; display: flex; flex-direction: column;">
-          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-            <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #E91E63, #F5A623); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 14px;">
-              ${(ev.artistName || ev.name).charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #1e1e2f;">${ev.artistName || ev.name || 'Sans nom'}</h3>
-              <span style="font-size: 13px; color: #888;">📅 ${ev.eventDate || '—'}</span>
-            </div>
+        <!-- Contenu -->
+        <div style="padding: 16px 20px 18px 20px; flex: 1; display: flex; flex-direction: column;">
+          <!-- Date -->
+          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px;">
+            <span style="font-size: 13px; color: #D4AF37; font-weight: 700;">📅 ${ev.eventDate || '—'}</span>
+            <span style="color: #ccc;">•</span>
+            <span style="font-size: 11px; color: #888;">${start} → ${end}</span>
           </div>
-          <p style="color: #555; font-size: 13px; line-height: 1.4; margin: 8px 0 12px 0; flex: 1;">${ev.description || 'Aucune description.'}</p>
 
-          <!-- Actions -->
-          <div style="display: flex; gap: 8px; margin-top: auto;">
-            <button class="btn btn-secondary btn-sm" onclick="editEventByIndex(${realIndex})"
-                    style="flex: 1; background: #f5f5f7; border: none; padding: 10px; border-radius: 12px; font-weight: 600; font-size: 13px; cursor: pointer; transition: background 0.2s;"
-                    onmouseover="this.style.background='#eee'" onmouseout="this.style.background='#f5f5f7'">
+          <!-- Description -->
+          <p style="color: #555; font-size: 13px; line-height: 1.5; margin: 0 0 16px 0; flex: 1;">
+            ${ev.description || 'Aucune description pour cet événement.'}
+          </p>
+
+          <!-- Boutons -->
+          <div style="display: flex; gap: 10px;">
+            <button onclick="editEventByIndex(${realIndex})"
+              style="flex: 1; background: #fff; border: 2px solid #D4AF37; color: #D4AF37; padding: 10px 0; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s;"
+              onmouseover="this.style.background='#FFF9E6';"
+              onmouseout="this.style.background='#fff';">
               ✏️ Modifier
             </button>
-            <button class="btn btn-danger btn-sm" onclick="deleteEventByIndex(${realIndex})"
-                    style="flex: 1; background: #ffebee; color: #E53935; border: none; padding: 10px; border-radius: 12px; font-weight: 600; font-size: 13px; cursor: pointer; transition: background 0.2s;"
-                    onmouseover="this.style.background='#ffcdd2'" onmouseout="this.style.background='#ffebee'">
+            <button onclick="deleteEventByIndex(${realIndex})"
+              style="flex: 1; background: #fff; border: 2px solid #E53935; color: #E53935; padding: 10px 0; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s;"
+              onmouseover="this.style.background='#FFEBEE';"
+              onmouseout="this.style.background='#fff';">
               🗑️ Supprimer
             </button>
           </div>
