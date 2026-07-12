@@ -55,10 +55,6 @@
                 <div class="nav-icon"><i class="ti ti-salad"></i></div>
                 <span>Produits</span>
             </a>
-            <a href="#" data-page="events">
-                <div class="nav-icon"><i class="ti ti-calendar-event"></i></div>
-                <span>Événements</span>
-            </a>
             <a href="#" data-page="clients">
                 <div class="nav-icon"><i class="ti ti-users"></i></div>
                 <span>Clients</span>
@@ -122,6 +118,58 @@
 
             <!-- 📦 CONTENU DU DASHBOARD (KPI & GRAPHIQUES) -->
             <div style="padding: 0 25px;">
+
+                <!-- ✅ NOUVEAU : CARROUSEL DE BANNIÈRES PROMO -->
+                <div id="dashboardPromoCarousel" style="position:relative; width:100%; height:170px; border-radius:22px; overflow:hidden; margin-bottom:26px; box-shadow:0 10px 30px rgba(233,30,99,0.15);">
+                    <div id="dashboardPromoTrack" style="display:flex; width:300%; height:100%; transition: transform 0.6s cubic-bezier(0.4,0,0.2,1);">
+
+                        <!-- Slide 1 : rose -->
+                        <div style="width:33.333%; height:100%; position:relative; background:linear-gradient(135deg,#FF6B9D,#E91E63,#C2185B); flex-shrink:0; display:flex; align-items:center; overflow:hidden;">
+                            <div style="position:absolute; top:-30px; right:-20px; width:90px; height:90px; border-radius:50%; background:#fff; opacity:0.15;"></div>
+                            <div style="position:absolute; bottom:-15px; left:30px; width:50px; height:50px; border-radius:50%; background:#fff; opacity:0.12;"></div>
+                            <div style="position:absolute; right:18px; top:50%; transform:translateY(-50%) rotate(-8deg); font-size:64px; opacity:0.9;">🍔</div>
+                            <div style="position:absolute; top:14px; right:14px; width:62px; height:62px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:#E91E63; box-shadow:0 6px 16px rgba(0,0,0,0.15);">-20%</div>
+                            <div style="margin-left:22px; color:#fff;">
+                                <div style="font-size:11px; font-weight:700; opacity:0.85; letter-spacing:0.8px;">OFFRE DE BIENVENUE</div>
+                                <div style="font-size:22px; font-weight:800; margin-top:4px; font-family:'Poppins',sans-serif; text-shadow:0 2px 4px rgba(0,0,0,0.25);">Régalez-vous</div>
+                                <div style="font-size:12px; opacity:0.9; margin-top:2px;">Sur votre première commande</div>
+                                <button onclick="switchPage('products')" style="margin-top:12px; background:#fff; color:#E91E63; border:none; padding:9px 18px; border-radius:20px; font-weight:700; font-size:12px; cursor:pointer; box-shadow:0 3px 8px rgba(0,0,0,0.15);">Voir les produits →</button>
+                            </div>
+                        </div>
+
+                        <!-- Slide 2 : doré -->
+                        <div style="width:33.333%; height:100%; position:relative; background:linear-gradient(135deg,#F5A623,#EC407A,#E91E63); flex-shrink:0; display:flex; align-items:center; overflow:hidden;">
+                            <div style="position:absolute; top:-30px; right:-20px; width:90px; height:90px; border-radius:50%; background:#fff; opacity:0.15;"></div>
+                            <div style="position:absolute; bottom:-15px; left:30px; width:50px; height:50px; border-radius:50%; background:#fff; opacity:0.12;"></div>
+                            <div style="position:absolute; right:18px; top:50%; transform:translateY(-50%) rotate(-8deg); font-size:64px; opacity:0.9;">🍕</div>
+                            <div style="position:absolute; top:14px; right:14px; width:62px; height:62px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 6px 16px rgba(0,0,0,0.15);">🔥</div>
+                            <div style="margin-left:22px; color:#fff;">
+                                <div style="font-size:11px; font-weight:700; opacity:0.85; letter-spacing:0.8px;">NOUVEAUTÉ</div>
+                                <div style="font-size:22px; font-weight:800; margin-top:4px; font-family:'Poppins',sans-serif; text-shadow:0 2px 4px rgba(0,0,0,0.25);">Pizza du moment</div>
+                                <div style="font-size:12px; opacity:0.9; margin-top:2px;">Ajoutez vos nouvelles recettes</div>
+                                <button onclick="openProductModal()" style="margin-top:12px; background:#fff; color:#E91E63; border:none; padding:9px 18px; border-radius:20px; font-weight:700; font-size:12px; cursor:pointer; box-shadow:0 3px 8px rgba(0,0,0,0.15);">Ajouter un produit →</button>
+                            </div>
+                        </div>
+
+                        <!-- Slide 3 : violet -->
+                        <div style="width:33.333%; height:100%; position:relative; background:linear-gradient(135deg,#9C27B0,#D81B60,#E91E63); flex-shrink:0; display:flex; align-items:center; overflow:hidden;">
+                            <div style="position:absolute; top:-30px; right:-20px; width:90px; height:90px; border-radius:50%; background:#fff; opacity:0.15;"></div>
+                            <div style="position:absolute; bottom:-15px; left:30px; width:50px; height:50px; border-radius:50%; background:#fff; opacity:0.12;"></div>
+                            <div style="position:absolute; right:18px; top:50%; transform:translateY(-50%) rotate(-8deg); font-size:64px; opacity:0.9;">🛵</div>
+                            <div style="position:absolute; top:14px; right:14px; width:62px; height:62px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 6px 16px rgba(0,0,0,0.15);">📦</div>
+                            <div style="margin-left:22px; color:#fff;">
+                                <div style="font-size:11px; font-weight:700; opacity:0.85; letter-spacing:0.8px;">COMMANDES</div>
+                                <div style="font-size:22px; font-weight:800; margin-top:4px; font-family:'Poppins',sans-serif; text-shadow:0 2px 4px rgba(0,0,0,0.25);">Suivi en direct</div>
+                                <div style="font-size:12px; opacity:0.9; margin-top:2px;">Gérez vos livraisons en temps réel</div>
+                                <button onclick="switchPage('orders')" style="margin-top:12px; background:#fff; color:#E91E63; border:none; padding:9px 18px; border-radius:20px; font-weight:700; font-size:12px; cursor:pointer; box-shadow:0 3px 8px rgba(0,0,0,0.15);">Voir les commandes →</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Points indicateurs du carrousel -->
+                <div id="dashboardPromoDots" style="display:flex; justify-content:center; gap:8px; margin-bottom:26px; margin-top:-16px;"></div>
 
                 <!-- 📊 GRILLE DES KPI (CARTES STATISTIQUES) -->
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px;">
@@ -514,30 +562,7 @@
 
             </div><!-- /content products -->
         </div><!-- /page products -->
-        <!-- ════════════════════════════════════════════════════
-             PAGE : ÉVÉNEMENTS
-             ════════════════════════════════════════════════════ -->
 
-        <div id="events" class="page">
-
-            <div class="topbar">
-                <div>
-                    <div class="page-title">🎤 Événements</div>
-                    <div class="page-sub">Gestion des soirées et lives</div>
-                </div>
-                <div class="topbar-right">
-                    <button class="btn-primary-sm" onclick="openEventModal()">
-                        <i class="ti ti-plus"></i> Nouvel événement
-                    </button>
-                </div>
-            </div>
-
-            <div class="content">
-                <div class="table-card">
-                    <div id="eventsList"></div>
-                </div>
-            </div>
-        </div><!-- /page events -->
 
         <!-- ════════════════════════════════════════════════════
              PAGE : CLIENTS
@@ -830,6 +855,59 @@
 <script src="/js/orders.js"></script>
 <script src="/js/clients.js"></script>
 <script src="/js/favorites.js"></script>
-<script src="/js/events.js"></script>
+
+<!-- ✅ NOUVEAU : script du carrousel de bannières promo du dashboard -->
+<script>
+    (function initDashboardPromoCarousel() {
+        const track = document.getElementById('dashboardPromoTrack');
+        const dotsContainer = document.getElementById('dashboardPromoDots');
+        if (!track || !dotsContainer) return;
+
+        const slideCount = 3;
+        let currentIndex = 0;
+        let autoScrollTimer = null;
+
+        // Créer les points indicateurs
+        for (let i = 0; i < slideCount; i++) {
+            const dot = document.createElement('div');
+            dot.style.cssText = `
+                width:8px; height:8px; border-radius:50%;
+                background:#E91E63; opacity:${i === 0 ? '1' : '0.3'};
+                cursor:pointer; transition: opacity 0.3s;
+            `;
+            dot.onclick = () => goToSlide(i);
+            dotsContainer.appendChild(dot);
+        }
+
+        function updateDots() {
+            Array.from(dotsContainer.children).forEach((dot, i) => {
+                dot.style.opacity = i === currentIndex ? '1' : '0.3';
+            });
+        }
+
+        function goToSlide(index) {
+            currentIndex = index;
+            track.style.transform = `translateX(-${currentIndex * (100 / slideCount)}%)`;
+            updateDots();
+            resetAutoScroll();
+        }
+
+        function nextSlide() {
+            currentIndex = (currentIndex + 1) % slideCount;
+            goToSlide(currentIndex);
+        }
+
+        function startAutoScroll() {
+            autoScrollTimer = setInterval(nextSlide, 3500);
+        }
+
+        function resetAutoScroll() {
+            if (autoScrollTimer) clearInterval(autoScrollTimer);
+            startAutoScroll();
+        }
+
+        startAutoScroll();
+    })();
+</script>
 </body>
 </html>
