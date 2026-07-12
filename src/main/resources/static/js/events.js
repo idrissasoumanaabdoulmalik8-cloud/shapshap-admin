@@ -327,6 +327,7 @@ function loadEvents() {
   container.innerHTML = html;
 }
 async function exportEventToPDF(index) {
+  // 1. Récupération des données
   const ev = storiesData[index];
   if (!ev) return;
 
@@ -334,29 +335,31 @@ async function exportEventToPDF(index) {
   const displayDate = ev.eventDate || "VEN 19 JUIL • 21H";
   const desc = ev.description || 'Le meilleur artiste Nigerien';
   const imageSrc = ev.image || 'https://via.placeholder.com/600x800/2c3e50/ffffff?text=Photo+Artiste';
+
+  // ✅ Adresse réelle de Shashap (modifie-la ici si besoin)
   const shashapAddress = "123 Avenue de la République, Niamey, Niger";
   const shashapWebsite = "www.shashap-niamey.com";
 
-  // ✅ Liste des sponsors (modifiable avec leurs vrais logos)
-  const sponsors = [
-    { name: "Orange Niger",    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Orange_logo.svg/1200px-Orange_logo.svg.png" },
-    { name: "MTN",            logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/MTN_Logo.svg/1200px-MTN_Logo.svg.png" },
-    { name: "Moov Africa",    logo: "https://www.moov-africa.com/themes/custom/moov/logo.svg" },
-    { name: "Niger Telecom",  logo: "https://www.nigertelecoms.ne/sites/default/files/logo_nt.png" },
-    { name: "Shashap",        logo: "https://i.postimg.cc/X7N9X3fD/shashap-logo.png" } // placeholder, à remplacer
-  ];
+  // ✅ Bandeau sponsors (noms uniquement)
+  const sponsorsText = "SPONSORS :  Orange Niger  |  MTN  |  Moov Africa  |  Niger Telecom  |  Shashap";
 
+  // 2. Configuration du canevas A4
   const poster = document.createElement('div');
   poster.id = "temp-poster-export";
   Object.assign(poster.style, {
-    position: 'absolute', left: '-9999px', top: '0',
-    width: '794px', height: '1123px',
+    position: 'absolute',
+    left: '-9999px',
+    top: '0',
+    width: '794px',
+    height: '1123px',
     backgroundColor: '#111111',
     backgroundImage: 'radial-gradient(circle at 50% 30%, #1e1e1e 0%, #111111 80%)',
     fontFamily: "'Oswald', 'Impact', sans-serif",
-    overflow: 'hidden', boxSizing: 'border-box'
+    overflow: 'hidden',
+    boxSizing: 'border-box'
   });
 
+  // 3. Design structuré
   poster.innerHTML = `
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
 
@@ -365,7 +368,10 @@ async function exportEventToPDF(index) {
       <!-- Conteneur de la Photo (cadre blanc) -->
       <div style="position: relative; width: 75%; height: 480px; background: #FFFFFF; padding: 15px; box-sizing: border-box; margin: 0 auto; box-shadow: 0 25px 50px rgba(0,0,0,0.6);">
         <img src="${imageSrc}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%) contrast(130%) brightness(85%);" />
+
+        <!-- Scotch haut-droit -->
         <div style="position: absolute; top: -20px; right: 20px; width: 150px; height: 35px; background: #E2F000; transform: rotate(20deg); box-shadow: 2px 4px 10px rgba(0,0,0,0.3); opacity: 0.95;"></div>
+        <!-- Scotch bas-gauche -->
         <div style="position: absolute; bottom: -20px; left: -10px; width: 130px; height: 35px; background: #E2F000; transform: rotate(-15deg); box-shadow: 2px 4px 10px rgba(0,0,0,0.3); opacity: 0.95;"></div>
       </div>
 
@@ -375,43 +381,60 @@ async function exportEventToPDF(index) {
         <h1 style="margin: 0; font-family: 'Impact', sans-serif; font-size: 140px; color: #FFFFFF; text-transform: uppercase; letter-spacing: -2px; text-shadow: 0 10px 20px rgba(0,0,0,0.5);">EVENTS</h1>
       </div>
 
+      <!-- Ligne de séparation -->
       <div style="width: 100%; height: 1px; background: rgba(255,255,255,0.15); margin-top: 30px; margin-bottom: 30px;"></div>
 
-      <!-- Artiste + Date -->
+      <!-- Section Artiste + Date (à droite) -->
       <div style="display: flex; justify-content: flex-end; align-items: flex-end; margin-bottom: 30px;">
         <div style="text-align: right;">
           <h2 style="font-family: 'Dancing Script', cursive; font-size: 65px; color: #E2F000; margin: 0 0 15px 0; font-weight: normal; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">${artistName}</h2>
-          <div style="background: #E2F000; display: inline-block; padding: 8px 16px; margin-bottom: 10px;"><span style="font-family: 'Impact', sans-serif; font-size: 22px; color: #111; letter-spacing: 1px;">MUSIC - DRINKS - FOODS</span></div><br>
-          <div style="background: #E2F000; display: inline-block; padding: 8px 16px;"><span style="font-family: 'Impact', sans-serif; font-size: 22px; color: #111; letter-spacing: 1px;">📅 ${displayDate}</span></div>
+
+          <div style="background: #E2F000; display: inline-block; padding: 8px 16px; margin-bottom: 10px;">
+            <span style="font-family: 'Impact', sans-serif; font-size: 22px; color: #111; letter-spacing: 1px;">MUSIC - DRINKS - FOODS</span>
+          </div>
+          <br>
+          <div style="background: #E2F000; display: inline-block; padding: 8px 16px;">
+            <span style="font-family: 'Impact', sans-serif; font-size: 22px; color: #111; letter-spacing: 1px;">📅 ${displayDate}</span>
+          </div>
         </div>
       </div>
 
-      <!-- Pied de page -->
+      <!-- Pied de page : Adresse + Site web (bien séparés) -->
       <div style="position: absolute; bottom: 90px; left: 60px; right: 60px; display: flex; justify-content: space-between; align-items: flex-end; font-family: 'Oswald', sans-serif; font-size: 14px;">
+        <!-- Description / Adresse -->
         <div style="color: #AAAAAA; max-width: 50%;">
           <p style="margin:0 0 8px 0; color:#CCCCCC; font-size:14px;">${desc}</p>
           <p style="margin:0; color:#888888; font-size:13px;">📍 ${shashapAddress}</p>
         </div>
+        <!-- Site web -->
         <div style="text-align: right; color: #FFFFFF; line-height: 1.4;">
           <p style="margin:0 0 4px 0; font-size:12px; color:#AAAAAA;">PLUS D'INFOS SUR</p>
           <strong style="font-size: 18px; letter-spacing: 1px; color:#E2F000;">${shashapWebsite.toUpperCase()}</strong>
         </div>
       </div>
 
-      <!-- ✅ BARRE SPONSORS AVEC LOGOS -->
+      <!-- 🟫 BARRE SPONSORS ROSE (ajoutée en bas, ne touche à rien) -->
       <div style="
-        position: absolute; bottom: 0; left: 0; width: 100%; height: 70px;
-        background: rgba(0,0,0,0.8);
-        border-top: 1px solid rgba(255,255,255,0.1);
-        display: flex; align-items: center; justify-content: center;
-        gap: 30px; padding: 0 40px; box-sizing: border-box;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 50px;
+        background: #E91E63;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 60px;
+        box-sizing: border-box;
+        font-family: 'Oswald', sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        color: #FFFFFF;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
       ">
-        ${sponsors.map(s => `
-          <div style="display: flex; align-items: center; gap: 8px; font-family: 'Oswald', sans-serif; font-size: 12px; color: #CCCCCC;">
-            <img src="${s.logo}" alt="${s.name}" style="height: 28px; max-width: 60px; object-fit: contain;" onerror="this.style.display='none';" />
-            <span style="white-space: nowrap;">${s.name}</span>
-          </div>
-        `).join('')}
+        ${sponsorsText}
       </div>
 
     </div>
@@ -422,15 +445,30 @@ async function exportEventToPDF(index) {
   try {
     await document.fonts.ready;
     await new Promise(resolve => setTimeout(resolve, 500));
-    const canvas = await html2canvas(poster, { scale: 2, useCORS: true, backgroundColor: '#111111' });
+
+    const canvas = await html2canvas(poster, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#111111'
+    });
+
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
     pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+
     const safeTitle = artistName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
     pdf.save(`affiche_${safeTitle}_shashap.pdf`);
+
   } catch (error) {
-    console.error("Erreur PDF:", error);
+    console.error("Erreur lors de la génération du PDF:", error);
+    alert("Oups, une erreur s'est produite. L'image de l'événement bloque peut-être la capture (CORS).");
   } finally {
     document.body.removeChild(poster);
   }
