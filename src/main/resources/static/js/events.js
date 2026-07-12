@@ -219,7 +219,6 @@ function loadEvents() {
                        display:flex; align-items:center; justify-content:center;
                        color:#fff; font-size:56px;">🎤</div>`
           }
-          <!-- Dégradé subtil en bas -->
           <div style="position:absolute; bottom:0; left:0; right:0; height:60px;
                       background:linear-gradient(to top, rgba(0,0,0,0.5), transparent);"></div>
         </div>
@@ -245,31 +244,55 @@ function loadEvents() {
             ${ev.description || 'Aucune description pour cet événement.'}
           </p>
 
-          <!-- Boutons d'action -->
-          <div style="display:flex; gap:10px;">
+          <!-- ✅ BOUTONS PREMIUM REDESIGNÉS -->
+          <div style="display:flex; gap:12px;">
+            <!-- Bouton Modifier -->
             <button onclick="editEventByIndex(${realIndex})"
               style="
-                flex:1; display:inline-flex; align-items:center; justify-content:center; gap:6px;
-                background:#1a1a2e; color:#fff; border:none; border-radius:10px;
-                padding:10px 0; font-size:13px; font-weight:600;
-                cursor:pointer; transition: all 0.2s;
+                flex:1;
+                height:44px;
+                display:inline-flex; align-items:center; justify-content:center; gap:8px;
+                background: linear-gradient(135deg, #1E2147 0%, #2D2B55 100%);
+                color: #fff;
+                border: none;
+                border-radius: 16px;
+                font-size: 13px; font-weight: 600; letter-spacing: 0.3px;
+                cursor: pointer;
+                box-shadow: 0 4px 12px rgba(30,33,71,0.3);
+                transition: all 0.2s ease;
+                position: relative; overflow: hidden;
               "
-              onmouseover="this.style.background='#2d2d44'"
-              onmouseout="this.style.background='#1a1a2e'"
+              onmousedown="this.style.transform='scale(0.97)'"
+              onmouseup="this.style.transform='scale(1)'"
+              onmouseover="this.style.boxShadow='0 6px 18px rgba(30,33,71,0.4)'; this.style.background='linear-gradient(135deg, #272B5A 0%, #3B3668 100%)'"
+              onmouseout="this.style.boxShadow='0 4px 12px rgba(30,33,71,0.3)'; this.style.background='linear-gradient(135deg, #1E2147 0%, #2D2B55 100%)'"
             >
-              <i class="ti ti-pencil"></i> Modifier
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+              Modifier
             </button>
+
+            <!-- Bouton Supprimer -->
             <button onclick="deleteEventByIndex(${realIndex})"
               style="
-                flex:1; display:inline-flex; align-items:center; justify-content:center; gap:6px;
-                background:#fff; color:#dc2626; border:1px solid #fecaca; border-radius:10px;
-                padding:10px 0; font-size:13px; font-weight:600;
-                cursor:pointer; transition: all 0.2s;
+                flex:1;
+                height:44px;
+                display:inline-flex; align-items:center; justify-content:center; gap:8px;
+                background: #fff;
+                color: #E53935;
+                border: 1.5px solid #F5C6CB;
+                border-radius: 16px;
+                font-size: 13px; font-weight: 600; letter-spacing: 0.3px;
+                cursor: pointer;
+                box-shadow: 0 2px 8px rgba(229,57,53,0.08);
+                transition: all 0.2s ease;
               "
-              onmouseover="this.style.background='#fef2f2'; this.style.borderColor='#f87171'"
-              onmouseout="this.style.background='#fff'; this.style.borderColor='#fecaca'"
+              onmousedown="this.style.transform='scale(0.97)'"
+              onmouseup="this.style.transform='scale(1)'"
+              onmouseover="this.style.background='#FFF5F5'; this.style.borderColor='#E53935'; this.style.boxShadow='0 4px 12px rgba(229,57,53,0.15)'"
+              onmouseout="this.style.background='#fff'; this.style.borderColor='#F5C6CB'; this.style.boxShadow='0 2px 8px rgba(229,57,53,0.08)'"
             >
-              <i class="ti ti-trash"></i> Supprimer
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              Supprimer
             </button>
           </div>
         </div>
