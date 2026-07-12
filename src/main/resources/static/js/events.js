@@ -327,74 +327,77 @@ function loadEvents() {
   container.innerHTML = html;
 }
 async function exportEventToPDF(index) {
-  // Récupérer les données de l'événement
   const ev = storiesData[index];
-  if (!ev) return;
+  if (!ev) {
+    console.error("❌ Aucun événement trouvé à l'index", index);
+    return;
+  }
+
+  console.log("🟢 Export PDF démarré pour :", ev.artistName || ev.name);
 
   const title = ev.artistName || ev.name || 'MUSIC EVENTS';
   const displayDate = ev.eventDate || "Saturday April 12, 2026";
-  const desc = ev.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.';
-  const imageSrc = ev.image || 'https://via.placeholder.com/600x600/2c3e50/ffffff?text=Image+Artiste';
+  const desc = ev.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
+  const imageSrc = ev.image || '';
 
-  // 1. Créer le conteneur du poster (Format A4: 794px x 1123px)
+  // 1. Créer le conteneur du poster
   const poster = document.createElement('div');
   poster.style.position = 'absolute';
-  poster.style.left = '-9999px'; // Cacher l'élément hors de l'écran
+  poster.style.left = '-9999px';
   poster.style.top = '0';
   poster.style.width = '794px';
   poster.style.height = '1123px';
-  poster.style.backgroundColor = '#111111'; // Fond noir profond
+  poster.style.backgroundColor = '#111111';
   poster.style.color = '#FFFFFF';
-  poster.style.fontFamily = "'Impact', 'Inter', sans-serif"; // Typographie bold
+  poster.style.fontFamily = "'Impact', 'Inter', sans-serif";
   poster.style.overflow = 'hidden';
   poster.style.boxSizing = 'border-box';
   poster.style.padding = '60px';
 
-  // 2. Injecter le design (Inspiré de ton image)
+  // ✅ Gestion de l'image avec fallback CORS
+  const imgTag = imageSrc
+    ? `<img src="${imageSrc}" crossorigin="anonymous"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+           style="width:100%; height:100%; object-fit:cover; filter:grayscale(100%) contrast(120%);" />`
+    : '';
+  const fallbackDiv = imageSrc
+    ? `<div style="display:none; width:100%; height:100%; background:linear-gradient(135deg,#2c3e50,#000); align-items:center; justify-content:center;">
+         <span style="font-size:48px; opacity:0.5;">🎵</span>
+       </div>`
+    : `<div style="display:flex; width:100%; height:100%; background:linear-gradient(135deg,#2c3e50,#000); align-items:center; justify-content:center;">
+         <span style="font-size:48px; opacity:0.5;">🎵</span>
+       </div>`;
+
   poster.innerHTML = `
-    <!-- Zone Image avec contour blanc déchiré/brut -->
-    <div style="position:relative; width: 100%; height: 500px; background: #FFFFFF; padding: 15px; box-sizing: border-box; margin-bottom: 40px; transform: rotate(-1deg);">
-      <img src="${imageSrc}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%) contrast(120%);" />
-
-      <!-- Faux ruban adhésif jaune (Tape) -->
-      <div style="position:absolute; top: -15px; right: -20px; width: 120px; height: 35px; background: #D4DF00; transform: rotate(25deg); opacity: 0.9; box-shadow: 0 4px 6px rgba(0,0,0,0.3);"></div>
-      <div style="position:absolute; bottom: -20px; left: -15px; width: 140px; height: 35px; background: #D4DF00; transform: rotate(-15deg); opacity: 0.9; box-shadow: 0 4px 6px rgba(0,0,0,0.3);"></div>
+    <div style="position:relative; width:100%; height:500px; background:#FFFFFF; padding:15px; box-sizing:border-box; margin-bottom:40px; transform:rotate(-1deg);">
+      ${imgTag}
+      ${fallbackDiv}
+      <div style="position:absolute; top:-15px; right:-20px; width:120px; height:35px; background:#D4DF00; transform:rotate(25deg); opacity:0.9; box-shadow:0 4px 6px rgba(0,0,0,0.3);"></div>
+      <div style="position:absolute; bottom:-20px; left:-15px; width:140px; height:35px; background:#D4DF00; transform:rotate(-15deg); opacity:0.9; box-shadow:0 4px 6px rgba(0,0,0,0.3);"></div>
     </div>
 
-    <!-- Typographie massive -->
-    <div style="line-height: 0.9; margin-bottom: 30px;">
-      <h1 style="margin: 0; font-size: 110px; color: #D4DF00; text-transform: uppercase; letter-spacing: -2px;">MUSIC</h1>
-      <h1 style="margin: 0; font-size: 130px; color: #FFFFFF; text-transform: uppercase; letter-spacing: -3px;">EVENTS</h1>
+    <div style="line-height:0.9; margin-bottom:30px;">
+      <h1 style="margin:0; font-size:110px; color:#D4DF00; text-transform:uppercase; letter-spacing:-2px;">MUSIC</h1>
+      <h1 style="margin:0; font-size:130px; color:#FFFFFF; text-transform:uppercase; letter-spacing:-3px;">EVENTS</h1>
     </div>
 
-    <!-- Détails (DJ Name, Date, Lieu) -->
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; border-top: 2px solid #333; padding-top: 30px;">
-
-      <div style="width: 55%;">
-        <p style="font-family: 'Arial', sans-serif; font-size: 14px; color: #AAAAAA; line-height: 1.6; margin-bottom: 20px;">
-          ${desc}
-        </p>
-        <div style="display: flex; gap: 20px; font-family: 'Arial', sans-serif; font-size: 14px; color: #FFFFFF;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; border-top:2px solid #333; padding-top:30px;">
+      <div style="width:55%;">
+        <p style="font-family:'Arial',sans-serif; font-size:14px; color:#AAAAAA; line-height:1.6; margin-bottom:20px;">${desc}</p>
+        <div style="display:flex; gap:20px; font-family:'Arial',sans-serif; font-size:14px; color:#FFFFFF;">
           <span><strong style="color:#D4DF00;">𝕏</strong> @shashap_app</span>
           <span><strong style="color:#D4DF00;">IG</strong> @shashap.events</span>
         </div>
       </div>
-
-      <div style="width: 40%; text-align: right;">
-        <h2 style="font-family: 'Brush Script MT', cursive; font-size: 60px; color: #D4DF00; margin: 0 0 10px 0; font-weight: normal;">${ev.artistName || 'DJ Name'}</h2>
-
-        <div style="background: #D4DF00; color: #111; padding: 10px; font-size: 18px; font-weight: bold; text-transform: uppercase; margin-bottom: 15px; display: inline-block;">
-          Music - Drinks - Foods
-        </div>
+      <div style="width:40%; text-align:right;">
+        <h2 style="font-family:'Brush Script MT',cursive; font-size:60px; color:#D4DF00; margin:0 0 10px 0; font-weight:normal;">${title}</h2>
+        <div style="background:#D4DF00; color:#111; padding:10px; font-size:18px; font-weight:bold; text-transform:uppercase; margin-bottom:15px; display:inline-block;">Music - Drinks - Foods</div>
         <br>
-        <div style="background: #D4DF00; color: #111; padding: 10px; font-size: 16px; font-weight: bold; text-transform: uppercase; display: inline-block;">
-          📅 ${displayDate}
-        </div>
-
-        <p style="font-family: 'Arial', sans-serif; font-size: 12px; color: #FFFFFF; margin-top: 20px; text-transform: uppercase; line-height: 1.4;">
+        <div style="background:#D4DF00; color:#111; padding:10px; font-size:16px; font-weight:bold; text-transform:uppercase; display:inline-block;">📅 ${displayDate}</div>
+        <p style="font-family:'Arial',sans-serif; font-size:12px; color:#FFFFFF; margin-top:20px; text-transform:uppercase; line-height:1.4;">
           AV. LOREM IPSUM DOLOR 2045<br>
           For more information visit us at<br>
-          <strong style="font-size: 16px;">WWW.SHASHAP.COM</strong>
+          <strong style="font-size:16px;">WWW.SHASHAP.COM</strong>
         </p>
       </div>
     </div>
@@ -403,16 +406,17 @@ async function exportEventToPDF(index) {
   document.body.appendChild(poster);
 
   try {
-    // 3. Générer l'image avec html2canvas
+    console.log("📸 Capture du poster avec html2canvas...");
     const canvas = await html2canvas(poster, {
-      scale: 2, // Haute résolution
-      useCORS: true, // Crucial pour charger des images externes
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,       // ✅ Autorise les images externes
       backgroundColor: '#111111'
     });
 
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    console.log("✅ Poster capturé, génération du PDF...");
 
-    // 4. Générer le PDF avec jsPDF
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({
       orientation: 'portrait',
@@ -420,18 +424,16 @@ async function exportEventToPDF(index) {
       format: 'a4'
     });
 
-    // Dimensions A4 en mm (210 x 297)
     pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
 
-    // 5. Lancer le téléchargement
     const safeTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
     pdf.save(`affiche_${safeTitle}.pdf`);
+    console.log("✅ PDF téléchargé !");
 
   } catch (error) {
-    console.error("Erreur lors de la génération du PDF:", error);
-    alert("Impossible de générer le PDF. Vérifiez que l'image de l'événement autorise le CORS.");
+    console.error("❌ Erreur PDF:", error);
+    alert("Erreur lors de la génération du PDF. Vérifiez la console (F12) pour plus de détails.");
   } finally {
-    // 6. Nettoyer le DOM
     document.body.removeChild(poster);
   }
 }
