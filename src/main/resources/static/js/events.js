@@ -345,77 +345,65 @@ async function exportEventToPDF(index) {
     top: '0',
     width: '794px',
     height: '1123px',
-    backgroundColor: '#111111', // Fond quasi noir
-    backgroundImage: 'radial-gradient(circle at 50% 30%, #1e1e1e 0%, #111111 80%)', // Léger halo lumineux au centre
+    backgroundColor: '#111111',
+    backgroundImage: 'radial-gradient(circle at 50% 30%, #1e1e1e 0%, #111111 80%)',
     fontFamily: "'Oswald', 'Impact', sans-serif",
     overflow: 'hidden',
     boxSizing: 'border-box'
   });
 
-// 3. Injection du Design (Version Proportions Corrigées & Alignées)
+  // 3. Injection du Design (HTML/CSS)
   poster.innerHTML = `
-    <!-- Importation des polices -->
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
 
-    <div style="display: flex; flex-direction: column; padding: 60px; width: 100%; height: 100%; box-sizing: border-box; position: relative;">
+    <div style="padding: 60px; width: 100%; height: 100%; box-sizing: border-box; position: relative;">
 
-      <!-- ZONE IMAGE : Largeur et hauteur réduites et centrées -->
-      <div style="position: relative; width: 600px; height: 350px; background: #FFFFFF; padding: 12px; box-sizing: border-box; margin: 0 auto; box-shadow: 0 20px 40px rgba(0,0,0,0.6); z-index: 1;">
+      <!-- Conteneur de la Photo (Le cadre blanc) - Largeur 3/4 -->
+      <div style="position: relative; width: 75%; height: 500px; background: #FFFFFF; padding: 15px; box-sizing: border-box; margin: 0 auto; box-shadow: 0 25px 50px rgba(0,0,0,0.6);">
 
-        <div style="position: relative; width: 100%; height: 100%; overflow: hidden;">
-           <!-- L'image de l'artiste -->
-           <img src="${imageSrc}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover;" />
-           <!-- Calque d'ambiance sombre -->
-           <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.35); mix-blend-mode: multiply;"></div>
-        </div>
+        <!-- Image avec filtre Grunge -->
+        <img src="${imageSrc}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%) contrast(130%) brightness(85%);" />
 
         <!-- Scotch Haut-Droit -->
-        <div style="position: absolute; top: -15px; right: 20px; width: 130px; height: 32px; background: #E2F000; transform: rotate(15deg); box-shadow: 2px 4px 8px rgba(0,0,0,0.4); z-index: 20;"></div>
+        <div style="position: absolute; top: -20px; right: 20px; width: 150px; height: 35px; background: #E2F000; transform: rotate(20deg); box-shadow: 2px 4px 10px rgba(0,0,0,0.3); opacity: 0.95;"></div>
 
-        <!-- Scotch Bas-Gauche (légèrement décalé pour ne pas toucher le texte) -->
-        <div style="position: absolute; bottom: -15px; left: -20px; width: 110px; height: 32px; background: #E2F000; transform: rotate(-10deg); box-shadow: 2px 4px 8px rgba(0,0,0,0.4); z-index: 20;"></div>
+        <!-- Scotch Bas-Gauche -->
+        <div style="position: absolute; bottom: -20px; left: -10px; width: 130px; height: 35px; background: #E2F000; transform: rotate(-15deg); box-shadow: 2px 4px 10px rgba(0,0,0,0.3); opacity: 0.95;"></div>
       </div>
 
-      <!-- ZONE TITRE : Redescendue sous l'image et redimensionnée -->
-      <div style="position: relative; margin-top: 25px; padding-left: 20px; z-index: 10; line-height: 0.95;">
-        <h1 style="margin: 0; font-family: 'Impact', sans-serif; font-size: 115px; color: #E2F000; text-transform: uppercase; letter-spacing: -1px; text-shadow: 0 4px 10px rgba(0,0,0,0.9);">MUSIC</h1>
-        <h1 style="margin: 0; font-family: 'Impact', sans-serif; font-size: 115px; color: #FFFFFF; text-transform: uppercase; letter-spacing: -1px; text-shadow: 0 4px 10px rgba(0,0,0,0.9);">EVENTS</h1>
+      <!-- Titre Massif (Superposé sur la photo) -->
+      <div style="position: relative; margin-top: -45px; z-index: 10; line-height: 0.85;">
+        <h1 style="margin: 0; font-family: 'Impact', sans-serif; font-size: 150px; color: #E2F000; text-transform: uppercase; letter-spacing: -2px; text-shadow: 0 10px 20px rgba(0,0,0,0.5);">MUSIC</h1>
+        <h1 style="margin: 0; font-family: 'Impact', sans-serif; font-size: 150px; color: #FFFFFF; text-transform: uppercase; letter-spacing: -2px; text-shadow: 0 10px 20px rgba(0,0,0,0.5);">EVENTS</h1>
       </div>
 
-      <!-- Ligne de séparation discrète -->
-      <div style="width: 100%; height: 1px; background: rgba(255,255,255,0.12); margin: 30px 0;"></div>
+      <!-- Ligne fine de séparation -->
+      <div style="width: 100%; height: 1px; background: rgba(255,255,255,0.15); margin-top: 30px; margin-bottom: 40px;"></div>
 
-      <!-- ZONE DÉTAILS ET FOOTER : Structure stable -->
-      <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-grow: 1; padding: 0 20px;">
+      <!-- Section Artiste et Détails -->
+      <div style="display: flex; justify-content: flex-end; align-items: flex-end;">
+        <div style="text-align: right;">
+          <h2 style="font-family: 'Dancing Script', cursive; font-size: 70px; color: #E2F000; margin: 0 0 20px 0; font-weight: normal; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">${artistName}</h2>
 
-        <!-- Gauche (Description de l'événement) -->
-        <div style="width: 45%; font-family: 'Oswald', sans-serif; font-size: 14px; color: #9CA3AF; line-height: 1.6; margin-bottom: 10px;">
+          <div style="background: #E2F000; display: inline-block; padding: 8px 16px; margin-bottom: 15px;">
+            <span style="font-family: 'Impact', sans-serif; font-size: 24px; color: #111; letter-spacing: 1px;">MUSIC - DRINKS - FOODS</span>
+          </div>
+          <br>
+          <div style="background: #E2F000; display: inline-block; padding: 8px 16px;">
+            <span style="font-family: 'Impact', sans-serif; font-size: 24px; color: #111; letter-spacing: 1px;">📅 ${displayDate}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pied de page -->
+      <div style="position: absolute; bottom: 40px; left: 60px; right: 60px; display: flex; justify-content: space-between; align-items: flex-end; font-family: 'Oswald', sans-serif; font-size: 14px;">
+        <div style="color: #AAAAAA; max-width: 40%;">
           ${desc}
         </div>
-
-        <!-- Droite (Artiste, Badges, Infos ShasHap) -->
-        <div style="width: 50%; text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 14px;">
-
-          <!-- Nom de l'artiste -->
-          <h2 style="font-family: 'Dancing Script', cursive; font-size: 60px; color: #E2F000; margin: 0 0 5px 0; font-weight: normal; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">${artistName}</h2>
-
-          <!-- Badge 1 -->
-          <div style="background: #E2F000; padding: 6px 14px; box-shadow: 3px 3px 0px rgba(0,0,0,0.9);">
-            <span style="font-family: 'Impact', sans-serif; font-size: 20px; color: #111; letter-spacing: 0.5px;">MUSIC - DRINKS - FOODS</span>
-          </div>
-
-          <!-- Badge 2 -->
-          <div style="background: #E2F000; padding: 6px 14px; box-shadow: 3px 3px 0px rgba(0,0,0,0.9);">
-            <span style="font-family: 'Impact', sans-serif; font-size: 18px; color: #111; letter-spacing: 0.5px;">📅 ${displayDate}</span>
-          </div>
-
-          <!-- Infos Pratiques & Liens -->
-          <div style="font-family: 'Oswald', sans-serif; font-size: 13px; color: #FFFFFF; line-height: 1.5; margin-top: 15px; letter-spacing: 0.5px;">
-            AV. LOREM IPSUM DOLOR 2045<br>
-            FOR MORE INFORMATION VISIT US AT<br>
-            <strong style="font-size: 16px; color: #E2F000;">WWW.SHASHAP.COM</strong>
-          </div>
-
+        <div style="text-align: right; color: #FFFFFF; line-height: 1.4;">
+          AV. LOREM IPSUM DOLOR 2045<br>
+          FOR MORE INFORMATION VISIT US AT<br>
+          <strong style="font-size: 18px; letter-spacing: 1px;">WWW.SHASHAP.COM</strong>
         </div>
       </div>
 
@@ -425,12 +413,9 @@ async function exportEventToPDF(index) {
   document.body.appendChild(poster);
 
   try {
-    // 4. Astuce cruciale : Attendre que les Google Fonts chargent avant de prendre la photo
     await document.fonts.ready;
-    // Petite pause supplémentaire pour être sûr que l'image est bien rendue dans le DOM
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    // 5. Capture avec html2canvas (scale: 2 = Qualité Retina/Impression)
     const canvas = await html2canvas(poster, {
       scale: 2,
       useCORS: true,
@@ -439,7 +424,6 @@ async function exportEventToPDF(index) {
 
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
 
-    // 6. Génération du PDF
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({
       orientation: 'portrait',
@@ -449,7 +433,6 @@ async function exportEventToPDF(index) {
 
     pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
 
-    // 7. Téléchargement avec un nom de fichier propre
     const safeTitle = artistName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
     pdf.save(`affiche_${safeTitle}_shashap.pdf`);
 
@@ -457,7 +440,6 @@ async function exportEventToPDF(index) {
     console.error("Erreur lors de la génération du PDF:", error);
     alert("Oups, une erreur s'est produite. L'image de l'événement bloque peut-être la capture (CORS).");
   } finally {
-    // 8. On nettoie toujours le DOM à la fin
     document.body.removeChild(poster);
   }
 }
