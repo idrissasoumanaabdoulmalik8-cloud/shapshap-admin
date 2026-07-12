@@ -172,21 +172,15 @@ function closeEventModal() {
   const m = document.getElementById('eventModal');
   if (m) m.style.display = 'none';
 }
-// 1. La petite fonction magique pour l'animation du bouton Supprimer
+// 1. La fonction d'animation du bouton Supprimer (inchangée)
 function confirmDelete(button, index) {
-  // S'il est déjà en mode "confirmation", on exécute la vraie suppression
   if (button.dataset.confirm === 'true') {
-    deleteEventByIndex(index); // Ta vraie fonction
+    deleteEventByIndex(index);
     return;
   }
-
-  // Sinon, on passe en mode "Confirmation"
   button.dataset.confirm = 'true';
-
-  // On sauvegarde l'état initial
   const originalHtml = button.innerHTML;
 
-  // On applique le style "Danger Actif"
   button.style.background = '#DC2626';
   button.style.color = '#ffffff';
   button.style.borderColor = '#DC2626';
@@ -196,7 +190,6 @@ function confirmDelete(button, index) {
     Confirmer ?
   `;
 
-  // Annulation automatique après 3 secondes
   setTimeout(() => {
     if (button.dataset.confirm === 'true') {
       button.dataset.confirm = 'false';
@@ -209,7 +202,7 @@ function confirmDelete(button, index) {
   }, 3000);
 }
 
-// 2. Ta fonction principale mise à jour
+// 2. Ta fonction principale corrigée
 function loadEvents() {
   const container = document.getElementById('eventsList');
   if (!container) return;
@@ -230,20 +223,12 @@ function loadEvents() {
         <p style="font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; color:#6B7280; font-size:16px; max-width:400px; margin:0 auto 32px; line-height: 1.5;">
           C'est le moment de créer une expérience inoubliable pour votre communauté.
         </p>
-        <!-- Nouveau Bouton Actionnable -->
-        <button onclick="/* ta fonction d'ouverture de modal ici */"
+        <button onclick="/* ta fonction d'ouverture de modal */"
           style="
-            height: 52px; padding: 0 32px;
-            display:flex; align-items:center; justify-content:center; gap:8px;
-            background: linear-gradient(135deg, #111827 0%, #374151 100%);
-            color:#ffffff; border: none; border-radius: 26px;
-            font-size:15px; font-weight:600;
-            cursor:pointer;
-            box-shadow: 0 8px 20px rgba(17, 24, 39, 0.3), inset 0 1px 1px rgba(255,255,255,0.2);
-            transition: all 0.3s ease;
+            height: 52px; padding: 0 32px; display:flex; align-items:center; justify-content:center; gap:8px;
+            background: linear-gradient(135deg, #111827 0%, #374151 100%); color:#ffffff; border: none; border-radius: 26px;
+            font-size:15px; font-weight:600; cursor:pointer; box-shadow: 0 8px 20px rgba(17, 24, 39, 0.3), inset 0 1px 1px rgba(255,255,255,0.2); transition: all 0.3s ease;
           "
-          onmousedown="this.style.transform='scale(0.95)'"
-          onmouseup="this.style.transform='scale(1)'"
           onmouseover="this.style.boxShadow='0 12px 24px rgba(17, 24, 39, 0.4)'; this.style.transform='translateY(-2px)';"
           onmouseout="this.style.boxShadow='0 8px 20px rgba(17, 24, 39, 0.3)'; this.style.transform='translateY(0)';"
         >
@@ -286,7 +271,7 @@ function loadEvents() {
           }
           <div style="position:absolute; inset:0; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 50%, transparent 100%);"></div>
 
-          <!-- Badges & Titre -->
+          <!-- Badges de l'image -->
           <div style="position:absolute; top:20px; left:20px; backdrop-filter: blur(12px) saturate(180%); -webkit-backdrop-filter: blur(12px) saturate(180%); background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 16px; padding: 6px 12px; color: #ffffff; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display:flex; align-items:center; gap:6px;">
             📅 ${displayDate}
           </div>
@@ -299,15 +284,27 @@ function loadEvents() {
         </div>
 
         <!-- Corps de la carte -->
-        <div style="padding: 24px; flex:1; display:flex; flex-direction:column; gap: 28px;">
-          <!-- Tags -->
-          <div style="display:flex; flex-wrap:wrap; gap: 10px;">
-            <div style="display:flex; align-items:center; gap:6px; background:#F3F4F6; padding:6px 12px; border-radius:12px; color:#374151; font-size:13px; font-weight:600;"><span>📍</span> Haraka</div>
-            <div style="display:flex; align-items:center; gap:6px; background:#F3F4F6; padding:6px 12px; border-radius:12px; color:#374151; font-size:13px; font-weight:600;"><span>🎧</span> DJ Set</div>
-            <div style="display:flex; align-items:center; gap:6px; background:#F3F4F6; padding:6px 12px; border-radius:12px; color:#374151; font-size:13px; font-weight:600;"><span>👥</span> 350 places</div>
+        <div style="padding: 24px; flex:1; display:flex; flex-direction:column; gap: 24px;">
+
+          <!-- Description de l'événement (HARAKA, etc.) -->
+          <p style="
+            margin: 0; font-size: 15px; color: #4B5563; line-height: 1.6;
+            font-weight: 400; min-height: 44px;
+          ">
+            ${ev.description || 'Aucune description pour cet événement.'}
+          </p>
+
+          <!-- Badges de contexte fixes (Style Notion/Linear) -->
+          <div style="display:flex; flex-wrap:wrap; gap: 8px;">
+            <div style="display:flex; align-items:center; gap:6px; background:#F3F4F6; padding:6px 12px; border-radius:12px; color:#4B5563; font-size:12px; font-weight:600;">
+              🎧 DJ Set
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; background:#F3F4F6; padding:6px 12px; border-radius:12px; color:#4B5563; font-size:12px; font-weight:600;">
+              ✨ Premium
+            </div>
           </div>
 
-          <!-- Boutons (avec flex-wrap pour mobile) -->
+          <!-- Boutons -->
           <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:auto;">
 
             <button onclick="editEventByIndex(${realIndex})" style="min-width:100px; flex:1; height: 48px; padding: 0 12px; display:flex; align-items:center; justify-content:center; gap:6px; background: linear-gradient(135deg, #4c1d95 0%, #be185d 100%); color:#ffffff; border: none; border-radius: 16px; font-size:13px; font-weight:600; cursor:pointer; box-shadow: 0 6px 16px rgba(190, 24, 93, 0.25); transition: all 0.3s ease;" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'" onmouseover="this.style.filter='brightness(1.1)'; this.style.boxShadow='0 8px 20px rgba(190, 24, 93, 0.4)';" onmouseout="this.style.filter='brightness(1)'; this.style.boxShadow='0 6px 16px rgba(190, 24, 93, 0.25)';">
@@ -318,7 +315,6 @@ function loadEvents() {
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> PDF
             </button>
 
-            <!-- L'appel à la nouvelle fonction confirmDelete -->
             <button data-confirm="false" onclick="confirmDelete(this, ${realIndex})" style="min-width:100px; flex:1; height: 48px; padding: 0 12px; display:flex; align-items:center; justify-content:center; gap:6px; background:#ffffff; color:#DC2626; border: 1px solid rgba(220, 38, 38, 0.2); border-radius: 16px; font-size:13px; font-weight:600; cursor:pointer; transition: all 0.3s cubic-bezier(0.2,0.8,0.2,1);" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'" onmouseover="if(this.dataset.confirm !== 'true') { this.style.background='#FEF2F2'; this.style.borderColor='#DC2626'; this.style.boxShadow='0 4px 12px rgba(220, 38, 38, 0.1)'; }" onmouseout="if(this.dataset.confirm !== 'true') { this.style.background='#ffffff'; this.style.borderColor='rgba(220, 38, 38, 0.2)'; this.style.boxShadow='none'; }">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Supprimer
             </button>
