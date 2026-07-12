@@ -333,7 +333,6 @@ async function exportEventToPDF(index) {
 
   // --- DONNÉES DE L'ÉVÉNEMENT ---
   const artistName = ev.artistName || ev.name || 'BARAKINA';
-  // Remplacement des données par défaut pour coller à ta demande
   const dateStr = "SAM. 19 JUILLET 2026";
   const timeStr = "21H00";
   const locationStr = "HARAKA, NIAMEY";
@@ -344,8 +343,8 @@ async function exportEventToPDF(index) {
   const poster = document.createElement('div');
   poster.id = "premium-studio-poster";
 
-  // Texture de grain cinématographique (Base64 pour compatibilité PDF)
-  const noiseTexture = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E")`;
+  // Texture de grain cinématographique & Papier
+  const noiseTexture = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E")`;
 
   Object.assign(poster.style, {
     position: 'absolute',
@@ -353,90 +352,115 @@ async function exportEventToPDF(index) {
     top: '0',
     width: '794px',   // Largeur A4
     height: '1123px', // Hauteur A4
-    backgroundColor: '#050505',
+    backgroundColor: '#040404', // Noir encore plus profond
     overflow: 'hidden',
     boxSizing: 'border-box'
   });
 
   poster.innerHTML = `
-    <!-- POLICES STUDIO (Anton = Impact massif, Montserrat = Élégance géométrique) -->
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 
-    <!-- FOND ET TEXTURES -->
+    <!-- ================= FOND & EFFETS ATMOSPHÉRIQUES ================= -->
     <div style="position: absolute; inset: 0; background-image: ${noiseTexture}; z-index: 1;"></div>
-    <!-- Halo de scène doux derrière l'artiste -->
-    <div style="position: absolute; top: 15%; left: 50%; transform: translateX(-50%); width: 70%; height: 50%; background: radial-gradient(circle, rgba(204, 255, 0, 0.1) 0%, transparent 60%); z-index: 2;"></div>
+
+    <!-- Brouillard radial très léger -->
+    <div style="position: absolute; top: 20%; left: 50%; transform: translateX(-50%); width: 80%; height: 60%; background: radial-gradient(ellipse, rgba(204, 255, 0, 0.04) 0%, transparent 60%); z-index: 2;"></div>
+
+    <!-- Faisceaux de lumière de scène (Gauches & Droite) -->
+    <div style="position: absolute; top: -10%; left: 15%; width: 150px; height: 700px; background: linear-gradient(165deg, rgba(255,255,255,0.025) 0%, transparent 70%); transform: rotate(15deg); filter: blur(15px); z-index: 2;"></div>
+    <div style="position: absolute; top: -10%; right: 15%; width: 150px; height: 700px; background: linear-gradient(-165deg, rgba(255,255,255,0.025) 0%, transparent 70%); transform: rotate(-15deg); filter: blur(15px); z-index: 2;"></div>
+
+    <!-- Particules lumineuses subtiles -->
+    <div style="position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(255,255,255,0.4) 1px, transparent 1px); background-size: 120px 120px; background-position: 0 0, 60px 60px; opacity: 0.15; z-index: 2;"></div>
+    <!-- ================================================================ -->
+
 
     <!-- CONTENEUR PRINCIPAL -->
     <div style="position: relative; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column;">
 
-      <!-- 1. PHOTO DE L'ARTISTE (Intégration fusionnée) -->
-      <div style="position: absolute; top: 8%; left: 50%; transform: translateX(-50%); width: 70%; height: 55%; z-index: 10;">
-        <img src="${imageSrc}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%) contrast(115%) brightness(95%); border-radius: 4px; box-shadow: 0 40px 80px rgba(0,0,0,0.8);" />
-        <!-- Fondu au noir sur le bas de l'image pour intégrer le texte -->
-        <div style="position: absolute; bottom: -2px; left: 0; width: 100%; height: 50%; background: linear-gradient(to top, #050505 10%, transparent 100%);"></div>
+      <!-- LOGO OFFICIEL EN HAUT (Discret, centre) -->
+      <div style="position: absolute; top: 35px; left: 0; width: 100%; text-align: center; z-index: 20;">
+        <span style="font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 13px; color: #FFFFFF; letter-spacing: 8px; opacity: 0.6; text-transform: uppercase;">
+          SHASHAP<span style="color: #CCFF00;">.</span>
+        </span>
       </div>
 
-      <!-- 2. TITRE & ARTISTE (Hiérarchie visuelle forte) -->
+      <!-- 1. PHOTO DE L'ARTISTE (Largeur 72%, Centrée, Ombrée) -->
+      <div style="position: absolute; top: 11%; left: 50%; transform: translateX(-50%); width: 72%; height: 50%; z-index: 10; box-shadow: 0 40px 80px rgba(0,0,0,0.9);">
+        <img src="${imageSrc}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%) contrast(115%) brightness(95%);" />
+        <!-- Fondu au noir sur le bas -->
+        <div style="position: absolute; bottom: -2px; left: 0; width: 100%; height: 45%; background: linear-gradient(to top, #040404 5%, transparent 100%);"></div>
+      </div>
+
+      <!-- 2. TITRE, ARTISTE & SLOGAN (Hiérarchie visuelle parfaite) -->
       <div style="position: absolute; top: 48%; left: 0; width: 100%; text-align: center; z-index: 20;">
-        <h1 style="font-family: 'Anton', sans-serif; font-size: 165px; margin: 0; color: #CCFF00; line-height: 0.85; letter-spacing: -2px; text-transform: uppercase; text-shadow: 0 20px 40px rgba(0,0,0,0.9);">${artistName}</h1>
-        <h2 style="font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 26px; margin: 15px 0 0 0; color: #FFFFFF; letter-spacing: 16px; text-transform: uppercase; text-shadow: 0 4px 10px rgba(0,0,0,0.5);">Live Concert</h2>
+        <!-- Nom -->
+        <h1 style="font-family: 'Anton', sans-serif; font-size: 165px; margin: 0; color: #CCFF00; line-height: 0.85; letter-spacing: -1px; text-transform: uppercase; text-shadow: 0 20px 40px rgba(0,0,0,0.8);">${artistName}</h1>
+        <!-- Sous-titre -->
+        <h2 style="font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 26px; margin: 12px 0 0 0; color: #FFFFFF; letter-spacing: 16px; text-transform: uppercase; text-shadow: 0 4px 10px rgba(0,0,0,0.5);">Live Concert</h2>
+        <!-- Slogan Premium -->
+        <h3 style="font-family: 'Montserrat', sans-serif; font-weight: 500; font-size: 11px; margin: 18px 0 0 0; color: #888888; letter-spacing: 5px; text-transform: uppercase;">
+          One Night • One Stage • One Experience
+        </h3>
       </div>
 
-      <!-- 3. INFORMATIONS & QR CODE (Grille d'alignement parfait) -->
+      <!-- 3. INFORMATIONS & QR CODE -->
       <div style="position: absolute; top: 72%; left: 60px; right: 60px; z-index: 20; display: flex; justify-content: space-between; align-items: flex-end;">
 
-        <!-- Bloc Informations Événement (Icônes SVG minimalistes) -->
-        <div style="display: flex; flex-direction: column; gap: 18px; font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 600; color: #FFFFFF; letter-spacing: 1px;">
-          <!-- Date -->
-          <div style="display: flex; align-items: center; gap: 15px;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#CCFF00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        <!-- Bloc Informations Événement -->
+        <div style="display: flex; flex-direction: column; gap: 18px; font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 600; color: #E0E0E0; letter-spacing: 1.5px;">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CCFF00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
             <span>${dateStr}</span>
           </div>
-          <!-- Heure -->
-          <div style="display: flex; align-items: center; gap: 15px;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#CCFF00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CCFF00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
             <span>${timeStr}</span>
           </div>
-          <!-- Lieu -->
-          <div style="display: flex; align-items: center; gap: 15px;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#CCFF00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CCFF00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
             <span>${locationStr}</span>
           </div>
-          <!-- Prix -->
-          <div style="display: flex; align-items: center; gap: 15px;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#CCFF00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><path d="M4 10h16"></path><path d="M4 14h16"></path></svg>
-            <span>ENTRÉE : ${priceStr}</span>
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CCFF00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><path d="M4 10h16"></path><path d="M4 14h16"></path></svg>
+            <span style="color: #FFFFFF;">ENTRÉE : ${priceStr}</span>
           </div>
         </div>
 
-        <!-- Bloc QR Code (Premium Style) -->
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end;">
-          <div style="background: #FFFFFF; padding: 6px; border-radius: 6px; width: 100px; height: 100px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-            <!-- On utilise l'API qrserver pour générer un vrai QR Code dynamique pointant vers l'event -->
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://shashap.com&bgcolor=FFFFFF&color=000000" crossorigin="anonymous" style="width: 100%; height: 100%; display: block;" />
+        <!-- Bloc QR Code (Premium Framing) -->
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 10px;">
+          <!-- Texte au-dessus -->
+          <div style="font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; color: #777777; text-transform: uppercase; letter-spacing: 2px;">
+            Billetterie Officielle
           </div>
-          <span style="font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700; color: #CCFF00; text-transform: uppercase; letter-spacing: 2.5px; margin-top: 12px;">
-            Scannez pour réserver
-          </span>
+          <!-- Cadre QR Code -->
+          <div style="background: #FFFFFF; padding: 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); width: 95px; height: 95px; box-shadow: 0 15px 35px rgba(0,0,0,0.6);">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=95x95&data=https://shashap.com&bgcolor=FFFFFF&color=000000&margin=0" crossorigin="anonymous" style="width: 100%; height: 100%; display: block;" />
+          </div>
+          <!-- CTA -->
+          <div style="font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700; color: #CCFF00; text-transform: uppercase; letter-spacing: 1.5px;">
+            Réservez ici
+          </div>
         </div>
       </div>
 
-      <!-- 4. PIED DE PAGE : LOGO & SPONSORS (Pas de rose, style Festival) -->
-      <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 80px; background: #030303; border-top: 1px solid rgba(255, 255, 255, 0.08); z-index: 30; display: flex; justify-content: space-between; align-items: center; padding: 0 60px; box-sizing: border-box;">
+      <!-- 4. PIED DE PAGE : SPONSORS (Style monochrome Festival) -->
+      <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 75px; background: #020202; border-top: 1px solid rgba(255, 255, 255, 0.05); z-index: 30; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px;">
 
-        <!-- Logo Shashap premium -->
-        <div style="font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 900; color: #FFFFFF; letter-spacing: -0.5px;">
-          SHASHAP<span style="color: #CCFF00;">.</span>
+        <div style="font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 600; color: #555555; text-transform: uppercase; letter-spacing: 3px;">
+          Partenaires Officiels
         </div>
 
-        <!-- Ligne des partenaires (Texte ultra clean) -->
-        <div style="display: flex; gap: 30px; font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 600; color: #888888; text-transform: uppercase; letter-spacing: 2px;">
-          <span style="color: #FFFFFF;">Partenaires :</span>
-          <span>Orange</span>
-          <span>Airtel</span>
-          <span>Moov Africa</span>
-          <span>Mastercard</span>
+        <!-- Logos typographiques unifiés -->
+        <div style="display: flex; gap: 40px; font-family: 'Arial', sans-serif; font-size: 16px; font-weight: 800; color: #444444; text-transform: uppercase; letter-spacing: 1px; align-items: center;">
+          <span>ORANGE</span>
+          <span style="font-size: 14px; padding-bottom: 2px;">MOOV AFRICA</span>
+          <span style="font-family: 'Times New Roman', serif; font-style: italic; font-size: 18px; text-transform: none;">Airtel</span>
+          <span style="display: flex; align-items: center; gap: 4px;">
+            <div style="width:12px; height:12px; background:#444; border-radius:50%; opacity:0.8;"></div>
+            <div style="width:12px; height:12px; background:#444; border-radius:50%; margin-left:-6px; opacity:0.8;"></div>
+            <span style="font-size: 13px; font-family: 'Montserrat', sans-serif; font-weight: 600;">MASTERCARD</span>
+          </span>
         </div>
       </div>
 
@@ -446,18 +470,17 @@ async function exportEventToPDF(index) {
   document.body.appendChild(poster);
 
   try {
-    // On attend le chargement des polices Google de manière stricte
     await document.fonts.ready;
-    await new Promise(resolve => setTimeout(resolve, 800)); // Laisse le temps au QR Code de charger depuis l'API
+    await new Promise(resolve => setTimeout(resolve, 800));
 
     const canvas = await html2canvas(poster, {
-      scale: 2, // Haute résolution
+      scale: 2,
       useCORS: true,
-      backgroundColor: '#050505',
-      logging: false // Nettoie la console
+      backgroundColor: '#040404',
+      logging: false
     });
 
-    const imgData = canvas.toDataURL('image/jpeg', 1.0); // Qualité max
+    const imgData = canvas.toDataURL('image/jpeg', 1.0);
 
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({
@@ -469,11 +492,11 @@ async function exportEventToPDF(index) {
     pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
 
     const safeTitle = artistName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    pdf.save(`${safeTitle}_shashap_premium_poster.pdf`);
+    pdf.save(`${safeTitle}_shashap_masterpiece.pdf`);
 
   } catch (error) {
     console.error("Erreur lors de la génération :", error);
-    alert("Impossible de générer l'affiche premium. (Erreur CORS ou réseau sur l'image)");
+    alert("Impossible de générer l'affiche premium. (Erreur réseau)");
   } finally {
     document.body.removeChild(poster);
   }
