@@ -59,6 +59,11 @@
                 <div class="nav-icon"><i class="ti ti-heart"></i></div>
                 <span>Favoris</span>
             </a>
+
+            <a href="#" data-page="events">
+                <div class="nav-icon"><i class="ti ti-calendar-event"></i></div>
+                <span>Événements</span>
+            </a>
         </nav>
 
         <div class="sidebar-footer">
@@ -658,6 +663,27 @@
                 </div>
             </div>
         </div><!-- /page favorites -->
+        <!-- ════════════════════════════════════════════════════
+     PAGE : ÉVÉNEMENTS
+     ════════════════════════════════════════════════════ -->
+        <div id="events" class="page">
+            <div class="topbar">
+                <div>
+                    <div class="page-title">🎤 Événements</div>
+                    <div class="page-sub">Gestion des soirées et lives</div>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn-primary-sm" onclick="openEventModal()">
+                        <i class="ti ti-plus"></i> Nouvel événement
+                    </button>
+                </div>
+            </div>
+            <div class="content">
+                <div class="table-card">
+                    <div id="eventsList"></div>
+                </div>
+            </div>
+        </div><!-- /page events -->
 
     </div><!-- /main -->
 </div><!-- /layout -->
@@ -904,6 +930,7 @@
 <script src="/js/orders.js"></script>
 <script src="/js/clients.js"></script>
 <script src="/js/favorites.js"></script>
+<script src="/js/events.js"></script>
 
 <!-- ✅ NOUVEAU : script du carrousel de bannières promo du dashboard -->
 <script>
