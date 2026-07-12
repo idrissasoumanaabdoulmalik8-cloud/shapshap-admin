@@ -180,10 +180,16 @@ function loadEvents() {
 
   if (events.length === 0) {
     container.innerHTML = `
-      <div style="text-align:center; padding: 60px 20px; color: #aaa; grid-column: 1 / -1;">
-        <div style="font-size: 48px; margin-bottom: 16px;">🎤</div>
-        <h3 style="font-weight: 700; color: #1e1e2f;">Aucun événement pour le moment</h3>
-        <p style="color: #888; font-size: 14px;">Cliquez sur « Nouvel événement » pour créer une soirée.</p>
+      <div style="
+        text-align:center; padding:80px 20px; grid-column:1 / -1;
+        background:linear-gradient(135deg,#faf9fc,#f5f0f7);
+        border-radius:28px; border:1px dashed #d4c5db;
+      ">
+        <div style="font-size:56px; margin-bottom:20px; opacity:0.7;">🎤</div>
+        <h3 style="font-weight:700; color:#1e1e2f; font-size:20px;">Aucun événement</h3>
+        <p style="color:#888; font-size:14px; max-width:340px; margin:8px auto 24px;">
+          Créez votre première soirée, live ou DJ set pour promouvoir votre établissement.
+        </p>
       </div>`;
     return;
   }
@@ -191,107 +197,164 @@ function loadEvents() {
   let html = '';
   events.forEach((ev, idx) => {
     const realIndex = storiesData.indexOf(ev);
+    const artistInitial = (ev.artistName || ev.name || '?').charAt(0).toUpperCase();
     const start = ev.startDate || '?';
     const end   = ev.endDate || '?';
 
     html += `
       <div style="
-        background: #fff;
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-        border: 2px solid #D4AF37;
-        transition: transform 0.25s, box-shadow 0.25s;
-        display: flex; flex-direction: column;
-        font-family: 'Poppins', 'Segoe UI', sans-serif;
+        position:relative;
+        background:#fff;
+        border-radius:24px;
+        overflow:hidden;
+        box-shadow:0 1px 3px rgba(0,0,0,0.04), 0 6px 20px rgba(0,0,0,0.06);
+        transition: all 0.35s cubic-bezier(0.25,0.8,0.25,1.2);
+        display:flex; flex-direction:column;
       "
-      onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 12px 30px rgba(212,175,55,0.2)'"
-      onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.06)'"
-      >
+      onmouseover="
+        this.style.transform='translateY(-8px)';
+        this.style.boxShadow='0 4px 12px rgba(0,0,0,0.06), 0 16px 40px rgba(0,0,0,0.12)';
+      "
+      onmouseout="
+        this.style.transform='translateY(0)';
+        this.style.boxShadow='0 1px 3px rgba(0,0,0,0.04), 0 6px 20px rgba(0,0,0,0.06)';
+      ">
 
-        <!-- Image de l'événement -->
-        <div style="width:100%; height:220px; overflow:hidden; position:relative;">
+        {/* ── Image immersive avec badge flottant ── */}
+        <div style="
+          width:100%; height:240px; overflow:hidden; position:relative;
+          background: linear-gradient(135deg, #1a1a2e 0%, #2d1b3d 50%, #1a1a2e 100%);
+        ">
           ${ ev.image
             ? `<img src="${ev.image}" alt="${ev.artistName || ev.name}"
-                   style="width:100%; height:100%; object-fit:cover; display:block;" />`
+                   style="width:100%; height:100%; object-fit:cover; display:block; transition: transform 0.5s ease;"
+                   onmouseover="this.style.transform='scale(1.04)'"
+                   onmouseout="this.style.transform='scale(1)'" />`
             : `<div style="width:100%; height:100%;
-                       background: linear-gradient(135deg, #1a1a2e, #16213e);
-                       display:flex; align-items:center; justify-content:center;
-                       color:#fff; font-size:56px;">🎤</div>`
+                       display:flex; align-items:center; justify-content:center;">
+                 <span style="font-size:72px; opacity:0.6;">🎤</span>
+               </div>`
           }
-          <div style="position:absolute; bottom:0; left:0; right:0; height:60px;
-                      background:linear-gradient(to top, rgba(0,0,0,0.5), transparent);"></div>
-        </div>
+          {/* Overlay dégradé subtil */}
+          <div style="
+            position:absolute; inset:0;
+            background:linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 55%);
+          "></div>
 
-        <!-- Contenu -->
-        <div style="padding: 20px 22px 22px 22px; flex:1; display:flex; flex-direction:column;">
-
-          <!-- Nom de l'artiste -->
-          <h3 style="margin:0 0 6px 0; font-size:19px; font-weight:700; color:#1a1a2e; letter-spacing:-0.3px;">
-            ${ev.artistName || ev.name || 'Sans nom'}
-          </h3>
-
-          <!-- Date et période -->
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
-            <span style="font-size:13px; font-weight:600; color:#D4AF37; background:#FFF9E6; padding:3px 10px; border-radius:12px;">
-              📅 ${ev.eventDate || '—'}
-            </span>
-            <span style="font-size:11px; color:#aaa;">${start} → ${end}</span>
+          {/* Badge date flottant */}
+          <div style="
+            position:absolute; top:16px; left:16px;
+            backdrop-filter:blur(20px) saturate(180%);
+            -webkit-backdrop-filter:blur(20px) saturate(180%);
+            background:rgba(255,255,255,0.15);
+            border:1px solid rgba(255,255,255,0.25);
+            border-radius:14px;
+            padding:6px 14px;
+            color:#fff; font-size:12px; font-weight:600;
+            letter-spacing:0.2px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.2);
+          ">
+            📅 ${start} → ${end}
           </div>
 
-          <!-- Description -->
-          <p style="margin:0 0 18px 0; font-size:13.5px; color:#4b5563; line-height:1.6; flex:1;">
+          {/* Artiste en bas de l'image */}
+          <div style="
+            position:absolute; bottom:20px; left:20px; right:20px;
+            display:flex; align-items:center; gap:12px;
+          ">
+            <div style="
+              width:48px; height:48px; border-radius:50%;
+              background:linear-gradient(135deg, #D4AF37, #F5A623);
+              display:flex; align-items:center; justify-content:center;
+              color:#1a1a2e; font-size:20px; font-weight:700;
+              box-shadow:0 4px 14px rgba(0,0,0,0.3);
+            ">${artistInitial}</div>
+            <div>
+              <h3 style="
+                margin:0; color:#fff; font-size:20px; font-weight:700;
+                text-shadow:0 2px 8px rgba(0,0,0,0.5);
+                letter-spacing:-0.2px;
+              ">${ev.artistName || ev.name || 'Sans nom'}</h3>
+              <span style="
+                color:rgba(255,255,255,0.85); font-size:13px; font-weight:500;
+                text-shadow:0 1px 4px rgba(0,0,0,0.5);
+              ">🎤 ${ev.eventDate || '—'}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Corps de la carte ── */}
+        <div style="padding:20px 22px 22px 22px; flex:1; display:flex; flex-direction:column; gap:14px;">
+          <p style="
+            margin:0; font-size:14px; color:#4b5563; line-height:1.65;
+            font-weight:400;
+          ">
             ${ev.description || 'Aucune description pour cet événement.'}
           </p>
 
-          <!-- ✅ BOUTONS PREMIUM REDESIGNÉS -->
-          <div style="display:flex; gap:12px;">
-            <!-- Bouton Modifier -->
+          {/* ── Boutons premium ── */}
+          <div style="display:flex; gap:12px; margin-top:4px;">
             <button onclick="editEventByIndex(${realIndex})"
               style="
-                flex:1;
-                height:44px;
+                flex:1; height:46px;
                 display:inline-flex; align-items:center; justify-content:center; gap:8px;
-                background: linear-gradient(135deg, #1E2147 0%, #2D2B55 100%);
-                color: #fff;
-                border: none;
-                border-radius: 16px;
-                font-size: 13px; font-weight: 600; letter-spacing: 0.3px;
-                cursor: pointer;
-                box-shadow: 0 4px 12px rgba(30,33,71,0.3);
-                transition: all 0.2s ease;
-                position: relative; overflow: hidden;
+                background:linear-gradient(135deg, #1E2147 0%, #2D2B55 100%);
+                color:#fff; border:none; border-radius:16px;
+                font-size:13.5px; font-weight:600; letter-spacing:0.3px;
+                cursor:pointer;
+                box-shadow:0 4px 14px rgba(30,33,71,0.3);
+                transition: all 0.2s cubic-bezier(0.25,0.8,0.25,1);
+                position:relative; overflow:hidden;
               "
-              onmousedown="this.style.transform='scale(0.97)'"
+              onmousedown="this.style.transform='scale(0.96)'"
               onmouseup="this.style.transform='scale(1)'"
-              onmouseover="this.style.boxShadow='0 6px 18px rgba(30,33,71,0.4)'; this.style.background='linear-gradient(135deg, #272B5A 0%, #3B3668 100%)'"
-              onmouseout="this.style.boxShadow='0 4px 12px rgba(30,33,71,0.3)'; this.style.background='linear-gradient(135deg, #1E2147 0%, #2D2B55 100%)'"
+              onmouseover="
+                this.style.boxShadow='0 8px 22px rgba(30,33,71,0.45)';
+                this.style.background='linear-gradient(135deg, #272B5A 0%, #3B3668 100%)';
+              "
+              onmouseout="
+                this.style.boxShadow='0 4px 14px rgba(30,33,71,0.3)';
+                this.style.background='linear-gradient(135deg, #1E2147 0%, #2D2B55 100%)';
+              "
             >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+              </svg>
               Modifier
             </button>
 
-            <!-- Bouton Supprimer -->
             <button onclick="deleteEventByIndex(${realIndex})"
               style="
-                flex:1;
-                height:44px;
+                flex:1; height:46px;
                 display:inline-flex; align-items:center; justify-content:center; gap:8px;
-                background: #fff;
-                color: #E53935;
-                border: 1.5px solid #F5C6CB;
-                border-radius: 16px;
-                font-size: 13px; font-weight: 600; letter-spacing: 0.3px;
-                cursor: pointer;
-                box-shadow: 0 2px 8px rgba(229,57,53,0.08);
-                transition: all 0.2s ease;
+                background:#fff; color:#E53935;
+                border:1.5px solid #F5C6CB; border-radius:16px;
+                font-size:13.5px; font-weight:600; letter-spacing:0.3px;
+                cursor:pointer;
+                box-shadow:0 2px 8px rgba(229,57,53,0.06);
+                transition: all 0.2s cubic-bezier(0.25,0.8,0.25,1);
               "
-              onmousedown="this.style.transform='scale(0.97)'"
+              onmousedown="this.style.transform='scale(0.96)'"
               onmouseup="this.style.transform='scale(1)'"
-              onmouseover="this.style.background='#FFF5F5'; this.style.borderColor='#E53935'; this.style.boxShadow='0 4px 12px rgba(229,57,53,0.15)'"
-              onmouseout="this.style.background='#fff'; this.style.borderColor='#F5C6CB'; this.style.boxShadow='0 2px 8px rgba(229,57,53,0.08)'"
+              onmouseover="
+                this.style.background='#E53935';
+                this.style.color='#fff';
+                this.style.borderColor='#E53935';
+                this.style.boxShadow='0 6px 18px rgba(229,57,53,0.25)';
+              "
+              onmouseout="
+                this.style.background='#fff';
+                this.style.color='#E53935';
+                this.style.borderColor='#F5C6CB';
+                this.style.boxShadow='0 2px 8px rgba(229,57,53,0.06)';
+              "
             >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
               Supprimer
             </button>
           </div>
