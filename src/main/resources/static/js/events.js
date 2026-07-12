@@ -340,6 +340,9 @@ async function exportEventToPDF(index) {
   const shashapAddress = "123 Avenue de la République, Niamey, Niger";
   const shashapWebsite = "www.shashap-niamey.com";
 
+  // ✅ Bandeau sponsors (modifiable)
+  const sponsorsText = "SPONSORS :  Orange Niger  |  MTN  |  Moov Africa  |  Niger Telecom  |  Shashap";
+
   // 2. Configuration du canevas A4
   const poster = document.createElement('div');
   poster.id = "temp-poster-export";
@@ -360,7 +363,7 @@ async function exportEventToPDF(index) {
   poster.innerHTML = `
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
 
-    <div style="padding: 60px; width: 100%; height: 100%; box-sizing: border-box; position: relative;">
+    <div style="padding: 60px 60px 0 60px; width: 100%; height: 100%; box-sizing: border-box; position: relative;">
 
       <!-- Conteneur de la Photo (cadre blanc) -->
       <div style="position: relative; width: 75%; height: 480px; background: #FFFFFF; padding: 15px; box-sizing: border-box; margin: 0 auto; box-shadow: 0 25px 50px rgba(0,0,0,0.6);">
@@ -397,7 +400,7 @@ async function exportEventToPDF(index) {
       </div>
 
       <!-- Pied de page : Adresse + Site web (bien séparés) -->
-      <div style="position: absolute; bottom: 50px; left: 60px; right: 60px; display: flex; justify-content: space-between; align-items: flex-end; font-family: 'Oswald', sans-serif; font-size: 14px;">
+      <div style="position: absolute; bottom: 90px; left: 60px; right: 60px; display: flex; justify-content: space-between; align-items: flex-end; font-family: 'Oswald', sans-serif; font-size: 14px;">
         <!-- Description / Adresse -->
         <div style="color: #AAAAAA; max-width: 50%;">
           <p style="margin:0 0 8px 0; color:#CCCCCC; font-size:14px;">${desc}</p>
@@ -408,6 +411,30 @@ async function exportEventToPDF(index) {
           <p style="margin:0 0 4px 0; font-size:12px; color:#AAAAAA;">PLUS D'INFOS SUR</p>
           <strong style="font-size: 18px; letter-spacing: 1px; color:#E2F000;">${shashapWebsite.toUpperCase()}</strong>
         </div>
+      </div>
+
+      <!-- 🟫 BARRE SPONSORS (ajoutée en bas, ne touche à rien) -->
+      <div style="
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 50px;
+        background: #E91E63;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 60px;
+        box-sizing: border-box;
+        font-family: 'Oswald', sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        color: #FFFFFF;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+      ">
+        ${sponsorsText}
       </div>
 
     </div>
