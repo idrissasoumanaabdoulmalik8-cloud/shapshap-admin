@@ -1,8 +1,7 @@
 // ============================================================================
 // MODULE UTILITAIRE : GESTION ET OPTIMISATION DES IMAGES
 // ============================================================================
-
-export class ImageManager {
+ class ImageManager {
   constructor() {
     this.MAX_RESOLUTION = 1920;
     this.QUALITY = 0.85;
