@@ -1086,7 +1086,7 @@ function getImageDimensions(url) {
 }
 
 // ============================================================================
-// EXPOSITION GLOBALE POUR COMPATIBILITÉ AVEC SHASHAP.JS
+// EXPOSITION GLOBALE POUR COMPATIBILITÉ AVEC SHASHAP.JSss
 // ============================================================================
 window.loadEvents = loadEvents;
 window.openEventModal = openEventModal;
