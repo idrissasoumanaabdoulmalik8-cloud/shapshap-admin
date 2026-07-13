@@ -123,7 +123,7 @@ function generatePosterHTML(eventData, format = 'A4', selectedTheme = 'Urban') {
   const componentBackground = `
     <div style="position: absolute; inset: 0; background-image: ${noiseTexture}; z-index: 1; pointer-events: none;"></div>
     ${coverImage ? `
-      <img src="${coverImage}" crossorigin="anonymous" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(45px) brightness(20%); opacity: 0.4; z-index: 2;" onerror="this.style.display='none'"/>
+<div style="position: absolute; inset: 0; background-image: url('${coverImage}'); background-size: cover; background-position: center; filter: blur(45px) brightness(20%); opacity: 0.4; z-index: 2;"></div>
     ` : ''}
     <div style="position: absolute; top: -10%; left: 10%; width: 200px; height: 800px; background: linear-gradient(165deg, rgba(255,255,255,0.02) 0%, transparent 60%); transform: rotate(10deg); filter: blur(20px); z-index: 3;"></div>
     <div style="position: absolute; top: 30%; left: 50%; transform: translateX(-50%); width: 95%; height: 50%; background: radial-gradient(circle, var(--primary-color) 0.04, transparent 70%); z-index: 3; opacity: 0.15;"></div>
@@ -141,7 +141,7 @@ function generatePosterHTML(eventData, format = 'A4', selectedTheme = 'Urban') {
   // Component: ArtistPhoto
   const componentArtistPhoto = `
     <div data-layer="photo" style="position: absolute; top: 11%; left: 50%; transform: translateX(-50%); width: 62%; height: 53%; z-index: 10; box-shadow: 0 35px 70px rgba(0,0,0,0.85); border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
-      <img src="${artistImage}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%) contrast(115%) brightness(90%);" onerror="this.src='https://via.placeholder.com/800x1000/222/fff?text=Image+Indisponible'" />
+<img src="${artistImage}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover; object-position: center 30%; filter: grayscale(100%) contrast(115%) brightness(90%);" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend','<div style=width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--background-color,#111);color:var(--muted-color,#555);font-size:48px>🎵</div>')" />
       <div style="position: absolute; bottom: -2px; left: 0; width: 100%; height: 45%; background: linear-gradient(to top, var(--background-color) 12%, transparent 100%);"></div>
     </div>
   `;
@@ -704,34 +704,33 @@ function openEventModal(editIndex = null) {
 
   // ACTION DU BOUTON DE TÉLÉCHARGEMENT DIRECT DEPUIS L'APERÇU REAL-TIME
   document.getElementById('ui-action-export-pdf').onclick = async () => {
-    const renderNode = document.createElement('div');
-    renderNode.style.cssText = "position:absolute; left:-9999px; top:0; width:794px; height:1123px;";
-    renderNode.innerHTML = generatePosterHTML(eventData, 'A4', eventData.theme);
-    document.body.appendChild(renderNode);
+      const viewport = document.getElementById('sh-poster-viewport-container');
+      if (!viewport || !viewport.firstElementChild) return;
 
-    try {
-      await document.fonts.ready;
-      await new Promise(r => setTimeout(r, 600));
+      try {
+          showToast('⏳ Génération du PDF...');
+          await document.fonts.ready;
+          await new Promise(r => setTimeout(r, 300));
 
-      const canvas = await html2canvas(renderNode.firstElementChild, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-        logging: false
-      });
+          const canvas = await html2canvas(viewport.firstElementChild, {
+              scale: 2,
+              useCORS: true,
+              allowTaint: false,
+              logging: false,
+              backgroundColor: null
+          });
 
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
-      const pdf = new window.jspdf.jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+          const imgData = canvas.toDataURL('image/jpeg', 0.95);
+          const pdf = new window.jspdf.jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+          pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
 
-      const cleanTitle = (eventData.artistName || 'shashap').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      pdf.save(`shashap_${cleanTitle}_2026.pdf`);
-      showToast('🚀 Affiche haute définition générée avec succès !');
-    } catch (err) {
-      console.error("Erreur d'acquisition canevas Studio Shashap:", err);
-    } finally {
-      document.body.removeChild(renderNode);
-    }
+          const cleanTitle = (eventData.artistName || 'shashap').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+          pdf.save(`shashap_${cleanTitle}_2026.pdf`);
+          showToast('🚀 Affiche HD générée avec succès !');
+      } catch (err) {
+          console.error("Erreur PDF:", err);
+          showToast('❌ Erreur export PDF', 'error');
+      }
   };
 
   // ENREGISTREMENT ET PIPELINES D'INFRASTRUCTURE EXISTANTS (ZÉRO RUPTURE)
