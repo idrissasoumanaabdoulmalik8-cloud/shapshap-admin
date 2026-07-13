@@ -1,333 +1,784 @@
-// ============================================================
-// 🎤 ÉVÉNEMENTS — gestion des soirées/lives
-// ============================================================
+// ============================================================================
+// SHASHAP GRAPHIC ENGINE & SYSTEM THEMES (PHASE 3)
+// ============================================================================
+
+const SHASHAP_THEMES = {
+  Urban: {
+    '--primary-color': '#CCFF00',
+    '--secondary-color': '#111827',
+    '--background-color': '#040404',
+    '--card-background': '#0A0A0A',
+    '--text-color': '#FFFFFF',
+    '--muted-color': '#888888',
+    '--font-title': "'Anton', sans-serif",
+    '--font-body': "'Montserrat', sans-serif"
+  },
+  Festival: {
+    '--primary-color': '#FF3E6C',
+    '--secondary-color': '#FFBE0B',
+    '--background-color': '#1A002C',
+    '--card-background': '#2A0845',
+    '--text-color': '#FFFFFF',
+    '--muted-color': '#A8A29E',
+    '--font-title': "'Bebas Neue', sans-serif",
+    '--font-body': "'Poppins', sans-serif"
+  },
+  VIP: {
+    '--primary-color': '#D4AF37',
+    '--secondary-color': '#1A1A1A',
+    '--background-color': '#0B0B0B',
+    '--card-background': '#161616',
+    '--text-color': '#FFFFFF',
+    '--muted-color': '#A3A3A3',
+    '--font-title': "'Oswald', sans-serif",
+    '--font-body': "'Inter', sans-serif"
+  },
+  Minimal: {
+    '--primary-color': '#000000',
+    '--secondary-color': '#F3F4F6',
+    '--background-color': '#FFFFFF',
+    '--card-background': '#F9FAFB',
+    '--text-color': '#000000',
+    '--muted-color': '#6B7280',
+    '--font-title': "'Inter', sans-serif",
+    '--font-body': "'Inter', sans-serif"
+  },
+  Afro: {
+    '--primary-color': '#E65C00',
+    '--secondary-color': '#F9D423',
+    '--background-color': '#2B1B17',
+    '--card-background': '#3D251E',
+    '--text-color': '#FFF8DC',
+    '--muted-color': '#D2B48C',
+    '--font-title': "'Anton', sans-serif",
+    '--font-body': "'Poppins', sans-serif"
+  },
+  Gold: {
+    '--primary-color': '#F3E5AB',
+    '--secondary-color': '#4A0E17',
+    '--background-color': '#190005',
+    '--card-background': '#2D000B',
+    '--text-color': '#FFFFFF',
+    '--muted-color': '#C5A059',
+    '--font-title': "'Oswald', sans-serif",
+    '--font-body': "'Montserrat', sans-serif"
+  },
+  Corporate: {
+    '--primary-color': '#0066CC',
+    '--secondary-color': '#002244',
+    '--background-color': '#0A192F',
+    '--card-background': '#172A45',
+    '--text-color': '#F8F9FA',
+    '--muted-color': '#8892B0',
+    '--font-title': "'Inter', sans-serif",
+    '--font-body': "'Inter', sans-serif"
+  }
+};
+
+const SHASHAP_FONTS = ['Montserrat', 'Poppins', 'Inter', 'Anton', 'Bebas Neue', 'Oswald'];
+
+// MOTEUR DE GABARIT ET COMPOSANTS INDÉPENDANTS (Modèle pur)
+function generatePosterHTML(eventData, format = 'A4', selectedTheme = 'Urban') {
+  const t = SHASHAP_THEMES[selectedTheme] || SHASHAP_THEMES.Urban;
+
+  // Variables CSS d'environnement de l'affiche
+  const cssVariables = Object.entries(t).map(([k, v]) => `${k}: ${v};`).join(' ');
+
+  // Détermination des dimensions du conteneur en fonction du format (Architecture cible)
+  let dimensions = { width: '100%', height: '100%', aspectRatio: '794/1123' }; // Format A4 par défaut
+  if (format === 'STORY_IG') dimensions = { width: '100%', height: '100%', aspectRatio: '9/16' };
+  if (format === 'BANNER_FB') dimensions = { width: '100%', height: '100%', aspectRatio: '16/9' };
+
+  // Nettoyage et formatage sécurisé des chaînes de données de l'événement
+  const artistName = (eventData.artistName || 'ARTISTE').trim().toUpperCase();
+  const eventName = (eventData.eventName || eventData.name || '').trim().toUpperCase();
+  const eventType = (eventData.eventType || 'CONCERT').trim().toUpperCase();
+  const subtitle = (eventData.subtitle || '').trim().toUpperCase();
+  const slogan = (eventData.slogan || '').trim().toUpperCase();
+  const dateStr = (eventData.startDate || 'DATE À COMMUNIQUER').toUpperCase();
+  const timeStr = eventData.startTime ? `${eventData.startTime}${eventData.endTime ? ` - ${eventData.endTime}` : ''}` : '21H00';
+
+  const venue = (eventData.venue || 'Lieu à venir').trim();
+  const locationDetails = [eventData.city, eventData.country].filter(Boolean).join(', ');
+  const fullLocationStr = locationDetails ? `${venue} (${locationDetails})` : venue;
+  const priceStr = eventData.isFree || parseFloat(eventData.price) === 0 ? "ENTRÉE GRATUITE" : `${eventData.price} FCFA`;
+
+  const artistImage = eventData.image || 'https://via.placeholder.com/800x1000/111/fff?text=Photo';
+  const coverImage = eventData.coverImage || '';
+  const eventSponsors = eventData.sponsors || [];
+
+  // Texture papier grainée universelle
+  const noiseTexture = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.07'/%3E%3C/svg%3E")`;
+
+  // --- RENDU EN CASCADE DES COMPOSANTS INDÉPENDANTS ---
+
+  // Component: PosterBackground
+  const componentBackground = `
+    <div style="position: absolute; inset: 0; background-image: ${noiseTexture}; z-index: 1; pointer-events: none;"></div>
+    ${coverImage ? `
+      <img src="${coverImage}" crossorigin="anonymous" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(45px) brightness(20%); opacity: 0.4; z-index: 2;" onerror="this.style.display='none'"/>
+    ` : ''}
+    <div style="position: absolute; top: -10%; left: 10%; width: 200px; height: 800px; background: linear-gradient(165deg, rgba(255,255,255,0.02) 0%, transparent 60%); transform: rotate(10deg); filter: blur(20px); z-index: 3;"></div>
+    <div style="position: absolute; top: 30%; left: 50%; transform: translateX(-50%); width: 95%; height: 50%; background: radial-gradient(circle, var(--primary-color) 0.04, transparent 70%); z-index: 3; opacity: 0.15;"></div>
+  `;
+
+  // Component: PosterHeader
+  const componentHeader = `
+    <div style="position: absolute; top: 40px; left: 0; width: 100%; text-align: center; z-index: 20;">
+      <span style="font-family: var(--font-body); font-weight: 900; font-size: 13px; color: var(--text-color); letter-spacing: 8px; opacity: 0.4; text-transform: uppercase;">
+        SHASHAP<span style="color: var(--primary-color);">.</span>
+      </span>
+    </div>
+  `;
+
+  // Component: ArtistPhoto
+  const componentArtistPhoto = `
+    <div data-layer="photo" style="position: absolute; top: 11%; left: 50%; transform: translateX(-50%); width: 62%; height: 53%; z-index: 10; box-shadow: 0 35px 70px rgba(0,0,0,0.85); border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
+      <img src="${artistImage}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%) contrast(115%) brightness(90%);" onerror="this.src='https://via.placeholder.com/800x1000/222/fff?text=Image+Indisponible'" />
+      <div style="position: absolute; bottom: -2px; left: 0; width: 100%; height: 45%; background: linear-gradient(to top, var(--background-color) 12%, transparent 100%);"></div>
+    </div>
+  `;
+
+  // Component: Typography Block (ArtistName, Subtitle, Slogan)
+  const componentTypographyBlock = `
+    <div data-layer="typography" style="position: absolute; top: 51%; left: 40px; right: 40px; text-align: center; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <div style="font-family: var(--font-body); font-weight: 700; font-size: 10px; color: var(--primary-color); letter-spacing: 5px; text-transform: uppercase; margin-bottom: 6px;">
+        // ${eventType} ${eventName ? `• ${eventName}` : ''}
+      </div>
+      <h1 style="font-family: var(--font-title); font-size: 120px; margin: 0; color: var(--text-color); line-height: 0.85; letter-spacing: -1px; text-transform: uppercase; text-shadow: 0 15px 30px rgba(0,0,0,0.95);">
+        ${artistName}
+      </h1>
+      ${subtitle ? `
+        <h2 style="font-family: var(--font-body); font-weight: 900; font-size: 20px; margin: 12px 0 0 0; color: var(--text-color); letter-spacing: 10px; text-transform: uppercase; opacity: 0.95;">
+          ${subtitle}
+        </h2>
+      ` : ''}
+      ${slogan ? `
+        <h3 style="font-family: var(--font-body); font-weight: 500; font-size: 11px; margin: 14px 0 0 0; color: var(--muted-color); letter-spacing: 4px; text-transform: uppercase; max-width: 80%; line-height: 1.4;">
+          ${slogan}
+        </h3>
+      ` : ''}
+    </div>
+  `;
+
+  // Component: EventInfo + QRCode
+  const componentMetadataBlock = `
+    <div data-layer="metadata" style="position: absolute; top: 75%; left: 60px; right: 60px; z-index: 20; display: flex; justify-content: space-between; align-items: flex-end;">
+
+      <div style="display: flex; flex-direction: column; gap: 14px; font-family: var(--font-body); font-size: 13px; font-weight: 600; color: #F3F4F6; letter-spacing: 1px; text-align: left;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <span style="text-transform: uppercase;">${dateStr}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <span>${timeStr}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; max-width: 380px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          <span style="line-height: 1.4;">${fullLocationStr}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; margin-top: 2px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><path d="M4 10h16"></path></svg>
+          <span style="color: var(--primary-color); font-weight: 800; text-transform: uppercase; font-size: 14px;">${priceStr}</span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+        <div style="font-family: var(--font-body); font-size: 8px; font-weight: 700; color: var(--muted-color); text-transform: uppercase; letter-spacing: 2px;">Pass Numérique</div>
+        <div style="background: #FFFFFF; padding: 5px; border-radius: 6px; width: 80px; height: 80px; box-shadow: 0 12px 24px rgba(0,0,0,0.6);">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=https://shashap.com/event/${eventData.id || 'live'}&bgcolor=FFFFFF&color=000000&margin=0" crossorigin="anonymous" style="width: 100%; height: 100%; display: block;" />
+        </div>
+        <div style="font-family: var(--font-body); font-size: 8px; font-weight: 700; color: var(--primary-color); text-transform: uppercase; letter-spacing: 1px;">Scanner pour Entrer</div>
+      </div>
+    </div>
+  `;
+
+  // Component: Sponsors & Footer Line
+  const componentSponsorsBlock = `
+    <div data-layer="sponsors" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 75px; background: var(--card-background); border-top: 1px solid rgba(255, 255, 255, 0.03); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px;">
+      <div style="font-family: var(--font-body); font-size: 8px; font-weight: 700; color: var(--muted-color); text-transform: uppercase; letter-spacing: 3px;">
+        ${eventSponsors.length > 0 ? 'Partenaires Officiels' : 'Plateforme de production Shashap'}
+      </div>
+      <div style="display: flex; gap: 26px; align-items: center; justify-content: center; max-width: 90%; overflow: hidden;">
+        ${eventSponsors.length > 0 ? eventSponsors.map(s => `
+          <div style="display: flex; align-items: center;">
+            ${s.logo ? `
+              <img src="${s.logo}" crossorigin="anonymous" style="height: 18px; max-width: 100px; object-fit: contain; filter: grayscale(100%) brightness(250%); opacity: 0.85;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline'"/>
+            ` : ''}
+            <span style="display: ${s.logo ? 'none' : 'inline'}; font-family: var(--font-body); font-size: 11px; font-weight: 800; color: #E5E7EB; letter-spacing: 0.5px; text-transform: uppercase;">${s.name}</span>
+          </div>
+        `).join('') : `
+          <span style="font-family: var(--font-body); font-size: 10px; font-weight: 500; color: #4B5563; letter-spacing: 2px; text-transform: uppercase;">SHASHAP.COM</span>
+        `}
+      </div>
+    </div>
+  `;
+
+  // Construction de l'enveloppe CSS et injection des composants
+  return `
+    <div style="${cssVariables} position: relative; width: ${dimensions.width}; height: ${dimensions.height}; aspect-ratio: ${dimensions.aspectRatio}; background-color: var(--background-color); overflow: hidden; box-sizing: border-box; user-select: none;">
+      <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Inter:wght@400;600;700;900&family=Montserrat:wght@400;600;700;900&family=Oswald:wght@400;700&family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+      ${componentBackground}
+      ${componentHeader}
+      ${componentArtistPhoto}
+      ${componentTypographyBlock}
+      ${componentMetadataBlock}
+      ${componentSponsorsBlock}
+    </div>
+  `;
+}
+
+// ============================================================================
+// WORKSPACE WORKFLOW & INTERFACE MODAL INTERACTIVE
+// ============================================================================
+
+let shashapUndoStack = [];
+let shashapRedoStack = [];
+let shashapAutoSaveTimeout = null;
+
 function openEventModal(editIndex = null) {
   const existing = editIndex !== null ? storiesData[editIndex] : null;
   const isEdit = existing !== null;
   const today = new Date().toISOString().split('T')[0];
 
-  // Extraction sécurisée des valeurs existantes
-  const getVal = (key, defaultVal = '') => existing && existing[key] !== undefined ? existing[key] : defaultVal;
+  // Instanciation de l'unique source de vérité (SOT)
+  let eventData = {
+    id: existing?.id || Date.now(),
+    artistName: existing?.artistName || existing?.name || '',
+    eventType: existing?.eventType || 'Concert',
+    eventName: existing?.eventName || '',
+    subtitle: existing?.subtitle || '',
+    slogan: existing?.slogan || '',
+    description: existing?.description || '',
+    startDate: existing?.startDate || today,
+    startTime: existing?.startTime || '21:00',
+    endTime: existing?.endTime || '',
+    venue: existing?.venue || '',
+    city: existing?.city || '',
+    country: existing?.country || '',
+    image: existing?.image || '',
+    coverImage: existing?.coverImage || '',
+    isFree: existing?.isFree !== undefined ? existing?.isFree : true,
+    price: existing?.price || 0,
+    sponsors: existing?.sponsors ? JSON.parse(JSON.stringify(existing?.sponsors)) : [],
+    theme: existing?.theme || 'Urban',
+    font: existing?.font || 'Montserrat'
+  };
 
-  // Logique billetterie existante
-  const currentPrice = parseFloat(getVal('price', 0));
-  const isFreeEvent = currentPrice === 0;
-
-  // Création ou récupération du modal
   let modal = document.getElementById('eventModal');
   if (!modal) {
     modal = document.createElement('div');
     modal.id = 'eventModal';
-    modal.className = 'modal';
+    modal.style.cssText = "position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; display:flex; align-items:center; justify-content:center; padding:15px; box-sizing:border-box;";
     document.body.appendChild(modal);
   }
 
-  // --- STYLES ENCAPSULÉS (UI Premium Linear/Apple) ---
-  const modalStyles = `
-    <style>
-      .sh-modal-wrapper { display: flex; justify-content: center; align-items: center; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-      .sh-modal-content { background: #F9FAFB; border-radius: 16px; width: 100%; max-width: 700px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid #E5E7EB; }
-      .sh-modal-header { padding: 20px 24px; background: #FFFFFF; border-bottom: 1px solid #E5E7EB; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-      .sh-modal-header h3 { margin: 0; font-size: 18px; font-weight: 600; color: #111827; letter-spacing: -0.02em; }
-      .sh-modal-body { padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; }
-
-      /* Cartes (Sections) */
-      .sh-card { background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB; padding: 20px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03); transition: box-shadow 0.2s ease; }
-      .sh-card:hover { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-      .sh-card-title { font-size: 14px; font-weight: 600; color: #374151; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
-
-      /* Grilles et Inputs */
-      .sh-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-      .sh-input-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-      .sh-input-group.mb-0 { margin-bottom: 0; }
-      .sh-label { font-size: 13px; font-weight: 500; color: #4B5563; }
-      .sh-input, .sh-select, .sh-textarea { width: 100%; padding: 10px 14px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 14px; color: #111827; background: #F9FAFB; transition: all 0.2s ease; box-sizing: border-box; }
-      .sh-input:focus, .sh-select:focus, .sh-textarea:focus { outline: none; border-color: #111827; background: #FFFFFF; box-shadow: 0 0 0 3px rgba(0,0,0,0.05); }
-      .sh-textarea { resize: vertical; min-height: 80px; }
-
-      /* Billetterie Radio */
-      .sh-radio-group { display: flex; gap: 24px; margin-bottom: 16px; }
-      .sh-radio-label { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: #374151; cursor: pointer; }
-      .sh-radio-label input { width: 16px; height: 16px; accent-color: #111827; cursor: pointer; }
-
-      /* Footer */
-      .sh-modal-footer { padding: 16px 24px; background: #FFFFFF; border-top: 1px solid #E5E7EB; display: flex; justify-content: flex-end; gap: 12px; z-index: 10; }
-      .sh-btn { padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; border: none; }
-      .sh-btn-outline { background: #FFFFFF; border: 1px solid #D1D5DB; color: #374151; }
-      .sh-btn-outline:hover { background: #F3F4F6; }
-      .sh-btn-primary { background: #111827; color: #FFFFFF; }
-      .sh-btn-primary:hover { background: #374151; }
-
-      /* Utilitaires */
-      .sh-preview-img { max-width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-top: 8px; border: 1px solid #E5E7EB; display: none; }
-    </style>
-  `;
-
-  // --- TEMPLATES MODULAIRES ---
-  const generalSection = `
-    <div class="sh-card">
-      <h4 class="sh-card-title">📝 Informations générales</h4>
-      <div class="sh-grid-2">
-        <div class="sh-input-group">
-          <label class="sh-label">Nom de l'artiste / DJ <span style="color:#E53935">*</span></label>
-          <input type="text" id="evArtistName" class="sh-input" placeholder="Ex: Barakina" value="${getVal('artistName', getVal('name'))}">
-        </div>
-        <div class="sh-input-group">
-          <label class="sh-label">Type d'événement</label>
-          <select id="evEventType" class="sh-select">
-            <option value="Concert" ${getVal('eventType') === 'Concert' ? 'selected' : ''}>Concert</option>
-            <option value="DJ Set" ${getVal('eventType') === 'DJ Set' ? 'selected' : ''}>DJ Set</option>
-            <option value="Festival" ${getVal('eventType') === 'Festival' ? 'selected' : ''}>Festival</option>
-            <option value="Showcase" ${getVal('eventType') === 'Showcase' ? 'selected' : ''}>Showcase</option>
-            <option value="Soirée VIP" ${getVal('eventType') === 'Soirée VIP' ? 'selected' : ''}>Soirée VIP</option>
-            <option value="Conférence" ${getVal('eventType') === 'Conférence' ? 'selected' : ''}>Conférence</option>
-            <option value="Exposition" ${getVal('eventType') === 'Exposition' ? 'selected' : ''}>Exposition</option>
-            <option value="Autre" ${getVal('eventType') === 'Autre' ? 'selected' : ''}>Autre</option>
-          </select>
-        </div>
-      </div>
-      <div class="sh-input-group">
-        <label class="sh-label">Nom de l'événement <span style="color:#E53935">*</span></label>
-        <input type="text" id="evEventName" class="sh-input" placeholder="Ex: The Summer Vibes Festival" value="${getVal('eventName')}">
-      </div>
-      <div class="sh-grid-2">
-        <div class="sh-input-group mb-0">
-          <label class="sh-label">Sous-titre (Optionnel)</label>
-          <input type="text" id="evSubtitle" class="sh-input" placeholder="Ex: Live Concert" value="${getVal('subtitle')}">
-        </div>
-        <div class="sh-input-group mb-0">
-          <label class="sh-label">Slogan (Optionnel)</label>
-          <input type="text" id="evSlogan" class="sh-input" placeholder="Ex: One Night • One Stage" value="${getVal('slogan')}">
-        </div>
-      </div>
-      <div class="sh-input-group" style="margin-top: 16px;">
-        <label class="sh-label">Description</label>
-        <textarea id="evDescription" class="sh-textarea" placeholder="Détails de l'événement...">${getVal('description')}</textarea>
-      </div>
-    </div>
-  `;
-
-  const dateTimeSection = `
-    <div class="sh-card">
-      <h4 class="sh-card-title">📅 Date et Heure</h4>
-      <div class="sh-grid-2">
-        <div class="sh-input-group mb-0">
-          <label class="sh-label">Date <span style="color:#E53935">*</span></label>
-          <!-- ID conservé pour ne pas casser l'ancien onchange="validateEventDates()" -->
-          <input type="date" id="evStartDate" class="sh-input" value="${getVal('startDate', today)}" onchange="typeof validateEventDates === 'function' && validateEventDates()">
-          <!-- Champ caché pour la rétrocompatibilité stricte si validateEventDates cherche evEndDate -->
-          <input type="hidden" id="evEndDate" value="${getVal('endDate', today)}">
-        </div>
-        <div class="sh-grid-2" style="gap: 8px;">
-          <div class="sh-input-group mb-0">
-            <label class="sh-label">Heure début</label>
-            <input type="time" id="evStartTime" class="sh-input" value="${getVal('startTime', '21:00')}">
-          </div>
-          <div class="sh-input-group mb-0">
-            <label class="sh-label">Heure fin (Opt.)</label>
-            <input type="time" id="evEndTime" class="sh-input" value="${getVal('endTime', '')}">
-          </div>
-        </div>
-      </div>
-      <span id="evDateError" style="color:#E53935; font-size:12px; display:none; margin-top:8px;"></span>
-    </div>
-  `;
-
-  const locationSection = `
-    <div class="sh-card">
-      <h4 class="sh-card-title">📍 Localisation</h4>
-      <div class="sh-input-group">
-        <label class="sh-label">Lieu <span style="color:#E53935">*</span></label>
-        <input type="text" id="evVenue" class="sh-input" placeholder="Ex: Stade Général Seyni Kountché" value="${getVal('venue')}">
-      </div>
-      <div class="sh-grid-2">
-        <div class="sh-input-group mb-0">
-          <label class="sh-label">Ville</label>
-          <input type="text" id="evCity" class="sh-input" placeholder="Ex: Niamey" value="${getVal('city', 'Niamey')}">
-        </div>
-        <div class="sh-input-group mb-0">
-          <label class="sh-label">Pays</label>
-          <input type="text" id="evCountry" class="sh-input" placeholder="Ex: Niger" value="${getVal('country', 'Niger')}">
-        </div>
-      </div>
-    </div>
-  `;
-
-  const ticketingSection = `
-    <div class="sh-card">
-      <h4 class="sh-card-title">🎟️ Billetterie</h4>
-      <div class="sh-radio-group">
-        <label class="sh-radio-label">
-          <input type="radio" name="ticketType" value="free" ${isFreeEvent ? 'checked' : ''}>
-          Gratuit
-        </label>
-        <label class="sh-radio-label">
-          <input type="radio" name="ticketType" value="paid" ${!isFreeEvent ? 'checked' : ''}>
-          Payant
-        </label>
-      </div>
-      <div id="evPriceContainer" class="sh-input-group mb-0" style="display: ${isFreeEvent ? 'none' : 'block'}; max-width: 50%;">
-        <label class="sh-label">Prix du billet (FCFA)</label>
-        <input type="number" id="evPrice" class="sh-input" placeholder="Ex: 5000" min="0" value="${currentPrice}">
-      </div>
-    </div>
-  `;
-
-  const mediaSection = `
-    <div class="sh-card">
-      <h4 class="sh-card-title">🖼️ Médias (Phase 1)</h4>
-      <div class="sh-grid-2">
-        <div class="sh-input-group mb-0">
-          <label class="sh-label">Photo Artiste (URL)</label>
-          <input type="text" id="evImageUrl" class="sh-input" placeholder="https://..." value="${getVal('image')}">
-          <img id="evPreviewArtist" class="sh-preview-img" src="${getVal('image')}" style="${getVal('image') ? 'display:block;' : ''}">
-        </div>
-        <div class="sh-input-group mb-0">
-          <label class="sh-label">Image de Couverture (URL)</label>
-          <input type="text" id="evCoverUrl" class="sh-input" placeholder="https://..." value="${getVal('coverImage')}">
-          <img id="evPreviewCover" class="sh-preview-img" src="${getVal('coverImage')}" style="${getVal('coverImage') ? 'display:block;' : ''}">
-        </div>
-      </div>
-    </div>
-  `;
-
-  // --- ASSEMBLAGE DU MODAL ---
+  // Layout Workspace Split-Screen Premium
   modal.innerHTML = `
-    ${modalStyles}
-    <div class="sh-modal-wrapper" style="width:100%; height:100%;">
-      <div class="sh-modal-content">
-        <div class="sh-modal-header">
-          <h3>${isEdit ? '✏️ Modifier l\'événement' : '✨ Nouvel événement Premium'}</h3>
-          <button class="close-btn" style="background:none; border:none; font-size:20px; cursor:pointer; color:#9CA3AF;" onclick="closeEventModal()">✕</button>
+    <div style="background:#0F1115; border-radius:14px; width:100%; max-width:1240px; height:88vh; display:flex; overflow:hidden; box-shadow:0 25px 60px rgba(0,0,0,0.5); border:1px solid #222630; color:#E2E8F0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+
+      <!-- COLONNE GAUCHE : FORMULAIRE DÉFILABLE (55%) -->
+      <div id="sh-workspace-form-pane" style="width:55%; height:100%; overflow-y:auto; padding:24px; box-sizing:border-box; border-right:1px solid #222630; display:flex; flex-direction:column; gap:20px; scroll-behavior:smooth;">
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h2 style="margin:0; font-size:20px; font-weight:700;">${isEdit ? 'Studio : Édition' : 'Studio : Nouvelle Affiche'}</h2>
+          <div style="display:flex; gap:8px;">
+            <button id="sh-action-undo" style="background:#1F232E; border:1px solid #33394F; color:#FFF; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">⤺ Annuler</button>
+            <button id="sh-action-redo" style="background:#1F232E; border:1px solid #33394F; color:#FFF; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">⤻ Rétablir</button>
+          </div>
         </div>
 
-        <div class="sh-modal-body">
-          ${generalSection}
-          ${dateTimeSection}
-          ${locationSection}
-          ${ticketingSection}
-          ${mediaSection}
-          <!-- Les futures sections (Sponsors, QR, Thèmes) viendront s'insérer ici -->
+        <!-- BLOC : DIRECTION ARTISTIQUE & THÈMES -->
+        <div style="background:#161920; border-radius:10px; padding:16px; border:1px solid #222630;">
+          <h4 style="margin:0 0 14px 0; font-size:12px; text-transform:uppercase; color:#94A3B8; letter-spacing:1px;">🎨 Direction Artistique</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label style="font-size:12px; color:#94A3B8;">Modèle Graphique / Thème</label>
+              <select id="ui-theme-select" style="background:#1F232E; border:1px solid #33394F; color:#FFF; padding:8px 12px; border-radius:6px; font-size:13px;">
+                ${Object.keys(SHASHAP_THEMES).map(t => `<option value="${t}" ${eventData.theme === t ? 'selected' : ''}>Thème ${t}</option>`).join('')}
+              </select>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label style="font-size:12px; color:#94A3B8;">Typographie de secours</label>
+              <select id="ui-font-select" style="background:#1F232E; border:1px solid #33394F; color:#FFF; padding:8px 12px; border-radius:6px; font-size:13px;">
+                ${SHASHAP_FONTS.map(f => `<option value="${f}" ${eventData.font === f ? 'selected' : ''}>${f}</option>`).join('')}
+              </select>
+            </div>
+          </div>
         </div>
 
-        <div class="sh-modal-footer">
-          <button class="sh-btn sh-btn-outline" onclick="closeEventModal()">Annuler</button>
-          <button class="sh-btn sh-btn-primary" id="evSaveBtn">💾 Enregistrer l'événement</button>
+        <!-- BLOC : IDENTITÉ -->
+        <div style="background:#161920; border-radius:10px; padding:16px; border:1px solid #222630;">
+          <h4 style="margin:0 0 14px 0; font-size:12px; text-transform:uppercase; color:#94A3B8; letter-spacing:1px;">📝 Informations Événement</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:12px;">
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label style="font-size:12px; color:#94A3B8;">Artiste / Line-up *</label>
+              <input type="text" id="in-artist" value="${eventData.artistName}" style="background:#1F232E; border:1px solid #33394F; color:#FFF; padding:8px 12px; border-radius:6px; font-size:13px;">
+            </div>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label style="font-size:12px; color:#94A3B8;">Type de show</label>
+              <input type="text" id="in-type" value="${eventData.eventType}" placeholder="Ex: CONCERT, FESTIVAL, DJ SET" style="background:#1F232E; border:1px solid #33394F; color:#FFF; padding:8px 12px; border-radius:6px; font-size:13px;">
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:12px;">
+            <label style="font-size:12px; color:#94A3B8;">Nom officiel de l'événement</label>
+            <input type="text" id="in-eventname" value="${eventData.eventName}" placeholder="Ex: L'Épopée Musicale" style="background:#1F232E; border:1px solid #33394F; color:#FFF; padding:8px 12px; border-radius:6px; font-size:13px;">
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label style="font-size:12px; color:#94A3B8;">Sous-titre (Accroche)</label>
+              <input type="text" id="in-subtitle" value="${eventData.subtitle}" placeholder="Ex: Tournée Mondiale" style="background:#1F232E; border:1px solid #33394F; color:#FFF; padding:8px 12px; border-radius:6px; font-size:13px;">
+            </div>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label style="font-size:12px; color:#94A3B8;">Slogan de bas d'affiche</label>
+              <input type="text" id="in-slogan" value="${eventData.slogan}" placeholder="Ex: Places limitées" style="background:#1F232E; border:1px solid #33394F; color:#FFF; padding:8px 12px; border-radius:6px; font-size:13px;">
+            </div>
+          </div>
         </div>
+
+        <!-- BLOC : LOCALISATION & INFOS RETENUES -->
+        <div style="background:#161920; border-radius:10px; padding:16px; border:1px solid #222630;">
+          <h4 style="margin:0 0 14px 0; font-size:12px; text-transform:uppercase; color:#94A3B8; letter-spacing:1px;">📅 Logistique & Horaires</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:12px;">
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label style="font-size:12px; color:#94A3B8;">Date</label>
+              <input type="date" id="in-date" value="${eventData.startDate}" style="background:#1F232E; border:1px solid #33394F; color:#FFF; padding:8px 12px; border-radius:6px; font-size:13px;">
+            </div>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label style="font-size:12px; color:#94A3B8;">Heure Début</label>
+              <input type="time" id="in-time-start" value="${eventData.startTime}" style="background:#1F232E; border:1px solid #33394F; color:#FFF; padding:8px 12px; border-radius:6px; font-size:13px;">
+            </div>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label style="font-size:12px; color:#94A3B8;">Heure Fin</label>
+              <input type="time" id="in-time-end" value="${eventData.endTime}" style="background:#1F232E; border:1px solid #33394F; color:#FFF; padding:8px 12px; border-radius:6px; font-size:13px;">
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label style="font-size:12px; color:#94A3B8;">Salle / Complexe</label>
+              <input type="text" id="in-venue" value="${eventData.venue}" placeholder="Ex: Opéra" style="background:#1F232E; border:1px solid #33394F; color:#FFF; padding:8px 12px; border-radius:6px; font-size:13px;">
+            </div>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label style="font-size:12px; color:#94A3B8;">Ville</label>
+              <input type="text" id="in-city" value="${eventData.city}" style="background:#1F232E; border:1px solid #33394F; color:#FFF; padding:8px 12px; border-radius:6px; font-size:13px;">
+            </div>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label style="font-size:12px; color:#94A3B8;">Pays</label>
+              <input type="text" id="in-country" value="${eventData.country}" style="background:#1F232E; border:1px solid #33394F; color:#FFF; padding:8px 12px; border-radius:6px; font-size:13px;">
+            </div>
+          </div>
+        </div>
+
+        <!-- BLOC : TARIFICATION -->
+        <div style="background:#161920; border-radius:10px; padding:16px; border:1px solid #222630;">
+          <h4 style="margin:0 0 14px 0; font-size:12px; text-transform:uppercase; color:#94A3B8; letter-spacing:1px;">🎟️ Billetterie & Accès</h4>
+          <div style="display:flex; gap:20px; margin-bottom:12px;">
+            <label style="cursor:pointer; font-size:13px;"><input type="radio" name="ui-ticket-type" value="free" ${eventData.isFree ? 'checked' : ''}> Entrée Libre / Gratuit</label>
+            <label style="cursor:pointer; font-size:13px;"><input type="radio" name="ui-ticket-type" value="paid" ${!eventData.isFree ? 'checked' : ''}> Entrée Payante</label>
+          </div>
+          <div id="ui-price-input-wrapper" style="display:${eventData.isFree ? 'none' : 'block'};">
+            <label style="font-size:12px; color:#94A3B8; display:block; margin-bottom:4px;">Tarif Standard (FCFA)</label>
+            <input type="number" id="in-price" value="${eventData.price}" style="background:#1F232E; border:1px solid #33394F; color:#FFF; padding:8px 12px; border-radius:6px; font-size:13px; width:100%; box-sizing:border-box;">
+          </div>
+        </div>
+
+        <!-- BLOC : ASSETS MULTIMÉDIAS -->
+        <div style="background:#161920; border-radius:10px; padding:16px; border:1px solid #222630;">
+          <h4 style="margin:0 0 14px 0; font-size:12px; text-transform:uppercase; color:#94A3B8; letter-spacing:1px;">🖼️ Photographies & Couvertures</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label style="font-size:12px; color:#94A3B8;">URL Photo Artiste</label>
+              <input type="text" id="in-img-artist" value="${eventData.image}" placeholder="https://..." style="background:#1F232E; border:1px solid #33394F; color:#FFF; padding:8px 12px; border-radius:6px; font-size:13px;">
+            </div>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label style="font-size:12px; color:#94A3B8;">URL Image d'ambiance / Fond</label>
+              <input type="text" id="in-img-cover" value="${eventData.coverImage}" placeholder="https://..." style="background:#1F232E; border:1px solid #33394F; color:#FFF; padding:8px 12px; border-radius:6px; font-size:13px;">
+            </div>
+          </div>
+        </div>
+
+        <!-- BLOC : SPONSORS EN LIGNE (LOGIQUE INTERNE CONSERVÉE) -->
+        <div style="background:#161920; border-radius:10px; padding:16px; border:1px solid #222630;">
+          <div style="display:flex; justify-content:between; align-items:center; margin-bottom:14px;">
+            <h4 style="margin:0; font-size:12px; text-transform:uppercase; color:#94A3B8; letter-spacing:1px; flex-grow:1;">🤝 Écosystème Partenaires</h4>
+            <button type="button" id="ui-add-sponsor-trigger" style="background:#0066CC; border:none; color:#FFF; padding:4px 10px; border-radius:4px; font-size:11px; cursor:pointer;">+ Nouveau</button>
+          </div>
+
+          <!-- Formulaire de saisie inline d'un partenaire -->
+          <div id="ui-inline-sponsor-form" style="display:none; background:#1F232E; border:1px dashed #33394F; padding:12px; border-radius:8px; margin-bottom:12px;">
+            <input type="hidden" id="sp-form-index" value="">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:8px;">
+              <input type="text" id="sp-form-name" placeholder="Nom du partenaire *" style="background:#161920; border:1px solid #33394F; color:#FFF; padding:6px 10px; border-radius:4px; font-size:12px;">
+              <select id="sp-form-type" style="background:#161920; border:1px solid #33394F; color:#FFF; padding:6px 10px; border-radius:4px; font-size:12px;">
+                <option value="Sponsor">Sponsor</option><option value="Partenaire">Partenaire</option><option value="Média">Média</option><option value="Institution">Institution</option>
+              </select>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+              <input type="text" id="sp-form-logo" placeholder="URL du Logo" style="background:#161920; border:1px solid #33394F; color:#FFF; padding:6px 10px; border-radius:4px; font-size:12px;">
+              <input type="text" id="sp-form-web" placeholder="Site Web" style="background:#161920; border:1px solid #33394F; color:#FFF; padding:6px 10px; border-radius:4px; font-size:12px;">
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:6px;">
+              <button type="button" id="sp-form-cancel" style="background:#33394F; border:none; color:#FFF; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer;">Annuler</button>
+              <button type="button" id="sp-form-validate" style="background:#22C55E; border:none; color:#FFF; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer;">Valider</button>
+            </div>
+          </div>
+
+          <div id="ui-sponsors-workflow-list" style="display:flex; flex-direction:column; gap:6px;"></div>
+        </div>
+
+        <!-- COMMANDE DE FIN DE FORMULAIRE -->
+        <div style="margin-top:auto; padding-top:20px; border-top:1px solid #222630; display:flex; justify-content:flex-end; gap:12px;">
+          <button style="background:transparent; border:1px solid #33394F; color:#94A3B8; padding:10px 20px; border-radius:8px; cursor:pointer;" onclick="closeEventModal()">Quitter</button>
+          <button id="ui-main-save-btn" style="background:#22C55E; border:none; color:#FFF; font-weight:600; padding:10px 20px; border-radius:8px; cursor:pointer;">Enregistrer & Publier</button>
+        </div>
+
       </div>
+
+      <!-- COLONNE DROITE : STUDIO APERÇU TEMPS RÉEL FIXE (45%) -->
+      <div style="width:45%; height:100%; background:#090A0F; display:flex; flex-direction:column; box-sizing:border-box;">
+
+        <!-- Barre d'outils supérieure de l'aperçu -->
+        <div style="padding:14px 20px; border-bottom:1px solid #222630; display:flex; justify-content:space-between; align-items:center; background:#0F1115;">
+          <span style="font-size:12px; font-weight:600; color:#94A3B8; text-transform:uppercase; letter-spacing:0.5px;">Studio de Contrôle A4</span>
+          <button id="ui-action-export-pdf" style="background:#FFF; color:#000; font-weight:600; border:none; padding:6px 14px; border-radius:6px; font-size:12px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+            <span>📥 Télécharger le PDF</span>
+          </button>
+        </div>
+
+        <!-- Zone Scénique de Centrage de l'Affiche (Gris Studio Canva) -->
+        <div style="flex-grow:1; display:flex; align-items:center; justify-content:center; padding:30px; box-sizing:border-box; overflow:hidden; position:relative;">
+
+          <!-- Conteneur d'ajustement proportionnel (Wrapper Évolutif) -->
+          <div id="sh-poster-viewport-container" style="width:100%; max-width:410px; box-shadow:0 30px 70px rgba(0,0,0,0.8); border-radius:6px; overflow:hidden; background:#000; transition: transform 0.2s ease;">
+            <!-- Injection dynamique en temps réel -->
+          </div>
+
+        </div>
+
+      </div>
+
     </div>
   `;
 
-  modal.style.display = 'flex';
-  modal.style.alignItems = 'center';
-  modal.style.justifyContent = 'center';
-  modal.style.backgroundColor = 'rgba(0, 0, 0, 0.4)';
-  modal.style.backdropFilter = 'blur(4px)';
+  // ============================================================================
+  // LOGIQUE DE FLUX ET MISE À JOUR LIVE SANS RECHARGEMENT (MOTEUR INTERNE)
+  // ============================================================================
 
-  // --- LOGIQUE D'INTERFACE DYNAMIQUE ---
-
-  // 1. Gestion d'affichage du Prix
-  const ticketRadios = modal.querySelectorAll('input[name="ticketType"]');
-  const priceContainer = document.getElementById('evPriceContainer');
-  const priceInput = document.getElementById('evPrice');
-
-  ticketRadios.forEach(radio => {
-    radio.addEventListener('change', (e) => {
-      if (e.target.value === 'paid') {
-        priceContainer.style.display = 'block';
-        if (priceInput.value == 0) priceInput.value = ''; // Reset visuel
-      } else {
-        priceContainer.style.display = 'none';
-        priceInput.value = 0;
-      }
-    });
-  });
-
-  // 2. Prévisualisations d'images
-  const setupPreview = (inputId, imgId) => {
-    const input = document.getElementById(inputId);
-    const img = document.getElementById(imgId);
-    if (input && img) {
-      input.addEventListener('input', () => {
-        if (input.value) {
-          img.src = input.value;
-          img.style.display = 'block';
-        } else {
-          img.style.display = 'none';
-        }
-      });
+  const updateLivePreview = () => {
+    const container = document.getElementById('sh-poster-viewport-container');
+    if (container) {
+      // Rend l'affiche pure via le moteur d'architecture
+      container.innerHTML = generatePosterHTML(eventData, 'A4', eventData.theme);
     }
   };
-  setupPreview('evImageUrl', 'evPreviewArtist');
-  setupPreview('evCoverUrl', 'evPreviewCover');
 
-  // Appel de validation initial si la fonction existe globalement
-  if (typeof validateEventDates === 'function') validateEventDates();
+  const executeDataStateChange = (mutationBlock) => {
+    // Gestion de l'historique de modifications (Undo/Redo Base)
+    shashapUndoStack.push(JSON.stringify(eventData));
+    shashapRedoStack = []; // Reset du redo sur action utilisateur
 
-  // --- SAUVEGARDE & VALIDATION ---
-  document.getElementById('evSaveBtn').onclick = () => {
-    // Récupération des champs obligatoires
-    const artistName = document.getElementById('evArtistName').value.trim();
-    const eventName = document.getElementById('evEventName').value.trim();
-    const date = document.getElementById('evStartDate').value;
-    const venue = document.getElementById('evVenue').value.trim();
+    mutationBlock();
+    updateLivePreview();
+    triggerAutoSave();
+  };
 
-    // Validations élégantes (Toasts)
-    if (!artistName) { showToast('⚠️ Le nom de l\'artiste est requis', 'error'); return; }
-    if (!eventName) { showToast('⚠️ Le nom de l\'événement est requis', 'error'); return; }
-    if (!date) { showToast('⚠️ La date est obligatoire', 'error'); return; }
-    if (!venue) { showToast('⚠️ Le lieu est requis', 'error'); return; }
+  const triggerAutoSave = () => {
+    clearTimeout(shashapAutoSaveTimeout);
+    shashapAutoSaveTimeout = setTimeout(() => {
+      localStorage.setItem('shashap_autosave_draft', JSON.stringify(eventData));
+      console.log("🚀 Shashap AutoSave : Brouillon synchronisé localement.");
+    }, 2500); // 2.5 secondes d'inactivité déclenchent la sauvegarde de secours
+  };
 
-    const isFree = document.querySelector('input[name="ticketType"]:checked').value === 'free';
-    const finalPrice = isFree ? 0 : parseFloat(document.getElementById('evPrice').value) || 0;
-
-    // Construction du Payload Mixte (Rétrocompatibilité + Nouveaux champs)
-    const eventData = {
-      // --- ANCIENNE LOGIQUE (Intouchée pour ne pas casser le code existant) ---
-      id: existing?.id || Date.now(),
-      name: eventName || artistName, // On priorise le nom de l'event pour l'affichage général
-      artistName: artistName,
-      eventDate: date, // Remplace l'ancien format texte libre par la date stricte
-      description: document.getElementById('evDescription').value.trim(),
-      startDate: date, // Gardé pour les anciens algos de tri
-      endDate: date,   // Synchronisé avec la date unique pour éviter les erreurs
-      image: document.getElementById('evImageUrl').value.trim(),
-      category: 'Événement',
-      price: finalPrice,
-      promo: existing?.promo || null,
-      seen: existing?.seen || false,
-      isEvent: true,
-
-      // --- NOUVEAUX CHAMPS (Phase 1 Shashap) ---
-      eventType: document.getElementById('evEventType').value,
-      eventName: eventName,
-      subtitle: document.getElementById('evSubtitle').value.trim(),
-      slogan: document.getElementById('evSlogan').value.trim(),
-      startTime: document.getElementById('evStartTime').value,
-      endTime: document.getElementById('evEndTime').value,
-      venue: venue,
-      city: document.getElementById('evCity').value.trim(),
-      country: document.getElementById('evCountry').value.trim(),
-      coverImage: document.getElementById('evCoverUrl').value.trim(),
-      isFree: isFree
+  // ÉCOUTEURS COMPORTEMENTAUX ET EXTRACTION DIRECTE SOT
+  const bindLiveListeners = () => {
+    const inputsMap = {
+      'in-artist': 'artistName',
+      'in-type': 'eventType',
+      'in-eventname': 'eventName',
+      'in-subtitle': 'subtitle',
+      'in-slogan': 'slogan',
+      'in-date': 'startDate',
+      'in-time-start': 'startTime',
+      'in-time-end': 'endTime',
+      'in-venue': 'venue',
+      'in-city': 'city',
+      'in-country': 'country',
+      'in-img-artist': 'image',
+      'in-img-cover': 'coverImage',
+      'in-price': 'price',
+      'ui-theme-select': 'theme',
+      'ui-font-select': 'font'
     };
 
-    // Mise à jour de l'état global
-    if (isEdit) {
-      storiesData[editIndex] = eventData;
-    } else {
-      storiesData.unshift(eventData);
+    Object.entries(inputsMap).forEach(([domId, dataKey]) => {
+      const el = document.getElementById(domId);
+      if (!el) return;
+      el.addEventListener('input', (e) => {
+        eventData[dataKey] = e.target.value;
+        updateLivePreview();
+        triggerAutoSave();
+      });
+    });
+
+    // Toggle Billetterie
+    document.querySelectorAll('input[name="ui-ticket-type"]').forEach(r => {
+      r.addEventListener('change', (e) => {
+        executeDataStateChange(() => {
+          eventData.isFree = (e.target.value === 'free');
+          document.getElementById('ui-price-input-wrapper').style.display = eventData.isFree ? 'none' : 'block';
+        });
+      });
+    });
+
+    // Moteur d'historique (Undo / Redo)
+    document.getElementById('sh-action-undo').onclick = () => {
+      if (shashapUndoStack.length > 0) {
+        shashapRedoStack.push(JSON.stringify(eventData));
+        eventData = JSON.parse(shashapUndoStack.pop());
+        syncFormFieldsWithSOT();
+        updateLivePreview();
+      }
+    };
+    document.getElementById('sh-action-redo').onclick = () => {
+      if (shashapRedoStack.length > 0) {
+        shashapUndoStack.push(JSON.stringify(eventData));
+        eventData = JSON.parse(shashapRedoStack.pop());
+        syncFormFieldsWithSOT();
+        updateLivePreview();
+      }
+    };
+  };
+
+  const syncFormFieldsWithSOT = () => {
+    if(document.getElementById('in-artist')) document.getElementById('in-artist').value = eventData.artistName;
+    if(document.getElementById('ui-theme-select')) document.getElementById('ui-theme-select').value = eventData.theme;
+    if(document.getElementById('ui-font-select')) document.getElementById('ui-font-select').value = eventData.font;
+    if(document.getElementById('in-type')) document.getElementById('in-type').value = eventData.eventType;
+    if(document.getElementById('in-eventname')) document.getElementById('in-eventname').value = eventData.eventName;
+    if(document.getElementById('in-subtitle')) document.getElementById('in-subtitle').value = eventData.subtitle;
+    if(document.getElementById('in-slogan')) document.getElementById('in-slogan').value = eventData.slogan;
+    if(document.getElementById('in-date')) document.getElementById('in-date').value = eventData.startDate;
+    if(document.getElementById('in-time-start')) document.getElementById('in-time-start').value = eventData.startTime;
+    if(document.getElementById('in-time-end')) document.getElementById('in-time-end').value = eventData.endTime;
+    if(document.getElementById('in-venue')) document.getElementById('in-venue').value = eventData.venue;
+    if(document.getElementById('in-city')) document.getElementById('in-city').value = eventData.city;
+    if(document.getElementById('in-country')) document.getElementById('in-country').value = eventData.country;
+    if(document.getElementById('in-img-artist')) document.getElementById('in-img-artist').value = eventData.image;
+    if(document.getElementById('in-img-cover')) document.getElementById('in-img-cover').value = eventData.coverImage;
+    if(document.getElementById('in-price')) document.getElementById('in-price').value = eventData.price;
+    renderSponsorsListWorkflow();
+  };
+
+  // RENDU INTERNE DE LA GESTION ET COMPOSANT SPONSORS
+  const renderSponsorsListWorkflow = () => {
+    const list = document.getElementById('ui-sponsors-workflow-list');
+    if (!list) return;
+
+    if (eventData.sponsors.length === 0) {
+      list.innerHTML = `<div style="text-align:center; font-size:12px; color:#52525B; padding:10px; border:1px dashed #222630; border-radius:6px;">Aucun sponsor lié</div>`;
+      return;
     }
 
-    // Chaîne d'actions existante conservée
-    saveStoriesToStorage();
-    renderStories();
+    list.innerHTML = eventData.sponsors.map((s, idx) => `
+      <div style="display:flex; align-items:center; justify-content:space-between; background:#1F232E; padding:8px 12px; border-radius:6px; border:1px solid #33394F;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <img src="${s.logo || 'https://via.placeholder.com/60?text=Logo'}" style="width:26px; height:26px; object-fit:contain; background:#FFF; border-radius:4px; padding:1px;" onerror="this.src='https://via.placeholder.com/60?text=Logo'">
+          <div style="display:flex; flex-direction:column;">
+            <span style="font-size:12px; font-weight:600; color:#FFF;">${s.name}</span>
+            <span style="font-size:9px; color:#94A3B8; text-transform:uppercase;">${s.type}</span>
+          </div>
+        </div>
+        <div style="display:flex; gap:2px;">
+          <button type="button" class="sh-sp-nav-up" data-idx="${idx}" style="background:none; border:none; color:#94A3B8; cursor:pointer; font-size:11px;" ${idx === 0 ? 'disabled style="opacity:0.2;"' : ''}>▲</button>
+          <button type="button" class="sh-sp-nav-down" data-idx="${idx}" style="background:none; border:none; color:#94A3B8; cursor:pointer; font-size:11px;" ${idx === eventData.sponsors.length - 1 ? 'disabled style="opacity:0.2;"' : ''}>▼</button>
+          <button type="button" class="sh-sp-nav-edit" data-idx="${idx}" style="background:none; border:none; color:#38BDF8; cursor:pointer; font-size:11px; margin-left:4px;">✏️</button>
+          <button type="button" class="sh-sp-nav-del" data-idx="${idx}" style="background:none; border:none; color:#F87171; cursor:pointer; font-size:11px;">🗑️</button>
+        </div>
+      </div>
+    `).join('');
+
+    attachSponsorsWorkflowEvents();
+  };
+
+  const attachSponsorsWorkflowEvents = () => {
+    document.querySelectorAll('.sh-sp-nav-up').forEach(b => b.onclick = (e) => {
+      const idx = parseInt(e.target.dataset.idx);
+      executeDataStateChange(() => {
+        [eventData.sponsors[idx], eventData.sponsors[idx - 1]] = [eventData.sponsors[idx - 1], eventData.sponsors[idx]];
+      });
+      renderSponsorsListWorkflow();
+    });
+
+    document.querySelectorAll('.sh-sp-nav-down').forEach(b => b.onclick = (e) => {
+      const idx = parseInt(e.target.dataset.idx);
+      executeDataStateChange(() => {
+        [eventData.sponsors[idx], eventData.sponsors[idx + 1]] = [eventData.sponsors[idx + 1], eventData.sponsors[idx]];
+      });
+      renderSponsorsListWorkflow();
+    });
+
+    document.querySelectorAll('.sh-sp-nav-del').forEach(b => b.onclick = (e) => {
+      const idx = parseInt(e.target.dataset.idx);
+      executeDataStateChange(() => { eventData.sponsors.splice(idx, 1); });
+      renderSponsorsListWorkflow();
+    });
+
+    document.querySelectorAll('.sh-sp-nav-edit').forEach(b => b.onclick = (e) => {
+      const idx = parseInt(e.target.dataset.idx);
+      const s = eventData.sponsors[idx];
+      document.getElementById('sp-form-index').value = idx;
+      document.getElementById('sp-form-name').value = s.name;
+      document.getElementById('sp-form-type').value = s.type;
+      document.getElementById('sp-form-logo').value = s.logo || '';
+      document.getElementById('sp-form-web').value = s.website || '';
+      document.getElementById('ui-inline-sponsor-form').style.display = 'block';
+    });
+  };
+
+  // Triggers d'activation formulaire sponsors
+  document.getElementById('ui-add-sponsor-trigger').onclick = () => {
+    document.getElementById('sp-form-index').value = '';
+    document.getElementById('sp-form-name').value = '';
+    document.getElementById('sp-form-logo').value = '';
+    document.getElementById('sp-form-web').value = '';
+    document.getElementById('ui-inline-sponsor-form').style.display = 'block';
+  };
+
+  document.getElementById('sp-form-cancel').onclick = () => {
+    document.getElementById('ui-inline-sponsor-form').style.display = 'none';
+  };
+
+  document.getElementById('sp-form-validate').onclick = () => {
+    const name = document.getElementById('sp-form-name').value.trim();
+    if (!name) return alert('Le nom du partenaire est obligatoire.');
+
+    const sIdx = document.getElementById('sp-form-index').value;
+    const sponsorPayload = {
+      name,
+      type: document.getElementById('sp-form-type').value,
+      logo: document.getElementById('sp-form-logo').value.trim(),
+      website: document.getElementById('sp-form-web').value.trim()
+    };
+
+    executeDataStateChange(() => {
+      if (sIdx !== '') eventData.sponsors[parseInt(sIdx)] = sponsorPayload;
+      else eventData.sponsors.push(sponsorPayload);
+    });
+
+    document.getElementById('ui-inline-sponsor-form').style.display = 'none';
+    renderSponsorsListWorkflow();
+  };
+
+  // INITIALISATION DES COMPOSANTS ET ÉCOUTEURS
+  updateLivePreview();
+  bindLiveListeners();
+  renderSponsorsListWorkflow();
+
+  // ACTION DU BOUTON DE TÉLÉCHARGEMENT DIRECT DEPUIS L'APERÇU REAL-TIME
+  document.getElementById('ui-action-export-pdf').onclick = async () => {
+    // Crée une structure temporaire isolée basée sur la SOT pour garantir la résolution
+    const renderNode = document.createElement('div');
+    renderNode.style.cssText = "position:absolute; left:-9999px; top:0; width:794px; height:1123px;";
+    renderNode.innerHTML = generatePosterHTML(eventData, 'A4', eventData.theme);
+    document.body.appendChild(renderNode);
+
+    try {
+      await document.fonts.ready;
+      // Attente technique anti-scintillement pour l'acquisition des images CORS
+      await new Promise(r => setTimeout(r, 600));
+
+      const canvas = await html2canvas(renderNode.firstElementChild, {
+        scale: 2, // Sortie Haute Définition pour impression
+        useCORS: true,
+        allowTaint: false,
+        logging: false
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      const pdf = new window.jspdf.jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+
+      const cleanTitle = (eventData.artistName || 'shashap').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      pdf.save(`shashap_${cleanTitle}_2026.pdf`);
+      showToast('🚀 Affiche haute définition générée avec succès !');
+    } catch (err) {
+      console.error("Erreur d'acquisition canevas Studio Shashap:", err);
+    } finally {
+      document.body.removeChild(renderNode);
+    }
+  };
+
+  // ENREGISTREMENT ET PIPELINES D'INFRASTRUCTURE EXISTANTS (ZÉRO RUPTURE)
+  document.getElementById('ui-main-save-btn').onclick = () => {
+    if (!eventData.artistName.trim()) {
+      alert("Le nom de l'artiste est requis pour l'impression.");
+      return;
+    }
+
+    // Uniformisation finale du nom d'objet hérité
+    eventData.name = eventData.eventName || eventData.artistName;
+    eventData.endDate = eventData.startDate; // Maintien de cohérence temporelle Phase 1
+    eventData.isEvent = true;
+
+    if (isEdit) storiesData[editIndex] = eventData;
+    else storiesData.unshift(eventData);
+
+    // Routines et exécutions natives de l'application Shashap
+    if (typeof saveStoriesToStorage === 'function') saveStoriesToStorage();
+    if (typeof renderStories === 'function') renderStories();
+    if (typeof syncStoriesToBackend === 'function') syncStoriesToBackend();
+    if (typeof loadEvents === 'function') loadEvents();
+
+    localStorage.removeItem('shashap_autosave_draft'); // Nettoie le brouillon de secours
     closeEventModal();
-    syncStoriesToBackend();
-    loadEvents();
-    showToast('✅ Événement configuré avec succès');
+    if (typeof showToast === 'function') showToast('✨ Événement et charte graphique enregistrés');
   };
 }
+
+// ============================================================================
+// PIPELINE D'EXPORT UNIFIÉ EXTRACANVAS (FONCTION GLOBALE ACCESSIBLE)
+// ============================================================================
+async function exportEventToPDF(index) {
+  const ev = storiesData[index];
+  if (!ev) return;
+
+  // Injection temporaire haute résolution basée sur le même et unique composant de rendu graphique
+  const targetNode = document.createElement('div');
+  targetNode.style.cssText = "position:absolute; left:-9999px; top:0; width:794px; height:1123px;";
+  targetNode.innerHTML = generatePosterHTML(ev, 'A4', ev.theme || 'Urban');
+  document.body.appendChild(targetNode);
+
+  try {
+    await document.fonts.ready;
+    await new Promise(r => setTimeout(r, 700));
+
+    const canvas = await html2canvas(targetNode.firstElementChild, {
+      scale: 2,
+      useCORS: true,
+      logging: false
+    });
+
+    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+    const pdf = new window.jspdf.jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+
+    const cleanTitle = (ev.artistName || ev.name || 'event').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    pdf.save(`shashap_${cleanTitle}_2026.pdf`);
+  } catch (error) {
+    console.error("Erreur lors de l'export autonome:", error);
+  } finally {
+    document.body.removeChild(targetNode);
+  }
+}
+
+function closeEventModal() {
+  const modal = document.getElementById('eventModal');
+  if (modal) modal.style.display = 'none';
+  clearTimeout(shashapAutoSaveTimeout);
+}
+
 
 // ✅ Validation en temps réel des dates
 function validateEventDates() {
@@ -388,10 +839,7 @@ function deleteEventByIndex(index) {
   showToast('🗑️ Événement supprimé');
 }
 
-function closeEventModal() {
-  const m = document.getElementById('eventModal');
-  if (m) m.style.display = 'none';
-}
+
 // 1. La fonction d'animation du bouton Supprimer (inchangée)
 function confirmDelete(button, index) {
   if (button.dataset.confirm === 'true') {
@@ -547,223 +995,3 @@ function loadEvents() {
   container.innerHTML = html;
 }
 
-async function exportEventToPDF(index) {
-  const ev = storiesData[index];
-  if (!ev) return;
-
-  // --- 1. EXTRACTION & FORMATTAGE SÉCURISÉ DES NOUVELLES DONNÉES ---
-  const artistName = ev.artistName || 'BARAKINA';
-  const eventName = ev.eventName || ev.name || 'ÉVÉNEMENT';
-  const eventType = ev.eventType || 'CONCERT';
-  const subtitle = ev.subtitle ? ev.subtitle.trim() : '';
-  const slogan = ev.slogan ? ev.slogan.trim() : '';
-
-  // Gestion intelligente des dates et heures
-  const dateStr = ev.startDate || "DATE À COMMUNIQUER";
-  const timeStr = ev.startTime ? `${ev.startTime}${ev.endTime ? ` - ${ev.endTime}` : ''}` : '21H00';
-
-  // Gestion de la localisation combinée
-  const venue = ev.venue || 'Lieu à venir';
-  const locationDetails = [ev.city, ev.country].filter(Boolean).join(', ');
-  const fullLocationStr = locationDetails ? `${venue} (${locationDetails})` : venue;
-
-  // Règle d'or de la billetterie
-  const priceStr = ev.isFree || parseFloat(ev.price) === 0 ? "ENTRÉE GRATUITE" : `${ev.price} FCFA`;
-
-  // Images
-  const artistImage = ev.image || 'https://via.placeholder.com/800x1000/111/fff?text=Photo';
-  const coverImage = ev.coverImage || '';
-
-  // --- 2. ARCHITECTURE DES COMPOSANTS EXTENSIBLES (Thèmes & Couleurs) ---
-  // Préparation Phase 2 : Tu pourras lier ces variables aux futurs champs du formulaire
-  const theme = {
-    primaryColor: '#CCFF00', // Le jaune signature Shashap
-    backgroundColor: '#040404',
-    cardBackground: '#020202',
-    textColor: '#FFFFFF',
-    mutedTextColor: '#888888'
-  };
-
-  // --- 3. GÉNÉRATION DU CANEVAS HAUTE RÉSOLUTION ---
-  const poster = document.createElement('div');
-  poster.id = "premium-dynamic-poster";
-
-  // Texture papier de fond
-  const noiseTexture = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E")`;
-
-  Object.assign(poster.style, {
-    position: 'absolute',
-    left: '-9999px',
-    top: '0',
-    width: '794px',   // Format A4 standard
-    height: '1123px',
-    backgroundColor: theme.backgroundColor,
-    overflow: 'hidden',
-    boxSizing: 'border-box'
-  });
-
-  poster.innerHTML = `
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-
-    <!-- ================= CONTEXTE ATMOSPHÉRIQUE DYNAMIQUE ================= -->
-    <div style="position: absolute; inset: 0; background-image: ${noiseTexture}; z-index: 1;"></div>
-
-    <!-- Effet de couverture floutée (Style Apple Music / Spotify) -->
-    ${coverImage ? `
-      <img src="${coverImage}" crossorigin="anonymous" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(50px) brightness(15%); opacity: 0.35; z-index: 2;" />
-    ` : ''}
-
-    <!-- Faisceaux lumineux standards -->
-    <div style="position: absolute; top: -10%; left: 10%; width: 200px; height: 800px; background: linear-gradient(165deg, rgba(255,255,255,0.02) 0%, transparent 60%); transform: rotate(10deg); filter: blur(20px); z-index: 3;"></div>
-    <div style="position: absolute; top: -10%; right: 10%; width: 200px; height: 800px; background: linear-gradient(-165deg, rgba(255,255,255,0.02) 0%, transparent 60%); transform: rotate(-10deg); filter: blur(20px); z-index: 3;"></div>
-
-    <!-- Brouillard coloré dynamique basé sur la couleur primaire -->
-    <div style="position: absolute; top: 30%; left: 50%; transform: translateX(-50%); width: 90%; height: 50%; background: radial-gradient(circle, ${theme.primaryColor}0a 0%, transparent 70%); z-index: 3;"></div>
-    <!-- ==================================================================== -->
-
-    <div style="position: relative; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column;">
-
-      <!-- LOGO SHASHAP BRANDING -->
-      <div style="position: absolute; top: 40px; left: 0; width: 100%; text-align: center; z-index: 20;">
-        <span style="font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 14px; color: ${theme.textColor}; letter-spacing: 8px; opacity: 0.5; text-transform: uppercase;">
-          SHASHAP<span style="color: ${theme.primaryColor};">.</span>
-        </span>
-      </div>
-
-      <!-- PHOTO DE L'ARTISTE (Ratio vertical 64% x 55% validé) -->
-      <div style="position: absolute; top: 10%; left: 50%; transform: translateX(-50%); width: 64%; height: 55%; z-index: 10; box-shadow: 0 40px 80px rgba(0,0,0,0.85); border-radius: 4px; overflow: hidden;">
-        <img src="${artistImage}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%) contrast(110%) brightness(95%);" />
-        <div style="position: absolute; bottom: -2px; left: 0; width: 100%; height: 50%; background: linear-gradient(to top, ${theme.backgroundColor} 8%, transparent 100%);"></div>
-      </div>
-
-      <!-- BLOC TYPOGRAPHIQUE (Hiérarchie stricte sans ligne vide) -->
-      <div style="position: absolute; top: 49%; left: 40px; right: 40px; text-align: center; z-index: 20;">
-
-        <!-- Type d'événement (Badge discret) -->
-        <div style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 11px; color: ${theme.primaryColor}; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 8px; opacity: 0.9;">
-          // ${eventType}
-        </div>
-
-        <!-- Titre Principal (Nom de l'artiste ou de l'événement) -->
-        <h1 style="font-family: 'Anton', sans-serif; font-size: 130px; margin: 0; color: ${theme.textColor}; line-height: 0.85; letter-spacing: -1px; text-transform: uppercase; text-shadow: 0 15px 30px rgba(0,0,0,0.9);">
-          ${artistName}
-        </h1>
-
-        <!-- Sous-titre conditionnel (Ex: "Live Concert") -->
-        ${subtitle ? `
-          <h2 style="font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 22px; margin: 10px 0 0 0; color: ${theme.textColor}; letter-spacing: 12px; text-transform: uppercase; opacity: 0.95;">
-            ${subtitle}
-          </h2>
-        ` : ''}
-
-        <!-- Slogan conditionnel -->
-        ${slogan ? `
-          <h3 style="font-family: 'Montserrat', sans-serif; font-weight: 500; font-size: 11px; margin: 16px 0 0 0; color: ${theme.mutedTextColor}; letter-spacing: 4px; text-transform: uppercase;">
-            ${slogan}
-          </h3>
-        ` : ''}
-      </div>
-
-      <!-- BLOC INFOS & QR CODE -->
-      <div style="position: absolute; top: 73%; left: 60px; right: 60px; z-index: 20; display: flex; justify-content: space-between; align-items: flex-end;">
-
-        <!-- Métadonnées de l'événement -->
-        <div style="display: flex; flex-direction: column; gap: 16px; font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 600; color: #E5E7EB; letter-spacing: 1px;">
-
-          <!-- Date -->
-          <div style="display: flex; align-items: center; gap: 14px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${theme.primaryColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            <span style="text-transform: uppercase;">${dateStr}</span>
-          </div>
-
-          <!-- Heure (Gère dynamiquement l'heure de fin si présente) -->
-          <div style="display: flex; align-items: center; gap: 14px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${theme.primaryColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-            <span>${timeStr}</span>
-          </div>
-
-          <!-- Lieu & Ville / Pays -->
-          <div style="display: flex; align-items: center; gap: 14px; max-width: 400px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${theme.primaryColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-            <span style="line-height: 1.3;">${fullLocationStr}</span>
-          </div>
-
-          <!-- Prix / Entrée Gratuité native -->
-          <div style="display: flex; align-items: center; gap: 14px; margin-top: 4px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${theme.primaryColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><path d="M4 10h16"></path><path d="M4 14h16"></path></svg>
-            <span style="color: ${ev.isFree || parseFloat(ev.price) === 0 ? theme.primaryColor : theme.textColor}; font-weight: 700; text-transform: uppercase;">
-              ${priceStr}
-            </span>
-          </div>
-        </div>
-
-        <!-- ZONE ENCAPSULÉE POUR LE QR CODE (Prête pour Phase 2) -->
-        <div id="poster-qrcode-zone" style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-          <div style="font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; color: ${theme.mutedTextColor}; text-transform: uppercase; letter-spacing: 2px;">
-            Pass Officiel
-          </div>
-          <div style="background: #FFFFFF; padding: 6px; border-radius: 6px; width: 90px; height: 90px; box-shadow: 0 15px 30px rgba(0,0,0,0.5);">
-            <!-- URL de repli propre pointant sur l'ID unique de l'événement -->
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https://shashap.com/event/${ev.id || 'live'}&bgcolor=FFFFFF&color=000000&margin=0" crossorigin="anonymous" style="width: 100%; height: 100%; display: block;" />
-          </div>
-          <div style="font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; color: ${theme.primaryColor}; text-transform: uppercase; letter-spacing: 1px;">
-            Scanner pour réserver
-          </div>
-        </div>
-      </div>
-
-      <!-- ZONE ENCAPSULÉE POUR LES SPONSORS (Style Monochrome Corporate - Prête pour Phase 2) -->
-      <div id="poster-sponsors-zone" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 75px; background: ${theme.cardBackground}; border-top: 1px solid rgba(255, 255, 255, 0.04); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px;">
-        <div style="font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 600; color: #4B5563; text-transform: uppercase; letter-spacing: 3px;">
-          Partenaires Officiels
-        </div>
-        <!-- Conteneur de logos unifiés. En phase 2, une boucle map() viendra injecter les images ici -->
-        <div style="display: flex; gap: 36px; font-family: 'Arial', sans-serif; font-size: 14px; font-weight: 800; color: #374151; text-transform: uppercase; letter-spacing: 1px; align-items: center; opacity: 0.75;">
-          <span>ORANGE</span>
-          <span>MOOV</span>
-          <span style="font-family: 'Times New Roman', serif; font-style: italic; font-size: 16px;">Airtel</span>
-          <span style="font-size: 11px; font-family: 'Montserrat', sans-serif; font-weight: 900;">MASTERCARD</span>
-        </div>
-      </div>
-
-    </div>
-  `;
-
-  // --- 4. ENGINE DE RENDU ET EXPORT PDF ---
-  document.body.appendChild(poster);
-
-  try {
-    await document.fonts.ready;
-    // Timeout sécurisé pour charger les images distantes sans briser le canevas
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    const canvas = await html2canvas(poster, {
-      scale: 2, // Garantit une impression nette (HQ)
-      useCORS: true,
-      backgroundColor: theme.backgroundColor,
-      logging: false
-    });
-
-    const imgData = canvas.toDataURL('image/jpeg', 1.0);
-    const { jsPDF } = window.jspdf;
-
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4'
-    });
-
-    pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
-
-    // Nettoyage propre du nom de fichier
-    const safeTitle = eventName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    pdf.save(`shashap_${safeTitle}_2026.pdf`);
-
-  } catch (error) {
-    console.error("Erreur d'export PDF Shashap:", error);
-    alert("Un problème est survenu lors de la création de l'affiche premium.");
-  } finally {
-    // Nettoyage obligatoire du DOM pour préserver les performances de la page admin
-    document.body.removeChild(poster);
-  }
-}
