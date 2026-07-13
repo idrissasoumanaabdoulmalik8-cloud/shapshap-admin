@@ -140,12 +140,18 @@ function generatePosterHTML(eventData, format = 'A4', selectedTheme = 'Urban') {
 
   // Component: ArtistPhoto
   // Component: ArtistPhoto (avec layout intelligent)
-    const componentArtistPhoto = `
-      <div data-layer="photo" style="position: absolute; top: 11%; left: 50%; transform: translateX(-50%); width: 62%; height: 53%; z-index: 10; box-shadow: 0 35px 70px rgba(0,0,0,0.85); border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
-        <img src="${artistImage}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover; object-position: center top; filter: grayscale(100%) contrast(115%) brightness(90%);" onerror="this.style.display='none'; this.parentElement.style.background='#111'; this.parentElement.innerHTML+='<span style=position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#555;font-size:40px>🎵</span>'" />
-        <div style="position: absolute; bottom: -2px; left: 0; width: 100%; height: 25%; background: linear-gradient(to top, var(--background-color) 12%, transparent 100%);"></div>
-      </div>
-    `;
+    // Component: ArtistPhoto (Corrigé)
+      const componentArtistPhoto = `
+        <div data-layer="photo" style="position: absolute; top: 11%; left: 50%; transform: translateX(-50%); width: 62%; height: 55%; z-index: 10; box-shadow: 0 35px 70px rgba(0,0,0,0.85); border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
+
+          <!-- Ajout de 'object-position: top center' pour éviter de couper la tête -->
+          <img src="${artistImage}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover; object-position: top center; filter: grayscale(100%) contrast(115%) brightness(90%);" onerror="this.src='https://via.placeholder.com/800x1000/222/fff?text=Image+Indisponible'" />
+
+          <!-- Hauteur du dégradé réduite de 45% à 25% pour moins masquer l'artiste -->
+          <div style="position: absolute; bottom: -2px; left: 0; width: 100%; height: 25%; background: linear-gradient(to top, var(--background-color) 5%, transparent 100%);"></div>
+
+        </div>
+      `;
   // Component: Typography Block (ArtistName, Subtitle, Slogan)
   const componentTypographyBlock = `
     <div data-layer="typography" style="position: absolute; top: 51%; left: 40px; right: 40px; text-align: center; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center;">
