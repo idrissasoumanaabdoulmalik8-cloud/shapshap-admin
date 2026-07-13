@@ -2319,3 +2319,15 @@ function fetchQrCodeBase64(targetUrl) {
     img.src = qrApiUrl;
   });
 }
+// ============================================================================
+// EXPOSITION GLOBALE POUR COMPATIBILITÉ AVEC SHASHAP.JS
+// ============================================================================
+window.loadEvents = loadEvents;
+window.openEventModal = openEventModal;
+window.editEventByIndex = editEventByIndex;
+window.deleteEventByIndex = deleteEventByIndex;
+window.exportEventToPDF = exportEventToPDF;
+window.closeEventModal = closeEventModal;
+window.validateEventDates = validateEventDates;
+window.confirmDelete = confirmDelete;
+window.generatePosterHTML = generatePosterHTML;

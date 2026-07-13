@@ -69,3 +69,4 @@ export class ImageManager {
     return canvas.toDataURL('image/webp', this.QUALITY);
   }
 }
+window.ImageManager = ImageManager;
