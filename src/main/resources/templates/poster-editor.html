@@ -1,0 +1,42 @@
+<!-- HTML classique (Compatible Thymeleaf / Spring Boot) -->
+<div id="poster-editor" class="editor-container" style="display: flex; gap: 2rem; padding: 2rem; font-family: sans-serif;">
+
+    <!-- PANNEAU DE CONTRÔLE -->
+    <div class="controls" style="flex: 1;">
+        <h2>Éditeur d'Affiche Shashap</h2>
+
+        <!-- Upload Local -->
+        <div style="margin-bottom: 1rem;">
+            <label for="file-upload">Uploader une image :</label>
+            <input type="file" id="file-upload" accept="image/*" />
+        </div>
+
+        <!-- URL Externe -->
+        <div style="margin-bottom: 1rem;">
+            <label for="url-input">Ou depuis une URL (StockX, etc.) :</label>
+            <input type="text" id="url-input" placeholder="https://..." style="padding: 5px;" />
+            <button id="url-import-btn" style="padding: 5px 10px;">Importer</button>
+        </div>
+
+        <!-- Retours visuels (Masqués par défaut) -->
+        <p id="loading-text" style="color: blue; display: none;">⏳ Optimisation de l'image en cours...</p>
+        <p id="error-text" style="color: red; display: none;">⚠️ Erreur</p>
+
+        <!-- Bouton Export -->
+        <button id="export-btn" style="margin-top: 2rem; padding: 10px 20px; background: black; color: white; cursor: pointer;">
+            📥 Exporter l'Affiche (HD)
+        </button>
+    </div>
+
+    <!-- APERÇU TEMPS RÉEL -->
+    <div class="preview-canvas" style="flex: 1;">
+        <div style="width: 100%; max-width: 400px; aspect-ratio: 1080 / 1920; background-color: #e0e0e0; border-radius: 8px; overflow: hidden; position: relative;">
+            <img id="poster-preview" src="/images/placeholder.png" alt="Affiche Event" style="width: 100%; height: 100%; object-fit: cover; object-position: center; transition: opacity 0.3s ease;" />
+        </div>
+    </div>
+
+</div>
+
+<!-- Inclusion des scripts en type module pour l'ES6 -->
+<script type="module" src="/js/ImageManager.js"></script>
+<script type="module" src="/js/PosterEditor.js"></script>
