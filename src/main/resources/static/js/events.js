@@ -2,7 +2,7 @@
 // SHASHAP GRAPHIC ENGINE & SYSTEM THEMES (PHASE 3)
 // ============================================================================
 
-import { ImageManager } from './ImageManager.js';
+
 
 const SHASHAP_THEMES = {
   Urban: {
@@ -80,7 +80,7 @@ const SHASHAP_THEMES = {
 const SHASHAP_FONTS = ['Montserrat', 'Poppins', 'Inter', 'Anton', 'Bebas Neue', 'Oswald'];
 
 // MOTEUR DE GABARIT ET COMPOSANTS INDÉPENDANTS (Modèle pur)
-export function generatePosterHTML(eventData, format = 'A4', selectedTheme = 'Urban') {
+function generatePosterHTML(eventData, format = 'A4', selectedTheme = 'Urban') {
   const t = SHASHAP_THEMES[selectedTheme] || SHASHAP_THEMES.Urban;
 
   // Variables CSS d'environnement de l'affiche
@@ -244,7 +244,7 @@ let shashapUndoStack = [];
 let shashapRedoStack = [];
 let shashapAutoSaveTimeout = null;
 
-export function openEventModal(editIndex = null) {
+function openEventModal(editIndex = null) {
   const existing = editIndex !== null ? storiesData[editIndex] : null;
   const isEdit = existing !== null;
   const today = new Date().toISOString().split('T')[0];
@@ -793,15 +793,14 @@ export async function exportEventToPDF(index) {
     document.body.removeChild(targetNode);
   }
 }
-
-export function closeEventModal() {
+ function closeEventModal() {
   const modal = document.getElementById('eventModal');
   if (modal) modal.style.display = 'none';
   clearTimeout(shashapAutoSaveTimeout);
 }
 
 // ✅ Validation en temps réel des dates
-export function validateEventDates() {
+function validateEventDates() {
   const startInput = document.getElementById('evStartDate');
   const endInput = document.getElementById('evEndDate');
   const saveBtn = document.getElementById('evSaveBtn');
@@ -841,11 +840,11 @@ export function validateEventDates() {
   }
 }
 
-export function editEventByIndex(index) {
+function editEventByIndex(index) {
   openEventModal(index);
 }
 
-export function deleteEventByIndex(index) {
+function deleteEventByIndex(index) {
   if (!confirm('Supprimer cet événement ?')) return;
   storiesData.splice(index, 1);
   saveStoriesToStorage();
@@ -855,7 +854,7 @@ export function deleteEventByIndex(index) {
   showToast('🗑️ Événement supprimé');
 }
 
-export function confirmDelete(button, index) {
+function confirmDelete(button, index) {
   if (button.dataset.confirm === 'true') {
     deleteEventByIndex(index);
     return;
@@ -884,7 +883,7 @@ export function confirmDelete(button, index) {
   }, 3000);
 }
 
-export function loadEvents() {
+ function loadEvents() {
   const container = document.getElementById('eventsList');
   if (!container) return;
 
