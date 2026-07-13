@@ -139,13 +139,14 @@ function generatePosterHTML(eventData, format = 'A4', selectedTheme = 'Urban') {
   `;
 
   // Component: ArtistPhoto
+  // Component: ArtistPhoto (avec layout intelligent)
+  const photoLayout = smartImageLayout(artistImage);
   const componentArtistPhoto = `
-    <div data-layer="photo" style="position: absolute; top: 11%; left: 50%; transform: translateX(-50%); width: 62%; height: 53%; z-index: 10; box-shadow: 0 35px 70px rgba(0,0,0,0.85); border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
-<img src="${artistImage}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover; object-position: center 30%; filter: grayscale(100%) contrast(115%) brightness(90%);" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend','<div style=width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--background-color,#111);color:var(--muted-color,#555);font-size:48px>🎵</div>')" />
-      <div style="position: absolute; bottom: -2px; left: 0; width: 100%; height: 45%; background: linear-gradient(to top, var(--background-color) 12%, transparent 100%);"></div>
-    </div>
-  `;
-
+      <div data-layer="photo" style="position: absolute; top: ${photoLayout.frameTop}%; left: 50%; transform: translateX(-50%); width: ${photoLayout.frameWidth}%; height: ${photoLayout.frameHeight}%; z-index: 10; box-shadow: 0 35px 70px rgba(0,0,0,0.85); border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
+        <img src="${artistImage}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover; object-position: ${photoLayout.objectPosition}; filter: grayscale(100%) contrast(115%) brightness(90%);" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend','<div style=width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--background-color,#111);color:var(--muted-color,#555);font-size:48px>🎵</div>')" />
+        <div style="position: absolute; bottom: -2px; left: 0; width: 100%; height: 45%; background: linear-gradient(to top, var(--background-color) 12%, transparent 100%);"></div>
+      </div>
+    `;
   // Component: Typography Block (ArtistName, Subtitle, Slogan)
   const componentTypographyBlock = `
     <div data-layer="typography" style="position: absolute; top: 51%; left: 40px; right: 40px; text-align: center; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center;">
@@ -1001,6 +1002,89 @@ function confirmDelete(button, index) {
 
   container.innerHTML = html;
 }
+
+// ============================================================================
+// MOTEUR DE MISE EN PAGE INTELLIGENTE DES IMAGES (Canva-like)
+// ============================================================================
+function smartImageLayout(imageUrl, containerWidth = 62, containerHeight = 53) {
+  // Par défaut : centré, pas de zoom
+  const layout = {
+    objectPosition: 'center 25%',  // Point focal vers le haut (visage)
+    objectFit: 'cover',
+    zoom: 1,
+    frameWidth: containerWidth,
+    frameHeight: containerHeight,
+    frameTop: 11,
+  };
+
+  if (!imageUrl) return layout;
+
+  // Détection du ratio via une image temporaire (résolue plus tard)
+  // Pour l'instant, on applique des règles intelligentes basées sur l'URL
+  const isBase64 = imageUrl.startsWith('data:image');
+
+  // Si c'est une photo uploadée (base64), on pourra lire ses dimensions
+  if (isBase64) {
+    // On applique un point focal plus haut pour les portraits
+    layout.objectPosition = 'center 20%';
+    layout.frameWidth = 58;   // Cadre plus large pour mieux voir le sujet
+    layout.frameHeight = 58;
+    layout.frameTop = 9;
+  }
+
+  return layout;
+}
+
+// Version asynchrone qui lit les vraies dimensions de l'image
+async function computeSmartLayout(imageUrl) {
+  const layout = smartImageLayout(imageUrl);
+
+  if (!imageUrl) return layout;
+
+  try {
+    const dimensions = await getImageDimensions(imageUrl);
+    if (!dimensions) return layout;
+
+    const { width, height } = dimensions;
+    const ratio = width / height;
+
+    // Portrait (vertical) : ratio < 1
+    if (ratio < 0.85) {
+      layout.objectPosition = 'center 15%';  // Point focal haut (visage)
+      layout.frameWidth = 55;
+      layout.frameHeight = 60;
+      layout.frameTop = 8;
+    }
+    // Paysage (horizontal) : ratio > 1.3
+    else if (ratio > 1.3) {
+      layout.objectPosition = 'center center';
+      layout.frameWidth = 68;
+      layout.frameHeight = 48;
+      layout.frameTop = 13;
+    }
+    // Carré ou proche : ratio entre 0.85 et 1.3
+    else {
+      layout.objectPosition = 'center 25%';
+      layout.frameWidth = 62;
+      layout.frameHeight = 53;
+      layout.frameTop = 11;
+    }
+  } catch (e) {
+    // Fallback : on garde les valeurs par défaut
+  }
+
+  return layout;
+}
+
+function getImageDimensions(url) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+}
+
 // ============================================================================
 // EXPOSITION GLOBALE POUR COMPATIBILITÉ AVEC SHASHAP.JS
 // ============================================================================
