@@ -140,13 +140,12 @@ function generatePosterHTML(eventData, format = 'A4', selectedTheme = 'Urban') {
 
   // Component: ArtistPhoto
   // Component: ArtistPhoto (avec layout intelligent)
-  const photoLayout = smartImageLayout(artistImage);
     const componentArtistPhoto = `
-        <div data-layer="photo" style="position: absolute; top: ${photoLayout.frameTop}%; left: 50%; transform: translateX(-50%); width: ${photoLayout.frameWidth}%; height: ${photoLayout.frameHeight}%; z-index: 10; box-shadow: 0 35px 70px rgba(0,0,0,0.85); border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
-          <img src="${artistImage}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover; object-position: ${photoLayout.objectPosition}; filter: grayscale(100%) contrast(115%) brightness(90%);" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend','<div style=width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--background-color,#111);color:var(--muted-color,#555);font-size:48px>🎵</div>')" />
-          <div style="position: absolute; bottom: -2px; left: 0; width: 100%; height: 45%; background: linear-gradient(to top, var(--background-color) 12%, transparent 100%);"></div>
-        </div>
-      `;
+      <div data-layer="photo" style="position: absolute; top: 11%; left: 50%; transform: translateX(-50%); width: 62%; height: 53%; z-index: 10; box-shadow: 0 35px 70px rgba(0,0,0,0.85); border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); background: #111;">
+        <img src="${artistImage}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: contain; object-position: center; filter: grayscale(100%) contrast(115%) brightness(90%);" onerror="this.style.display='none'; this.parentElement.innerHTML+='<span style=position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#555;font-size:40px>🎵</span>'" />
+        <div style="position: absolute; bottom: -2px; left: 0; width: 100%; height: 45%; background: linear-gradient(to top, var(--background-color) 12%, transparent 100%);"></div>
+      </div>
+    `;
   // Component: Typography Block (ArtistName, Subtitle, Slogan)
   const componentTypographyBlock = `
     <div data-layer="typography" style="position: absolute; top: 51%; left: 40px; right: 40px; text-align: center; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center;">
@@ -1086,7 +1085,7 @@ function getImageDimensions(url) {
 }
 
 // ============================================================================
-// EXPOSITION GLOBALE POUR COMPATIBILITÉ AVEC SHASHAP.JSss
+// EXPOSITION GLOBALE POUR COMPATIBILITÉ AVEC SHASHAP.JSssssss
 // ============================================================================
 window.loadEvents = loadEvents;
 window.openEventModal = openEventModal;
