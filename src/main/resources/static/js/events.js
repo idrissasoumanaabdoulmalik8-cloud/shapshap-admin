@@ -103,7 +103,9 @@ function generatePosterHTML(eventData, format = 'A4', selectedTheme = 'Urban') {
   const fullLocationStr = locationDetails ? `${venue} (${locationDetails})` : venue;
   const priceStr = eventData.isFree || parseFloat(eventData.price) === 0 ? "ENTRÉE GRATUITE" : `${eventData.price} FCFA`;
 
-  const artistImage = eventData.image || 'https://via.placeholder.com/800x1000/111/fff?text=Photo';
+const artistImage = eventData.image
+    ? `/proxy-image?url=${encodeURIComponent(eventData.image)}`
+    : '/images/default-artist.jpg';
   const coverImage = eventData.coverImage || '';
   const eventSponsors = eventData.sponsors || [];
 
