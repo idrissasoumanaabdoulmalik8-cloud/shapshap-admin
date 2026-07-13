@@ -1663,7 +1663,7 @@ async function bulkActivate() {
   clearSelection(); loadProducts();
 }
 
- function bulkDeactivate() {
+ async function bulkDeactivate() {
   for (const id of selectedProducts) await axios.put(API + '/products/' + id, { isAvailable: false });
   showToast(`✅ ${selectedProducts.length} désactivé(s)`, 'info');
   clearSelection(); loadProducts();

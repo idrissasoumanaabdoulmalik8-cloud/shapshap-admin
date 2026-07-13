@@ -762,7 +762,7 @@ function openEventModal(editIndex = null) {
 // ============================================================================
 // PIPELINE D'EXPORT UNIFIÉ EXTRACANVAS (FONCTION GLOBALE ACCESSIBLE)
 // ============================================================================
-export async function exportEventToPDF(index) {
+ async function exportEventToPDF(index) {
   const ev = storiesData[index];
   if (!ev) return;
 
