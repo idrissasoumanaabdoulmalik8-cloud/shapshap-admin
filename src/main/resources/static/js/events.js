@@ -794,10 +794,14 @@ function openEventModal(editIndex = null) {
   }
 }
  function closeEventModal() {
-  const modal = document.getElementById('eventModal');
-  if (modal) modal.style.display = 'none';
-  clearTimeout(shashapAutoSaveTimeout);
-}
+   const modal = document.getElementById('eventModal');
+   if (modal) {
+     modal.remove();
+   }
+   clearTimeout(shashapAutoSaveTimeout);
+   shashapUndoStack = [];
+   shashapRedoStack = [];
+ }
 
 // ✅ Validation en temps réel des dates
 function validateEventDates() {
