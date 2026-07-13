@@ -6,6 +6,14 @@ function openEventModal(editIndex = null) {
   const isEdit = existing !== null;
   const today = new Date().toISOString().split('T')[0];
 
+  // Extraction sécurisée des valeurs existantes
+  const getVal = (key, defaultVal = '') => existing && existing[key] !== undefined ? existing[key] : defaultVal;
+
+  // Logique billetterie existante
+  const currentPrice = parseFloat(getVal('price', 0));
+  const isFreeEvent = currentPrice === 0;
+
+  // Création ou récupération du modal
   let modal = document.getElementById('eventModal');
   if (!modal) {
     modal = document.createElement('div');
@@ -14,98 +22,310 @@ function openEventModal(editIndex = null) {
     document.body.appendChild(modal);
   }
 
-  modal.innerHTML = `
-    <div class="modal-content" style="max-width:550px;">
-      <div class="modal-header">
-        <h3>${isEdit ? '✏️ Modifier l\'événement' : '🎤 Nouvel événement'}</h3>
-        <button class="close-btn" onclick="closeEventModal()">✕</button>
-      </div>
-      <div style="padding:16px; display:flex; flex-direction:column; gap:10px;">
-        <input type="text" id="evArtistName" placeholder="Nom de l'artiste / DJ" value="${existing?.artistName || ''}" style="padding:10px;border:1px solid #eee;border-radius:8px;">
-        <input type="text" id="evEventDate" placeholder="Date (ex: Ven 19 Juil · 21h)" value="${existing?.eventDate || ''}" style="padding:10px;border:1px solid #eee;border-radius:8px;">
-        <textarea id="evDescription" placeholder="Description..." rows="2" style="padding:10px;border:1px solid #eee;border-radius:8px;">${existing?.description || ''}</textarea>
-        <div style="display:flex;gap:10px;">
-          <div style="flex:1;">
-            <label style="font-size:11px;color:#888;">📅 Début</label>
-            <input type="date" id="evStartDate" value="${existing?.startDate || today}" onchange="validateEventDates()" style="width:100%;padding:10px;border:1px solid #eee;border-radius:8px;">
-          </div>
-          <div style="flex:1;">
-            <label style="font-size:11px;color:#888;">📅 Fin</label>
-            <input type="date" id="evEndDate" value="${existing?.endDate || today}" onchange="validateEventDates()" style="width:100%;padding:10px;border:1px solid #eee;border-radius:8px;">
-          </div>
-        </div>
-        <span id="evDateError" style="color:#E53935; font-size:12px; display:none;"></span>
-        <div>
-          <label style="font-size:12px;color:#888;">🖼️ Image (URL)</label>
-          <input type="text" id="evImageUrl" value="${existing?.image || ''}" placeholder="https://..." style="width:100%;padding:10px;border:1px solid #eee;border-radius:8px;">
-          <img id="evPreview" src="${existing?.image || ''}" style="${existing?.image ? 'max-width:100%;max-height:100px;margin-top:8px;border-radius:8px;' : 'display:none;'}">
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline" onclick="closeEventModal()">Annuler</button>
-        <button class="btn btn-primary" id="evSaveBtn" disabled>💾 Enregistrer</button>
-      </div>
-    </div>`;
-  modal.style.display = 'flex';
+  // --- STYLES ENCAPSULÉS (UI Premium Linear/Apple) ---
+  const modalStyles = `
+    <style>
+      .sh-modal-wrapper { display: flex; justify-content: center; align-items: center; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+      .sh-modal-content { background: #F9FAFB; border-radius: 16px; width: 100%; max-width: 700px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid #E5E7EB; }
+      .sh-modal-header { padding: 20px 24px; background: #FFFFFF; border-bottom: 1px solid #E5E7EB; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+      .sh-modal-header h3 { margin: 0; font-size: 18px; font-weight: 600; color: #111827; letter-spacing: -0.02em; }
+      .sh-modal-body { padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; }
 
-  // Prévisualisation image
-  const imgInput = document.getElementById('evImageUrl');
-  const preview = document.getElementById('evPreview');
-  if (imgInput && preview) {
-    imgInput.addEventListener('input', () => {
-      if (imgInput.value) {
-        preview.src = imgInput.value;
-        preview.style.display = 'block';
+      /* Cartes (Sections) */
+      .sh-card { background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB; padding: 20px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03); transition: box-shadow 0.2s ease; }
+      .sh-card:hover { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+      .sh-card-title { font-size: 14px; font-weight: 600; color: #374151; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+      /* Grilles et Inputs */
+      .sh-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      .sh-input-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+      .sh-input-group.mb-0 { margin-bottom: 0; }
+      .sh-label { font-size: 13px; font-weight: 500; color: #4B5563; }
+      .sh-input, .sh-select, .sh-textarea { width: 100%; padding: 10px 14px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 14px; color: #111827; background: #F9FAFB; transition: all 0.2s ease; box-sizing: border-box; }
+      .sh-input:focus, .sh-select:focus, .sh-textarea:focus { outline: none; border-color: #111827; background: #FFFFFF; box-shadow: 0 0 0 3px rgba(0,0,0,0.05); }
+      .sh-textarea { resize: vertical; min-height: 80px; }
+
+      /* Billetterie Radio */
+      .sh-radio-group { display: flex; gap: 24px; margin-bottom: 16px; }
+      .sh-radio-label { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: #374151; cursor: pointer; }
+      .sh-radio-label input { width: 16px; height: 16px; accent-color: #111827; cursor: pointer; }
+
+      /* Footer */
+      .sh-modal-footer { padding: 16px 24px; background: #FFFFFF; border-top: 1px solid #E5E7EB; display: flex; justify-content: flex-end; gap: 12px; z-index: 10; }
+      .sh-btn { padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; border: none; }
+      .sh-btn-outline { background: #FFFFFF; border: 1px solid #D1D5DB; color: #374151; }
+      .sh-btn-outline:hover { background: #F3F4F6; }
+      .sh-btn-primary { background: #111827; color: #FFFFFF; }
+      .sh-btn-primary:hover { background: #374151; }
+
+      /* Utilitaires */
+      .sh-preview-img { max-width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-top: 8px; border: 1px solid #E5E7EB; display: none; }
+    </style>
+  `;
+
+  // --- TEMPLATES MODULAIRES ---
+  const generalSection = `
+    <div class="sh-card">
+      <h4 class="sh-card-title">📝 Informations générales</h4>
+      <div class="sh-grid-2">
+        <div class="sh-input-group">
+          <label class="sh-label">Nom de l'artiste / DJ <span style="color:#E53935">*</span></label>
+          <input type="text" id="evArtistName" class="sh-input" placeholder="Ex: Barakina" value="${getVal('artistName', getVal('name'))}">
+        </div>
+        <div class="sh-input-group">
+          <label class="sh-label">Type d'événement</label>
+          <select id="evEventType" class="sh-select">
+            <option value="Concert" ${getVal('eventType') === 'Concert' ? 'selected' : ''}>Concert</option>
+            <option value="DJ Set" ${getVal('eventType') === 'DJ Set' ? 'selected' : ''}>DJ Set</option>
+            <option value="Festival" ${getVal('eventType') === 'Festival' ? 'selected' : ''}>Festival</option>
+            <option value="Showcase" ${getVal('eventType') === 'Showcase' ? 'selected' : ''}>Showcase</option>
+            <option value="Soirée VIP" ${getVal('eventType') === 'Soirée VIP' ? 'selected' : ''}>Soirée VIP</option>
+            <option value="Conférence" ${getVal('eventType') === 'Conférence' ? 'selected' : ''}>Conférence</option>
+            <option value="Exposition" ${getVal('eventType') === 'Exposition' ? 'selected' : ''}>Exposition</option>
+            <option value="Autre" ${getVal('eventType') === 'Autre' ? 'selected' : ''}>Autre</option>
+          </select>
+        </div>
+      </div>
+      <div class="sh-input-group">
+        <label class="sh-label">Nom de l'événement <span style="color:#E53935">*</span></label>
+        <input type="text" id="evEventName" class="sh-input" placeholder="Ex: The Summer Vibes Festival" value="${getVal('eventName')}">
+      </div>
+      <div class="sh-grid-2">
+        <div class="sh-input-group mb-0">
+          <label class="sh-label">Sous-titre (Optionnel)</label>
+          <input type="text" id="evSubtitle" class="sh-input" placeholder="Ex: Live Concert" value="${getVal('subtitle')}">
+        </div>
+        <div class="sh-input-group mb-0">
+          <label class="sh-label">Slogan (Optionnel)</label>
+          <input type="text" id="evSlogan" class="sh-input" placeholder="Ex: One Night • One Stage" value="${getVal('slogan')}">
+        </div>
+      </div>
+      <div class="sh-input-group" style="margin-top: 16px;">
+        <label class="sh-label">Description</label>
+        <textarea id="evDescription" class="sh-textarea" placeholder="Détails de l'événement...">${getVal('description')}</textarea>
+      </div>
+    </div>
+  `;
+
+  const dateTimeSection = `
+    <div class="sh-card">
+      <h4 class="sh-card-title">📅 Date et Heure</h4>
+      <div class="sh-grid-2">
+        <div class="sh-input-group mb-0">
+          <label class="sh-label">Date <span style="color:#E53935">*</span></label>
+          <!-- ID conservé pour ne pas casser l'ancien onchange="validateEventDates()" -->
+          <input type="date" id="evStartDate" class="sh-input" value="${getVal('startDate', today)}" onchange="typeof validateEventDates === 'function' && validateEventDates()">
+          <!-- Champ caché pour la rétrocompatibilité stricte si validateEventDates cherche evEndDate -->
+          <input type="hidden" id="evEndDate" value="${getVal('endDate', today)}">
+        </div>
+        <div class="sh-grid-2" style="gap: 8px;">
+          <div class="sh-input-group mb-0">
+            <label class="sh-label">Heure début</label>
+            <input type="time" id="evStartTime" class="sh-input" value="${getVal('startTime', '21:00')}">
+          </div>
+          <div class="sh-input-group mb-0">
+            <label class="sh-label">Heure fin (Opt.)</label>
+            <input type="time" id="evEndTime" class="sh-input" value="${getVal('endTime', '')}">
+          </div>
+        </div>
+      </div>
+      <span id="evDateError" style="color:#E53935; font-size:12px; display:none; margin-top:8px;"></span>
+    </div>
+  `;
+
+  const locationSection = `
+    <div class="sh-card">
+      <h4 class="sh-card-title">📍 Localisation</h4>
+      <div class="sh-input-group">
+        <label class="sh-label">Lieu <span style="color:#E53935">*</span></label>
+        <input type="text" id="evVenue" class="sh-input" placeholder="Ex: Stade Général Seyni Kountché" value="${getVal('venue')}">
+      </div>
+      <div class="sh-grid-2">
+        <div class="sh-input-group mb-0">
+          <label class="sh-label">Ville</label>
+          <input type="text" id="evCity" class="sh-input" placeholder="Ex: Niamey" value="${getVal('city', 'Niamey')}">
+        </div>
+        <div class="sh-input-group mb-0">
+          <label class="sh-label">Pays</label>
+          <input type="text" id="evCountry" class="sh-input" placeholder="Ex: Niger" value="${getVal('country', 'Niger')}">
+        </div>
+      </div>
+    </div>
+  `;
+
+  const ticketingSection = `
+    <div class="sh-card">
+      <h4 class="sh-card-title">🎟️ Billetterie</h4>
+      <div class="sh-radio-group">
+        <label class="sh-radio-label">
+          <input type="radio" name="ticketType" value="free" ${isFreeEvent ? 'checked' : ''}>
+          Gratuit
+        </label>
+        <label class="sh-radio-label">
+          <input type="radio" name="ticketType" value="paid" ${!isFreeEvent ? 'checked' : ''}>
+          Payant
+        </label>
+      </div>
+      <div id="evPriceContainer" class="sh-input-group mb-0" style="display: ${isFreeEvent ? 'none' : 'block'}; max-width: 50%;">
+        <label class="sh-label">Prix du billet (FCFA)</label>
+        <input type="number" id="evPrice" class="sh-input" placeholder="Ex: 5000" min="0" value="${currentPrice}">
+      </div>
+    </div>
+  `;
+
+  const mediaSection = `
+    <div class="sh-card">
+      <h4 class="sh-card-title">🖼️ Médias (Phase 1)</h4>
+      <div class="sh-grid-2">
+        <div class="sh-input-group mb-0">
+          <label class="sh-label">Photo Artiste (URL)</label>
+          <input type="text" id="evImageUrl" class="sh-input" placeholder="https://..." value="${getVal('image')}">
+          <img id="evPreviewArtist" class="sh-preview-img" src="${getVal('image')}" style="${getVal('image') ? 'display:block;' : ''}">
+        </div>
+        <div class="sh-input-group mb-0">
+          <label class="sh-label">Image de Couverture (URL)</label>
+          <input type="text" id="evCoverUrl" class="sh-input" placeholder="https://..." value="${getVal('coverImage')}">
+          <img id="evPreviewCover" class="sh-preview-img" src="${getVal('coverImage')}" style="${getVal('coverImage') ? 'display:block;' : ''}">
+        </div>
+      </div>
+    </div>
+  `;
+
+  // --- ASSEMBLAGE DU MODAL ---
+  modal.innerHTML = `
+    ${modalStyles}
+    <div class="sh-modal-wrapper" style="width:100%; height:100%;">
+      <div class="sh-modal-content">
+        <div class="sh-modal-header">
+          <h3>${isEdit ? '✏️ Modifier l\'événement' : '✨ Nouvel événement Premium'}</h3>
+          <button class="close-btn" style="background:none; border:none; font-size:20px; cursor:pointer; color:#9CA3AF;" onclick="closeEventModal()">✕</button>
+        </div>
+
+        <div class="sh-modal-body">
+          ${generalSection}
+          ${dateTimeSection}
+          ${locationSection}
+          ${ticketingSection}
+          ${mediaSection}
+          <!-- Les futures sections (Sponsors, QR, Thèmes) viendront s'insérer ici -->
+        </div>
+
+        <div class="sh-modal-footer">
+          <button class="sh-btn sh-btn-outline" onclick="closeEventModal()">Annuler</button>
+          <button class="sh-btn sh-btn-primary" id="evSaveBtn">💾 Enregistrer l'événement</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+  modal.style.alignItems = 'center';
+  modal.style.justifyContent = 'center';
+  modal.style.backgroundColor = 'rgba(0, 0, 0, 0.4)';
+  modal.style.backdropFilter = 'blur(4px)';
+
+  // --- LOGIQUE D'INTERFACE DYNAMIQUE ---
+
+  // 1. Gestion d'affichage du Prix
+  const ticketRadios = modal.querySelectorAll('input[name="ticketType"]');
+  const priceContainer = document.getElementById('evPriceContainer');
+  const priceInput = document.getElementById('evPrice');
+
+  ticketRadios.forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      if (e.target.value === 'paid') {
+        priceContainer.style.display = 'block';
+        if (priceInput.value == 0) priceInput.value = ''; // Reset visuel
       } else {
-        preview.style.display = 'none';
+        priceContainer.style.display = 'none';
+        priceInput.value = 0;
       }
     });
-  }
+  });
 
-  // Validation initiale des dates (active le bouton si OK)
-  validateEventDates();
-
-  document.getElementById('evSaveBtn').onclick = () => {
-    const artistName = document.getElementById('evArtistName').value.trim();
-    if (!artistName) { showToast('⚠️ Nom de l\'artiste requis', 'error'); return; }
-
-    const startDate = document.getElementById('evStartDate').value;
-    const endDate = document.getElementById('evEndDate').value;
-
-    // Vérification finale des dates
-    if (startDate && endDate && endDate < startDate) {
-      showToast('⚠️ La date de fin doit être après la date de début', 'error');
-      return;
+  // 2. Prévisualisations d'images
+  const setupPreview = (inputId, imgId) => {
+    const input = document.getElementById(inputId);
+    const img = document.getElementById(imgId);
+    if (input && img) {
+      input.addEventListener('input', () => {
+        if (input.value) {
+          img.src = input.value;
+          img.style.display = 'block';
+        } else {
+          img.style.display = 'none';
+        }
+      });
     }
+  };
+  setupPreview('evImageUrl', 'evPreviewArtist');
+  setupPreview('evCoverUrl', 'evPreviewCover');
 
+  // Appel de validation initial si la fonction existe globalement
+  if (typeof validateEventDates === 'function') validateEventDates();
+
+  // --- SAUVEGARDE & VALIDATION ---
+  document.getElementById('evSaveBtn').onclick = () => {
+    // Récupération des champs obligatoires
+    const artistName = document.getElementById('evArtistName').value.trim();
+    const eventName = document.getElementById('evEventName').value.trim();
+    const date = document.getElementById('evStartDate').value;
+    const venue = document.getElementById('evVenue').value.trim();
+
+    // Validations élégantes (Toasts)
+    if (!artistName) { showToast('⚠️ Le nom de l\'artiste est requis', 'error'); return; }
+    if (!eventName) { showToast('⚠️ Le nom de l\'événement est requis', 'error'); return; }
+    if (!date) { showToast('⚠️ La date est obligatoire', 'error'); return; }
+    if (!venue) { showToast('⚠️ Le lieu est requis', 'error'); return; }
+
+    const isFree = document.querySelector('input[name="ticketType"]:checked').value === 'free';
+    const finalPrice = isFree ? 0 : parseFloat(document.getElementById('evPrice').value) || 0;
+
+    // Construction du Payload Mixte (Rétrocompatibilité + Nouveaux champs)
     const eventData = {
+      // --- ANCIENNE LOGIQUE (Intouchée pour ne pas casser le code existant) ---
       id: existing?.id || Date.now(),
-      name: artistName,
+      name: eventName || artistName, // On priorise le nom de l'event pour l'affichage général
       artistName: artistName,
-      eventDate: document.getElementById('evEventDate').value.trim(),
+      eventDate: date, // Remplace l'ancien format texte libre par la date stricte
       description: document.getElementById('evDescription').value.trim(),
-      startDate: startDate,
-      endDate: endDate,
+      startDate: date, // Gardé pour les anciens algos de tri
+      endDate: date,   // Synchronisé avec la date unique pour éviter les erreurs
       image: document.getElementById('evImageUrl').value.trim(),
       category: 'Événement',
-      price: 0,
-      promo: null,
+      price: finalPrice,
+      promo: existing?.promo || null,
       seen: existing?.seen || false,
       isEvent: true,
+
+      // --- NOUVEAUX CHAMPS (Phase 1 Shashap) ---
+      eventType: document.getElementById('evEventType').value,
+      eventName: eventName,
+      subtitle: document.getElementById('evSubtitle').value.trim(),
+      slogan: document.getElementById('evSlogan').value.trim(),
+      startTime: document.getElementById('evStartTime').value,
+      endTime: document.getElementById('evEndTime').value,
+      venue: venue,
+      city: document.getElementById('evCity').value.trim(),
+      country: document.getElementById('evCountry').value.trim(),
+      coverImage: document.getElementById('evCoverUrl').value.trim(),
+      isFree: isFree
     };
 
+    // Mise à jour de l'état global
     if (isEdit) {
       storiesData[editIndex] = eventData;
     } else {
       storiesData.unshift(eventData);
     }
 
+    // Chaîne d'actions existante conservée
     saveStoriesToStorage();
     renderStories();
     closeEventModal();
     syncStoriesToBackend();
     loadEvents();
-    showToast('✅ Événement enregistré');
+    showToast('✅ Événement configuré avec succès');
   };
 }
 
