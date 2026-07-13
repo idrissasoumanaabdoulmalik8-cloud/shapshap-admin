@@ -551,28 +551,53 @@ async function exportEventToPDF(index) {
   const ev = storiesData[index];
   if (!ev) return;
 
-  // --- DONNÉES DE L'ÉVÉNEMENT ---
-  const artistName = ev.artistName || ev.name || 'BARAKINA';
-  const dateStr = "SAM. 19 JUILLET 2026";
-  const timeStr = "21H00";
-  const locationStr = "HARAKA, NIAMEY";
-  const priceStr = "5 000 FCFA";
-  const imageSrc = ev.image || 'https://via.placeholder.com/800x1000/111/fff?text=Photo';
+  // --- 1. EXTRACTION & FORMATTAGE SÉCURISÉ DES NOUVELLES DONNÉES ---
+  const artistName = ev.artistName || 'BARAKINA';
+  const eventName = ev.eventName || ev.name || 'ÉVÉNEMENT';
+  const eventType = ev.eventType || 'CONCERT';
+  const subtitle = ev.subtitle ? ev.subtitle.trim() : '';
+  const slogan = ev.slogan ? ev.slogan.trim() : '';
 
-  // --- GÉNÉRATION DU CANEVAS A4 HAUTE RÉSOLUTION ---
+  // Gestion intelligente des dates et heures
+  const dateStr = ev.startDate || "DATE À COMMUNIQUER";
+  const timeStr = ev.startTime ? `${ev.startTime}${ev.endTime ? ` - ${ev.endTime}` : ''}` : '21H00';
+
+  // Gestion de la localisation combinée
+  const venue = ev.venue || 'Lieu à venir';
+  const locationDetails = [ev.city, ev.country].filter(Boolean).join(', ');
+  const fullLocationStr = locationDetails ? `${venue} (${locationDetails})` : venue;
+
+  // Règle d'or de la billetterie
+  const priceStr = ev.isFree || parseFloat(ev.price) === 0 ? "ENTRÉE GRATUITE" : `${ev.price} FCFA`;
+
+  // Images
+  const artistImage = ev.image || 'https://via.placeholder.com/800x1000/111/fff?text=Photo';
+  const coverImage = ev.coverImage || '';
+
+  // --- 2. ARCHITECTURE DES COMPOSANTS EXTENSIBLES (Thèmes & Couleurs) ---
+  // Préparation Phase 2 : Tu pourras lier ces variables aux futurs champs du formulaire
+  const theme = {
+    primaryColor: '#CCFF00', // Le jaune signature Shashap
+    backgroundColor: '#040404',
+    cardBackground: '#020202',
+    textColor: '#FFFFFF',
+    mutedTextColor: '#888888'
+  };
+
+  // --- 3. GÉNÉRATION DU CANEVAS HAUTE RÉSOLUTION ---
   const poster = document.createElement('div');
-  poster.id = "premium-studio-poster";
+  poster.id = "premium-dynamic-poster";
 
-  // Texture de grain cinématographique & Papier
+  // Texture papier de fond
   const noiseTexture = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E")`;
 
   Object.assign(poster.style, {
     position: 'absolute',
     left: '-9999px',
     top: '0',
-    width: '794px',   // Largeur A4
-    height: '1123px', // Hauteur A4
-    backgroundColor: '#040404', // Noir profond
+    width: '794px',   // Format A4 standard
+    height: '1123px',
+    backgroundColor: theme.backgroundColor,
     overflow: 'hidden',
     boxSizing: 'border-box'
   });
@@ -580,129 +605,148 @@ async function exportEventToPDF(index) {
   poster.innerHTML = `
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 
-    <!-- ================= FOND & EFFETS ATMOSPHÉRIQUES ================= -->
+    <!-- ================= CONTEXTE ATMOSPHÉRIQUE DYNAMIQUE ================= -->
     <div style="position: absolute; inset: 0; background-image: ${noiseTexture}; z-index: 1;"></div>
 
-    <!-- Brouillard radial très léger -->
-    <div style="position: absolute; top: 20%; left: 50%; transform: translateX(-50%); width: 80%; height: 60%; background: radial-gradient(ellipse, rgba(204, 255, 0, 0.04) 0%, transparent 60%); z-index: 2;"></div>
+    <!-- Effet de couverture floutée (Style Apple Music / Spotify) -->
+    ${coverImage ? `
+      <img src="${coverImage}" crossorigin="anonymous" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(50px) brightness(15%); opacity: 0.35; z-index: 2;" />
+    ` : ''}
 
-    <!-- Faisceaux de lumière de scène (Gauches & Droite) -->
-    <div style="position: absolute; top: -10%; left: 15%; width: 150px; height: 700px; background: linear-gradient(165deg, rgba(255,255,255,0.025) 0%, transparent 70%); transform: rotate(15deg); filter: blur(15px); z-index: 2;"></div>
-    <div style="position: absolute; top: -10%; right: 15%; width: 150px; height: 700px; background: linear-gradient(-165deg, rgba(255,255,255,0.025) 0%, transparent 70%); transform: rotate(-15deg); filter: blur(15px); z-index: 2;"></div>
+    <!-- Faisceaux lumineux standards -->
+    <div style="position: absolute; top: -10%; left: 10%; width: 200px; height: 800px; background: linear-gradient(165deg, rgba(255,255,255,0.02) 0%, transparent 60%); transform: rotate(10deg); filter: blur(20px); z-index: 3;"></div>
+    <div style="position: absolute; top: -10%; right: 10%; width: 200px; height: 800px; background: linear-gradient(-165deg, rgba(255,255,255,0.02) 0%, transparent 60%); transform: rotate(-10deg); filter: blur(20px); z-index: 3;"></div>
 
-    <!-- Particules lumineuses subtiles -->
-    <div style="position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(255,255,255,0.4) 1px, transparent 1px); background-size: 120px 120px; background-position: 0 0, 60px 60px; opacity: 0.15; z-index: 2;"></div>
-    <!-- ================================================================ -->
+    <!-- Brouillard coloré dynamique basé sur la couleur primaire -->
+    <div style="position: absolute; top: 30%; left: 50%; transform: translateX(-50%); width: 90%; height: 50%; background: radial-gradient(circle, ${theme.primaryColor}0a 0%, transparent 70%); z-index: 3;"></div>
+    <!-- ==================================================================== -->
 
-
-    <!-- CONTENEUR PRINCIPAL -->
     <div style="position: relative; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column;">
 
-      <!-- LOGO OFFICIEL EN HAUT (Discret, centre) -->
-      <div style="position: absolute; top: 35px; left: 0; width: 100%; text-align: center; z-index: 20;">
-        <span style="font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 13px; color: #FFFFFF; letter-spacing: 8px; opacity: 0.6; text-transform: uppercase;">
-          SHASHAP<span style="color: #CCFF00;">.</span>
+      <!-- LOGO SHASHAP BRANDING -->
+      <div style="position: absolute; top: 40px; left: 0; width: 100%; text-align: center; z-index: 20;">
+        <span style="font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 14px; color: ${theme.textColor}; letter-spacing: 8px; opacity: 0.5; text-transform: uppercase;">
+          SHASHAP<span style="color: ${theme.primaryColor};">.</span>
         </span>
       </div>
 
-      <!-- 1. PHOTO DE L'ARTISTE (Réglages premium : Plus étroit, plus vertical) -->
-      <div style="position: absolute; top: 10%; left: 50%; transform: translateX(-50%); width: 64%; height: 55%; z-index: 10; box-shadow: 0 40px 80px rgba(0,0,0,0.9);">
-        <img src="${imageSrc}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%) contrast(115%) brightness(95%);" />
-        <!-- Fondu au noir sur le bas -->
-        <div style="position: absolute; bottom: -2px; left: 0; width: 100%; height: 45%; background: linear-gradient(to top, #040404 5%, transparent 100%);"></div>
+      <!-- PHOTO DE L'ARTISTE (Ratio vertical 64% x 55% validé) -->
+      <div style="position: absolute; top: 10%; left: 50%; transform: translateX(-50%); width: 64%; height: 55%; z-index: 10; box-shadow: 0 40px 80px rgba(0,0,0,0.85); border-radius: 4px; overflow: hidden;">
+        <img src="${artistImage}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%) contrast(110%) brightness(95%);" />
+        <div style="position: absolute; bottom: -2px; left: 0; width: 100%; height: 50%; background: linear-gradient(to top, ${theme.backgroundColor} 8%, transparent 100%);"></div>
       </div>
 
-      <!-- 2. TITRE, ARTISTE & SLOGAN (Hiérarchie visuelle parfaite) -->
-      <div style="position: absolute; top: 48%; left: 0; width: 100%; text-align: center; z-index: 20;">
-        <!-- Nom -->
-        <h1 style="font-family: 'Anton', sans-serif; font-size: 165px; margin: 0; color: #CCFF00; line-height: 0.85; letter-spacing: -1px; text-transform: uppercase; text-shadow: 0 20px 40px rgba(0,0,0,0.8);">${artistName}</h1>
-        <!-- Sous-titre -->
-        <h2 style="font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 26px; margin: 12px 0 0 0; color: #FFFFFF; letter-spacing: 16px; text-transform: uppercase; text-shadow: 0 4px 10px rgba(0,0,0,0.5);">Live Concert</h2>
-        <!-- Slogan Premium -->
-        <h3 style="font-family: 'Montserrat', sans-serif; font-weight: 500; font-size: 11px; margin: 18px 0 0 0; color: #888888; letter-spacing: 5px; text-transform: uppercase;">
-          One Night • One Stage • One Experience
-        </h3>
+      <!-- BLOC TYPOGRAPHIQUE (Hiérarchie stricte sans ligne vide) -->
+      <div style="position: absolute; top: 49%; left: 40px; right: 40px; text-align: center; z-index: 20;">
+
+        <!-- Type d'événement (Badge discret) -->
+        <div style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 11px; color: ${theme.primaryColor}; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 8px; opacity: 0.9;">
+          // ${eventType}
+        </div>
+
+        <!-- Titre Principal (Nom de l'artiste ou de l'événement) -->
+        <h1 style="font-family: 'Anton', sans-serif; font-size: 130px; margin: 0; color: ${theme.textColor}; line-height: 0.85; letter-spacing: -1px; text-transform: uppercase; text-shadow: 0 15px 30px rgba(0,0,0,0.9);">
+          ${artistName}
+        </h1>
+
+        <!-- Sous-titre conditionnel (Ex: "Live Concert") -->
+        ${subtitle ? `
+          <h2 style="font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 22px; margin: 10px 0 0 0; color: ${theme.textColor}; letter-spacing: 12px; text-transform: uppercase; opacity: 0.95;">
+            ${subtitle}
+          </h2>
+        ` : ''}
+
+        <!-- Slogan conditionnel -->
+        ${slogan ? `
+          <h3 style="font-family: 'Montserrat', sans-serif; font-weight: 500; font-size: 11px; margin: 16px 0 0 0; color: ${theme.mutedTextColor}; letter-spacing: 4px; text-transform: uppercase;">
+            ${slogan}
+          </h3>
+        ` : ''}
       </div>
 
-      <!-- 3. INFORMATIONS & QR CODE -->
-      <div style="position: absolute; top: 72%; left: 60px; right: 60px; z-index: 20; display: flex; justify-content: space-between; align-items: flex-end;">
+      <!-- BLOC INFOS & QR CODE -->
+      <div style="position: absolute; top: 73%; left: 60px; right: 60px; z-index: 20; display: flex; justify-content: space-between; align-items: flex-end;">
 
-        <!-- Bloc Informations Événement -->
-        <div style="display: flex; flex-direction: column; gap: 18px; font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 600; color: #E0E0E0; letter-spacing: 1.5px;">
-          <div style="display: flex; align-items: center; gap: 16px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CCFF00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            <span>${dateStr}</span>
+        <!-- Métadonnées de l'événement -->
+        <div style="display: flex; flex-direction: column; gap: 16px; font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 600; color: #E5E7EB; letter-spacing: 1px;">
+
+          <!-- Date -->
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${theme.primaryColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span style="text-transform: uppercase;">${dateStr}</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 16px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CCFF00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+
+          <!-- Heure (Gère dynamiquement l'heure de fin si présente) -->
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${theme.primaryColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
             <span>${timeStr}</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 16px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CCFF00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-            <span>${locationStr}</span>
+
+          <!-- Lieu & Ville / Pays -->
+          <div style="display: flex; align-items: center; gap: 14px; max-width: 400px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${theme.primaryColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            <span style="line-height: 1.3;">${fullLocationStr}</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 16px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CCFF00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><path d="M4 10h16"></path><path d="M4 14h16"></path></svg>
-            <span style="color: #FFFFFF;">ENTRÉE : ${priceStr}</span>
+
+          <!-- Prix / Entrée Gratuité native -->
+          <div style="display: flex; align-items: center; gap: 14px; margin-top: 4px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${theme.primaryColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><path d="M4 10h16"></path><path d="M4 14h16"></path></svg>
+            <span style="color: ${ev.isFree || parseFloat(ev.price) === 0 ? theme.primaryColor : theme.textColor}; font-weight: 700; text-transform: uppercase;">
+              ${priceStr}
+            </span>
           </div>
         </div>
 
-        <!-- Bloc QR Code (Premium Framing) -->
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 10px;">
-          <!-- Texte au-dessus -->
-          <div style="font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; color: #777777; text-transform: uppercase; letter-spacing: 2px;">
-            Billetterie Officielle
+        <!-- ZONE ENCAPSULÉE POUR LE QR CODE (Prête pour Phase 2) -->
+        <div id="poster-qrcode-zone" style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <div style="font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; color: ${theme.mutedTextColor}; text-transform: uppercase; letter-spacing: 2px;">
+            Pass Officiel
           </div>
-          <!-- Cadre QR Code -->
-          <div style="background: #FFFFFF; padding: 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); width: 95px; height: 95px; box-shadow: 0 15px 35px rgba(0,0,0,0.6);">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=95x95&data=https://shashap.com&bgcolor=FFFFFF&color=000000&margin=0" crossorigin="anonymous" style="width: 100%; height: 100%; display: block;" />
+          <div style="background: #FFFFFF; padding: 6px; border-radius: 6px; width: 90px; height: 90px; box-shadow: 0 15px 30px rgba(0,0,0,0.5);">
+            <!-- URL de repli propre pointant sur l'ID unique de l'événement -->
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https://shashap.com/event/${ev.id || 'live'}&bgcolor=FFFFFF&color=000000&margin=0" crossorigin="anonymous" style="width: 100%; height: 100%; display: block;" />
           </div>
-          <!-- CTA -->
-          <div style="font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700; color: #CCFF00; text-transform: uppercase; letter-spacing: 1.5px;">
-            Réservez ici
+          <div style="font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; color: ${theme.primaryColor}; text-transform: uppercase; letter-spacing: 1px;">
+            Scanner pour réserver
           </div>
         </div>
       </div>
 
-      <!-- 4. PIED DE PAGE : SPONSORS (Style monochrome Festival) -->
-      <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 75px; background: #020202; border-top: 1px solid rgba(255, 255, 255, 0.05); z-index: 30; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px;">
-
-        <div style="font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 600; color: #555555; text-transform: uppercase; letter-spacing: 3px;">
+      <!-- ZONE ENCAPSULÉE POUR LES SPONSORS (Style Monochrome Corporate - Prête pour Phase 2) -->
+      <div id="poster-sponsors-zone" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 75px; background: ${theme.cardBackground}; border-top: 1px solid rgba(255, 255, 255, 0.04); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px;">
+        <div style="font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 600; color: #4B5563; text-transform: uppercase; letter-spacing: 3px;">
           Partenaires Officiels
         </div>
-
-        <!-- Logos typographiques unifiés -->
-        <div style="display: flex; gap: 40px; font-family: 'Arial', sans-serif; font-size: 16px; font-weight: 800; color: #444444; text-transform: uppercase; letter-spacing: 1px; align-items: center;">
+        <!-- Conteneur de logos unifiés. En phase 2, une boucle map() viendra injecter les images ici -->
+        <div style="display: flex; gap: 36px; font-family: 'Arial', sans-serif; font-size: 14px; font-weight: 800; color: #374151; text-transform: uppercase; letter-spacing: 1px; align-items: center; opacity: 0.75;">
           <span>ORANGE</span>
-          <span style="font-size: 14px; padding-bottom: 2px;">MOOV AFRICA</span>
-          <span style="font-family: 'Times New Roman', serif; font-style: italic; font-size: 18px; text-transform: none;">Airtel</span>
-          <span style="display: flex; align-items: center; gap: 4px;">
-            <div style="width:12px; height:12px; background:#444; border-radius:50%; opacity:0.8;"></div>
-            <div style="width:12px; height:12px; background:#444; border-radius:50%; margin-left:-6px; opacity:0.8;"></div>
-            <span style="font-size: 13px; font-family: 'Montserrat', sans-serif; font-weight: 600;">MASTERCARD</span>
-          </span>
+          <span>MOOV</span>
+          <span style="font-family: 'Times New Roman', serif; font-style: italic; font-size: 16px;">Airtel</span>
+          <span style="font-size: 11px; font-family: 'Montserrat', sans-serif; font-weight: 900;">MASTERCARD</span>
         </div>
       </div>
 
     </div>
   `;
 
+  // --- 4. ENGINE DE RENDU ET EXPORT PDF ---
   document.body.appendChild(poster);
 
   try {
     await document.fonts.ready;
+    // Timeout sécurisé pour charger les images distantes sans briser le canevas
     await new Promise(resolve => setTimeout(resolve, 800));
 
     const canvas = await html2canvas(poster, {
-      scale: 2,
+      scale: 2, // Garantit une impression nette (HQ)
       useCORS: true,
-      backgroundColor: '#040404',
+      backgroundColor: theme.backgroundColor,
       logging: false
     });
 
     const imgData = canvas.toDataURL('image/jpeg', 1.0);
-
     const { jsPDF } = window.jspdf;
+
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -711,13 +755,15 @@ async function exportEventToPDF(index) {
 
     pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
 
-    const safeTitle = artistName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    pdf.save(`${safeTitle}_shashap_masterpiece.pdf`);
+    // Nettoyage propre du nom de fichier
+    const safeTitle = eventName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    pdf.save(`shashap_${safeTitle}_2026.pdf`);
 
   } catch (error) {
-    console.error("Erreur lors de la génération :", error);
-    alert("Impossible de générer l'affiche premiumm. (Erreur réseau)");
+    console.error("Erreur d'export PDF Shashap:", error);
+    alert("Un problème est survenu lors de la création de l'affiche premium.");
   } finally {
+    // Nettoyage obligatoire du DOM pour préserver les performances de la page admin
     document.body.removeChild(poster);
   }
 }
