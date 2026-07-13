@@ -1,42 +1,52 @@
-<!-- HTML classique (Compatible Thymeleaf / Spring Boot) -->
-<div id="poster-editor" class="editor-container" style="display: flex; gap: 2rem; padding: 2rem; font-family: sans-serif;">
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎨 Shashap - Éditeur d'Affiche</title>
+    <link rel="stylesheet" href="/css/shashap.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>window.jsPDF = window.jspdf.jsPDF;</script>
+</head>
+<body style="background:#f5f5f5; margin:0; padding:0;">
 
-    <!-- PANNEAU DE CONTRÔLE -->
-    <div class="controls" style="flex: 1;">
-        <h2>Éditeur d'Affiche Shashap</h2>
+<!-- PANNEAU DE CONTRÔLE -->
+<div style="display:flex; gap:2rem; padding:2rem; font-family:sans-serif; max-width:1200px; margin:0 auto;">
 
-        <!-- Upload Local -->
-        <div style="margin-bottom: 1rem;">
+    <div style="flex:1;">
+        <h2>🎨 Éditeur d'Affiche Shashap</h2>
+
+        <div style="margin-bottom:1rem;">
             <label for="file-upload">Uploader une image :</label>
             <input type="file" id="file-upload" accept="image/*" />
         </div>
 
-        <!-- URL Externe -->
-        <div style="margin-bottom: 1rem;">
-            <label for="url-input">Ou depuis une URL (StockX, etc.) :</label>
-            <input type="text" id="url-input" placeholder="https://..." style="padding: 5px;" />
-            <button id="url-import-btn" style="padding: 5px 10px;">Importer</button>
+        <div style="margin-bottom:1rem;">
+            <label for="url-input">Ou depuis une URL :</label>
+            <input type="text" id="url-input" placeholder="https://..." style="padding:5px; width:100%;" />
+            <button id="url-import-btn" style="padding:5px 10px; margin-top:5px;">Importer</button>
         </div>
 
-        <!-- Retours visuels (Masqués par défaut) -->
-        <p id="loading-text" style="color: blue; display: none;">⏳ Optimisation de l'image en cours...</p>
-        <p id="error-text" style="color: red; display: none;">⚠️ Erreur</p>
+        <p id="loading-text" style="color:blue; display:none;">⏳ Optimisation en cours...</p>
+        <p id="error-text" style="color:red; display:none;">⚠️ Erreur</p>
 
-        <!-- Bouton Export -->
-        <button id="export-btn" style="margin-top: 2rem; padding: 10px 20px; background: black; color: white; cursor: pointer;">
+        <button id="export-btn" style="margin-top:2rem; padding:10px 20px; background:black; color:white; cursor:pointer;">
             📥 Exporter l'Affiche (HD)
         </button>
     </div>
 
-    <!-- APERÇU TEMPS RÉEL -->
-    <div class="preview-canvas" style="flex: 1;">
-        <div style="width: 100%; max-width: 400px; aspect-ratio: 1080 / 1920; background-color: #e0e0e0; border-radius: 8px; overflow: hidden; position: relative;">
-            <img id="poster-preview" src="/images/placeholder.png" alt="Affiche Event" style="width: 100%; height: 100%; object-fit: cover; object-position: center; transition: opacity 0.3s ease;" />
+    <div style="flex:1;">
+        <div style="width:100%; max-width:400px; aspect-ratio:1080/1920; background:#e0e0e0; border-radius:8px; overflow:hidden; position:relative;">
+            <img id="poster-preview" src="https://via.placeholder.com/400x711/f5f5f5/999?text=Aperçu" alt="Aperçu" style="width:100%; height:100%; object-fit:cover;" />
         </div>
     </div>
 
 </div>
 
-<!-- Inclusion des scripts en type module pour l'ES6 -->
 <script type="module" src="/js/ImageManager.js"></script>
 <script type="module" src="/js/PosterEditor.js"></script>
+</body>
+</html>
