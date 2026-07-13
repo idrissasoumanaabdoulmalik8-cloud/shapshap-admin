@@ -2,6 +2,8 @@
 // SHASHAP GRAPHIC ENGINE & SYSTEM THEMES (PHASE 3)
 // ============================================================================
 
+import { ImageManager } from './ImageManager.js';
+
 const SHASHAP_THEMES = {
   Urban: {
     '--primary-color': '#CCFF00',
@@ -78,7 +80,7 @@ const SHASHAP_THEMES = {
 const SHASHAP_FONTS = ['Montserrat', 'Poppins', 'Inter', 'Anton', 'Bebas Neue', 'Oswald'];
 
 // MOTEUR DE GABARIT ET COMPOSANTS INDÉPENDANTS (Modèle pur)
-function generatePosterHTML(eventData, format = 'A4', selectedTheme = 'Urban') {
+export function generatePosterHTML(eventData, format = 'A4', selectedTheme = 'Urban') {
   const t = SHASHAP_THEMES[selectedTheme] || SHASHAP_THEMES.Urban;
 
   // Variables CSS d'environnement de l'affiche
@@ -103,9 +105,12 @@ function generatePosterHTML(eventData, format = 'A4', selectedTheme = 'Urban') {
   const fullLocationStr = locationDetails ? `${venue} (${locationDetails})` : venue;
   const priceStr = eventData.isFree || parseFloat(eventData.price) === 0 ? "ENTRÉE GRATUITE" : `${eventData.price} FCFA`;
 
-const artistImage = eventData.image
-    ? `/proxy-image?url=${encodeURIComponent(eventData.image)}`
+  // Vérification de proxy uniquement si l'image n'est pas déjà un flux Base64 (upload local)
+  const isBase64 = eventData.image && eventData.image.startsWith('data:image');
+  const artistImage = eventData.image
+    ? (isBase64 ? eventData.image : `/proxy-image?url=${encodeURIComponent(eventData.image)}`)
     : '/images/default-artist.jpg';
+
   const coverImage = eventData.coverImage || '';
   const eventSponsors = eventData.sponsors || [];
 
@@ -239,7 +244,7 @@ let shashapUndoStack = [];
 let shashapRedoStack = [];
 let shashapAutoSaveTimeout = null;
 
-function openEventModal(editIndex = null) {
+export function openEventModal(editIndex = null) {
   const existing = editIndex !== null ? storiesData[editIndex] : null;
   const isEdit = existing !== null;
   const today = new Date().toISOString().split('T')[0];
@@ -389,12 +394,15 @@ function openEventModal(editIndex = null) {
         <div style="background:#161920; border-radius:10px; padding:16px; border:1px solid #222630;">
           <h4 style="margin:0 0 14px 0; font-size:12px; text-transform:uppercase; color:#94A3B8; letter-spacing:1px;">🖼️ Photographies & Couvertures</h4>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+            <!-- Ajout des inputs files reliés au module ImageManager -->
             <div style="display:flex; flex-direction:column; gap:4px;">
-              <label style="font-size:12px; color:#94A3B8;">URL Photo Artiste</label>
+              <label style="font-size:12px; color:#94A3B8;">Photo Artiste (Fichier local ou URL)</label>
+              <input type="file" id="in-file-artist" accept="image/*" style="background:#1F232E; border:1px solid #33394F; color:#FFF; padding:4px; border-radius:6px; font-size:11px; margin-bottom:4px;">
               <input type="text" id="in-img-artist" value="${eventData.image}" placeholder="https://..." style="background:#1F232E; border:1px solid #33394F; color:#FFF; padding:8px 12px; border-radius:6px; font-size:13px;">
             </div>
             <div style="display:flex; flex-direction:column; gap:4px;">
-              <label style="font-size:12px; color:#94A3B8;">URL Image d'ambiance / Fond</label>
+              <label style="font-size:12px; color:#94A3B8;">Image Fond (Fichier local ou URL)</label>
+              <input type="file" id="in-file-cover" accept="image/*" style="background:#1F232E; border:1px solid #33394F; color:#FFF; padding:4px; border-radius:6px; font-size:11px; margin-bottom:4px;">
               <input type="text" id="in-img-cover" value="${eventData.coverImage}" placeholder="https://..." style="background:#1F232E; border:1px solid #33394F; color:#FFF; padding:8px 12px; border-radius:6px; font-size:13px;">
             </div>
           </div>
@@ -470,16 +478,13 @@ function openEventModal(editIndex = null) {
   const updateLivePreview = () => {
     const container = document.getElementById('sh-poster-viewport-container');
     if (container) {
-      // Rend l'affiche pure via le moteur d'architecture
       container.innerHTML = generatePosterHTML(eventData, 'A4', eventData.theme);
     }
   };
 
   const executeDataStateChange = (mutationBlock) => {
-    // Gestion de l'historique de modifications (Undo/Redo Base)
     shashapUndoStack.push(JSON.stringify(eventData));
-    shashapRedoStack = []; // Reset du redo sur action utilisateur
-
+    shashapRedoStack = [];
     mutationBlock();
     updateLivePreview();
     triggerAutoSave();
@@ -489,8 +494,7 @@ function openEventModal(editIndex = null) {
     clearTimeout(shashapAutoSaveTimeout);
     shashapAutoSaveTimeout = setTimeout(() => {
       localStorage.setItem('shashap_autosave_draft', JSON.stringify(eventData));
-      console.log("🚀 Shashap AutoSave : Brouillon synchronisé localement.");
-    }, 2500); // 2.5 secondes d'inactivité déclenchent la sauvegarde de secours
+    }, 2500);
   };
 
   // ÉCOUTEURS COMPORTEMENTAUX ET EXTRACTION DIRECTE SOT
@@ -523,6 +527,26 @@ function openEventModal(editIndex = null) {
         triggerAutoSave();
       });
     });
+
+    // --- INTEGRATION MODULE IMAGE MANAGER ---
+    const imgManager = new ImageManager();
+
+    const handleFileUpload = async (e, dataKey, inputId) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const result = await imgManager.processImage(file);
+      if (result.success) {
+        executeDataStateChange(() => {
+          eventData[dataKey] = result.url;
+          document.getElementById(inputId).value = result.url; // Met à jour l'UI
+        });
+      }
+    };
+
+    document.getElementById('in-file-artist')?.addEventListener('change', (e) => handleFileUpload(e, 'image', 'in-img-artist'));
+    document.getElementById('in-file-cover')?.addEventListener('change', (e) => handleFileUpload(e, 'coverImage', 'in-img-cover'));
+    // ----------------------------------------
 
     // Toggle Billetterie
     document.querySelectorAll('input[name="ui-ticket-type"]').forEach(r => {
@@ -680,7 +704,6 @@ function openEventModal(editIndex = null) {
 
   // ACTION DU BOUTON DE TÉLÉCHARGEMENT DIRECT DEPUIS L'APERÇU REAL-TIME
   document.getElementById('ui-action-export-pdf').onclick = async () => {
-    // Crée une structure temporaire isolée basée sur la SOT pour garantir la résolution
     const renderNode = document.createElement('div');
     renderNode.style.cssText = "position:absolute; left:-9999px; top:0; width:794px; height:1123px;";
     renderNode.innerHTML = generatePosterHTML(eventData, 'A4', eventData.theme);
@@ -688,11 +711,10 @@ function openEventModal(editIndex = null) {
 
     try {
       await document.fonts.ready;
-      // Attente technique anti-scintillement pour l'acquisition des images CORS
       await new Promise(r => setTimeout(r, 600));
 
       const canvas = await html2canvas(renderNode.firstElementChild, {
-        scale: 2, // Sortie Haute Définition pour impression
+        scale: 2,
         useCORS: true,
         allowTaint: false,
         logging: false
@@ -719,21 +741,19 @@ function openEventModal(editIndex = null) {
       return;
     }
 
-    // Uniformisation finale du nom d'objet hérité
     eventData.name = eventData.eventName || eventData.artistName;
-    eventData.endDate = eventData.startDate; // Maintien de cohérence temporelle Phase 1
+    eventData.endDate = eventData.startDate;
     eventData.isEvent = true;
 
     if (isEdit) storiesData[editIndex] = eventData;
     else storiesData.unshift(eventData);
 
-    // Routines et exécutions natives de l'application Shashap
     if (typeof saveStoriesToStorage === 'function') saveStoriesToStorage();
     if (typeof renderStories === 'function') renderStories();
     if (typeof syncStoriesToBackend === 'function') syncStoriesToBackend();
     if (typeof loadEvents === 'function') loadEvents();
 
-    localStorage.removeItem('shashap_autosave_draft'); // Nettoie le brouillon de secours
+    localStorage.removeItem('shashap_autosave_draft');
     closeEventModal();
     if (typeof showToast === 'function') showToast('✨ Événement et charte graphique enregistrés');
   };
@@ -742,11 +762,10 @@ function openEventModal(editIndex = null) {
 // ============================================================================
 // PIPELINE D'EXPORT UNIFIÉ EXTRACANVAS (FONCTION GLOBALE ACCESSIBLE)
 // ============================================================================
-async function exportEventToPDF(index) {
+export async function exportEventToPDF(index) {
   const ev = storiesData[index];
   if (!ev) return;
 
-  // Injection temporaire haute résolution basée sur le même et unique composant de rendu graphique
   const targetNode = document.createElement('div');
   targetNode.style.cssText = "position:absolute; left:-9999px; top:0; width:794px; height:1123px;";
   targetNode.innerHTML = generatePosterHTML(ev, 'A4', ev.theme || 'Urban');
@@ -775,15 +794,14 @@ async function exportEventToPDF(index) {
   }
 }
 
-function closeEventModal() {
+export function closeEventModal() {
   const modal = document.getElementById('eventModal');
   if (modal) modal.style.display = 'none';
   clearTimeout(shashapAutoSaveTimeout);
 }
 
-
 // ✅ Validation en temps réel des dates
-function validateEventDates() {
+export function validateEventDates() {
   const startInput = document.getElementById('evStartDate');
   const endInput = document.getElementById('evEndDate');
   const saveBtn = document.getElementById('evSaveBtn');
@@ -794,19 +812,16 @@ function validateEventDates() {
   const start = startInput.value;
   const end = endInput.value;
 
-  // Réinitialiser
   errorSpan.style.display = 'none';
   saveBtn.disabled = false;
   startInput.style.border = '1px solid #eee';
   endInput.style.border = '1px solid #eee';
 
-  // Vérifier que les dates sont valides
   if (!start || !end) {
     saveBtn.disabled = true;
     return;
   }
 
-  // La date de fin ne doit pas être avant la date de début
   if (end < start) {
     errorSpan.textContent = '⚠️ La date de fin doit être après la date de début';
     errorSpan.style.display = 'block';
@@ -815,7 +830,6 @@ function validateEventDates() {
     return;
   }
 
-  // Empêcher les dates trop lointaines (> 1 an)
   const maxDate = new Date();
   maxDate.setFullYear(maxDate.getFullYear() + 1);
   const maxDateStr = maxDate.toISOString().split('T')[0];
@@ -827,11 +841,11 @@ function validateEventDates() {
   }
 }
 
-function editEventByIndex(index) {
+export function editEventByIndex(index) {
   openEventModal(index);
 }
 
-function deleteEventByIndex(index) {
+export function deleteEventByIndex(index) {
   if (!confirm('Supprimer cet événement ?')) return;
   storiesData.splice(index, 1);
   saveStoriesToStorage();
@@ -841,9 +855,7 @@ function deleteEventByIndex(index) {
   showToast('🗑️ Événement supprimé');
 }
 
-
-// 1. La fonction d'animation du bouton Supprimer (inchangée)
-function confirmDelete(button, index) {
+export function confirmDelete(button, index) {
   if (button.dataset.confirm === 'true') {
     deleteEventByIndex(index);
     return;
@@ -872,8 +884,7 @@ function confirmDelete(button, index) {
   }, 3000);
 }
 
-// 2. Ta fonction principale corrigée
-function loadEvents() {
+export function loadEvents() {
   const container = document.getElementById('eventsList');
   if (!container) return;
 
@@ -893,7 +904,7 @@ function loadEvents() {
         <p style="font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; color:#6B7280; font-size:16px; max-width:400px; margin:0 auto 32px; line-height: 1.5;">
           C'est le moment de créer une expérience inoubliable pour votre communauté.
         </p>
-        <button onclick="/* ta fonction d'ouverture de modal */"
+        <button onclick="openEventModal()"
           style="
             height: 52px; padding: 0 32px; display:flex; align-items:center; justify-content:center; gap:8px;
             background: linear-gradient(135deg, #111827 0%, #374151 100%); color:#ffffff; border: none; border-radius: 26px;
@@ -933,7 +944,6 @@ function loadEvents() {
         const img = this.querySelector('.event-img'); if(img) img.style.transform='scale(1)';
       ">
 
-        <!-- Image immersive -->
         <div style="width:100%; height: 280px; overflow:hidden; position:relative; background: #111;">
           ${ ev.image
             ? `<img src="${ev.image}" alt="${title}" class="event-img" style="width:100%; height:100%; object-fit:cover; display:block; transition: transform 0.8s cubic-bezier(0.2,0.8,0.2,1);" />`
@@ -941,7 +951,6 @@ function loadEvents() {
           }
           <div style="position:absolute; inset:0; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 50%, transparent 100%);"></div>
 
-          <!-- Badges de l'image -->
           <div style="position:absolute; top:20px; left:20px; backdrop-filter: blur(12px) saturate(180%); -webkit-backdrop-filter: blur(12px) saturate(180%); background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 16px; padding: 6px 12px; color: #ffffff; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display:flex; align-items:center; gap:6px;">
             📅 ${displayDate}
           </div>
@@ -953,10 +962,8 @@ function loadEvents() {
           </div>
         </div>
 
-        <!-- Corps de la carte -->
         <div style="padding: 24px; flex:1; display:flex; flex-direction:column; gap: 24px;">
 
-          <!-- Description de l'événement (HARAKA, etc.) -->
           <p style="
             margin: 0; font-size: 15px; color: #4B5563; line-height: 1.6;
             font-weight: 400; min-height: 44px;
@@ -964,7 +971,6 @@ function loadEvents() {
             ${ev.description || 'Aucune description pour cet événement.'}
           </p>
 
-          <!-- Badges de contexte fixes (Style Notion/Linear) -->
           <div style="display:flex; flex-wrap:wrap; gap: 8px;">
             <div style="display:flex; align-items:center; gap:6px; background:#F3F4F6; padding:6px 12px; border-radius:12px; color:#4B5563; font-size:12px; font-weight:600;">
               🎧 DJ Set
@@ -974,21 +980,18 @@ function loadEvents() {
             </div>
           </div>
 
-          <!-- Boutons -->
           <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:auto;">
-
-            <button onclick="editEventByIndex(${realIndex})" style="min-width:100px; flex:1; height: 48px; padding: 0 12px; display:flex; align-items:center; justify-content:center; gap:6px; background: linear-gradient(135deg, #4c1d95 0%, #be185d 100%); color:#ffffff; border: none; border-radius: 16px; font-size:13px; font-weight:600; cursor:pointer; box-shadow: 0 6px 16px rgba(190, 24, 93, 0.25); transition: all 0.3s ease;" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'" onmouseover="this.style.filter='brightness(1.1)'; this.style.boxShadow='0 8px 20px rgba(190, 24, 93, 0.4)';" onmouseout="this.style.filter='brightness(1)'; this.style.boxShadow='0 6px 16px rgba(190, 24, 93, 0.25)';">
+            <button onclick="editEventByIndex(${realIndex})" style="min-width:100px; flex:1; height: 48px; padding: 0 12px; display:flex; align-items:center; justify-content:center; gap:6px; background: linear-gradient(135deg, #4c1d95 0%, #be185d 100%); color:#ffffff; border: none; border-radius: 16px; font-size:13px; font-weight:600; cursor:pointer; box-shadow: 0 6px 16px rgba(190, 24, 93, 0.25); transition: all 0.3s ease;">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg> Modifier
             </button>
 
-            <button onclick="exportEventToPDF(${realIndex})" style="min-width:100px; flex:1; height: 48px; padding: 0 12px; display:flex; align-items:center; justify-content:center; gap:6px; background:#ffffff; color:#374151; border: 1px solid #E5E7EB; border-radius: 16px; font-size:13px; font-weight:600; cursor:pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.3s ease;" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'" onmouseover="this.style.background='#F9FAFB'; this.style.borderColor='#D1D5DB'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.05)';" onmouseout="this.style.background='#ffffff'; this.style.borderColor='#E5E7EB'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.02)';">
+            <button onclick="exportEventToPDF(${realIndex})" style="min-width:100px; flex:1; height: 48px; padding: 0 12px; display:flex; align-items:center; justify-content:center; gap:6px; background:#ffffff; color:#374151; border: 1px solid #E5E7EB; border-radius: 16px; font-size:13px; font-weight:600; cursor:pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.3s ease;">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> PDF
             </button>
 
-            <button data-confirm="false" onclick="confirmDelete(this, ${realIndex})" style="min-width:100px; flex:1; height: 48px; padding: 0 12px; display:flex; align-items:center; justify-content:center; gap:6px; background:#ffffff; color:#DC2626; border: 1px solid rgba(220, 38, 38, 0.2); border-radius: 16px; font-size:13px; font-weight:600; cursor:pointer; transition: all 0.3s cubic-bezier(0.2,0.8,0.2,1);" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'" onmouseover="if(this.dataset.confirm !== 'true') { this.style.background='#FEF2F2'; this.style.borderColor='#DC2626'; this.style.boxShadow='0 4px 12px rgba(220, 38, 38, 0.1)'; }" onmouseout="if(this.dataset.confirm !== 'true') { this.style.background='#ffffff'; this.style.borderColor='rgba(220, 38, 38, 0.2)'; this.style.boxShadow='none'; }">
+            <button data-confirm="false" onclick="confirmDelete(this, ${realIndex})" style="min-width:100px; flex:1; height: 48px; padding: 0 12px; display:flex; align-items:center; justify-content:center; gap:6px; background:#ffffff; color:#DC2626; border: 1px solid rgba(220, 38, 38, 0.2); border-radius: 16px; font-size:13px; font-weight:600; cursor:pointer; transition: all 0.3s cubic-bezier(0.2,0.8,0.2,1);">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Supprimer
             </button>
-
           </div>
         </div>
       </div>`;
@@ -996,4 +999,3 @@ function loadEvents() {
 
   container.innerHTML = html;
 }
-

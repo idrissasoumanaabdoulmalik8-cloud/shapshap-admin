@@ -1,56 +1,58 @@
-/**
- * ImageManager - Moteur de traitement d'images (Vanilla ES6)
- */
+// ============================================================================
+// MODULE UTILITAIRE : GESTION ET OPTIMISATION DES IMAGES
+// ============================================================================
+
 export class ImageManager {
-  constructor(fallbackImageUrl = '/images/placeholder.png') {
-    this.originalImage = null;
-    this.optimizedBlob = null;
-    this.previewUrl = null;
-    this.fallbackImageUrl = fallbackImageUrl;
-    this.transforms = { scale: 1, x: 0, y: 0, rotation: 0 };
+  constructor() {
+    this.MAX_RESOLUTION = 1920;
+    this.QUALITY = 0.85;
   }
 
-  async load(source) {
+  /**
+   * Reçoit un File (depuis un <input type="file">) et le convertit
+   * en Base64 compressé pour garantir un export PDF sans erreur CORS.
+   */
+  async processImage(file) {
     try {
-      let imageSrc = source;
-      if (source instanceof File || source instanceof Blob) {
-        imageSrc = URL.createObjectURL(source);
-      }
+      if (!file) throw new Error("Aucun fichier fourni.");
 
-      this.originalImage = await this._createImageElement(imageSrc);
-      await this._analyzeAndOptimize();
+      const objectUrl = URL.createObjectURL(file);
+      const img = await this._loadImage(objectUrl);
 
-      return { success: true, url: this.previewUrl };
+      const optimizedBase64 = await this._compressToWebP(img);
+
+      // Nettoyage de la mémoire
+      URL.revokeObjectURL(objectUrl);
+
+      return { success: true, url: optimizedBase64 };
     } catch (error) {
-      console.warn("⚠️ ImageManager: Échec du chargement.", error);
-      this.previewUrl = this.fallbackImageUrl;
-      return { success: false, url: this.previewUrl, error };
+      console.error("ImageManager: Erreur de traitement", error);
+      return { success: false, error: "Impossible de traiter l'image." };
     }
   }
 
-  _createImageElement(src) {
+  _loadImage(src) {
     return new Promise((resolve, reject) => {
       const img = new Image();
-      img.crossOrigin = "anonymous";
       img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error("Erreur de chargement."));
+      img.onerror = () => reject(new Error("Image corrompue ou illisible."));
       img.src = src;
     });
   }
 
-  async _analyzeAndOptimize() {
-    const MAX_RESOLUTION = 1920;
-    let width = this.originalImage.naturalWidth;
-    let height = this.originalImage.naturalHeight;
+  async _compressToWebP(img) {
+    let width = img.naturalWidth;
+    let height = img.naturalHeight;
 
-    if (width > MAX_RESOLUTION || height > MAX_RESOLUTION) {
+    // Redimensionnement intelligent si l'image est trop lourde
+    if (width > this.MAX_RESOLUTION || height > this.MAX_RESOLUTION) {
       const ratio = width / height;
       if (width > height) {
-        width = MAX_RESOLUTION;
-        height = Math.round(MAX_RESOLUTION / ratio);
+        width = this.MAX_RESOLUTION;
+        height = Math.round(this.MAX_RESOLUTION / ratio);
       } else {
-        height = MAX_RESOLUTION;
-        width = Math.round(MAX_RESOLUTION * ratio);
+        height = this.MAX_RESOLUTION;
+        width = Math.round(this.MAX_RESOLUTION * ratio);
       }
     }
 
@@ -61,50 +63,9 @@ export class ImageManager {
 
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(this.originalImage, 0, 0, width, height);
+    ctx.drawImage(img, 0, 0, width, height);
 
-    this.optimizedBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.85));
-
-    if (this.previewUrl && this.previewUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(this.previewUrl);
-    }
-    this.previewUrl = URL.createObjectURL(this.optimizedBlob);
-  }
-
-  exportToCanvas(targetWidth, targetHeight) {
-    const canvas = document.createElement('canvas');
-    canvas.width = targetWidth;
-    canvas.height = targetHeight;
-    const ctx = canvas.getContext('2d');
-
-    if (!this.originalImage) return canvas;
-
-    const imgW = this.originalImage.naturalWidth;
-    const imgH = this.originalImage.naturalHeight;
-    const targetRatio = targetWidth / targetHeight;
-    const imgRatio = imgW / imgH;
-
-    let sWidth = imgW, sHeight = imgH, sx = 0, sy = 0;
-
-    if (imgRatio > targetRatio) {
-      sWidth = imgH * targetRatio;
-      sx = (imgW - sWidth) / 2;
-    } else {
-      sHeight = imgW / targetRatio;
-      sy = (imgH - sHeight) / 2;
-    }
-
-    ctx.save();
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.translate(this.transforms.x, this.transforms.y);
-    ctx.drawImage(this.originalImage, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
-    ctx.restore();
-
-    return canvas;
-  }
-
-  exportToDataURL(targetWidth, targetHeight, format = 'image/jpeg', quality = 0.9) {
-    return this.exportToCanvas(targetWidth, targetHeight).toDataURL(format, quality);
+    // Retourne l'image en Data URL (Base64) pour injection directe dans events.js
+    return canvas.toDataURL('image/webp', this.QUALITY);
   }
 }
