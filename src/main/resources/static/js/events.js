@@ -142,76 +142,48 @@ function generatePosterHTML(eventData, format = 'A4', selectedTheme = 'Urban') {
   // Component: ArtistPhoto (avec layout intelligent)
     // Component: ArtistPhoto (Corrigé)
        // Component: ArtistPhoto (Cadre flexible – ne coupe jamais l'image)
-       // Component: ArtistPhoto (Version DA Premium - Zéro Distorsion & Fusion Organique)
        const componentArtistPhoto = `
-         <div data-layer="photo" style="
+         <div data-layer="photo-safe-zone" style="
            position: absolute;
-           top: 11%;
-           left: 50%;
-           transform: translateX(-50%);
-           width: 64%;
+           top: 10%;
+           left: 0;
+           width: 100%;
            height: 53%;
            z-index: 10;
-           box-shadow: 0 30px 70px rgba(0, 0, 0, 0.85), 0 10px 30px rgba(0, 0, 0, 0.5);
-           border-radius: 12px;
-           overflow: hidden;
-           border: 1px solid rgba(255, 255, 255, 0.06);
-           background-color: var(--background-color);
+           display: flex;
+           justify-content: center;
+           align-items: center;
          ">
+           <div data-layer="photo-dynamic-frame" style="
+             position: relative;
+             max-width: 88%;
+             max-height: 100%;
+             display: inline-flex;
+             justify-content: center;
+             border-radius: 6px;
+             box-shadow: 0 35px 70px rgba(0,0,0,0.85);
+             border: 1px solid rgba(255,255,255,0.05);
+             overflow: hidden;
+           ">
+             <img src="${artistImage}" crossorigin="anonymous" style="
+               max-width: 100%;
+               max-height: 100%;
+               width: auto;
+               height: auto;
+               display: block;
+               filter: grayscale(100%) contrast(115%) brightness(90%);
+             " onerror="this.style.display='none'; this.parentElement.style.background='#111'; this.parentElement.innerHTML+='<span style=position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#555;font-size:40px>🎵</span>'" />
 
-           <!-- CALQUE 1 : L'image de l'artiste (Zéro distorsion grâce au background-size: cover) -->
-           <div style="
-             position: absolute;
-             inset: 0;
-             background-image: url('${artistImage}');
-             background-size: cover;
-             background-position: center 15%; /* Cadrage intelligent : évite de couper le haut de la tête */
-             background-repeat: no-repeat;
-             filter: grayscale(100%) contrast(115%) brightness(90%);
-             z-index: 1;
-           "></div>
-
-           <!-- CALQUE 2 : Masque de fusion Gauche (Adoucit la bordure verticale gauche) -->
-           <div style="
-             position: absolute;
-             top: 0;
-             bottom: 0;
-             left: -1px;
-             width: 15%;
-             background: linear-gradient(to right, var(--background-color) 0%, transparent 100%);
-             z-index: 2;
-             pointer-events: none;
-           "></div>
-
-           <!-- CALQUE 3 : Masque de fusion Droite (Adoucit la bordure verticale droite) -->
-           <div style="
-             position: absolute;
-             top: 0;
-             bottom: 0;
-             right: -1px;
-             width: 15%;
-             background: linear-gradient(to left, var(--background-color) 0%, transparent 100%);
-             z-index: 2;
-             pointer-events: none;
-           "></div>
-
-           <!-- CALQUE 4 : Masque de fusion Bas (Transition ultra-douce et progressive vers le fond et la typo) -->
-           <div style="
-             position: absolute;
-             bottom: -2px;
-             left: 0;
-             width: 100%;
-             height: 35%;
-             background: linear-gradient(to top,
-               var(--background-color) 0%,
-               var(--background-color) 12%,
-               rgba(0, 0, 0, 0.4) 65%,
-               transparent 100%
-             );
-             z-index: 3;
-             pointer-events: none;
-           "></div>
-
+             <div style="
+               position: absolute;
+               bottom: 0;
+               left: 0;
+               width: 100%;
+               height: 30%;
+               background: linear-gradient(to top, var(--background-color) 0%, transparent 100%);
+               pointer-events: none;
+             "></div>
+           </div>
          </div>
        `;
   // Component: Typography Block (ArtistName, Subtitle, Slogan)
