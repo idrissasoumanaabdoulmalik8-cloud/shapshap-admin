@@ -141,31 +141,30 @@ function generatePosterHTML(eventData, format = 'A4', selectedTheme = 'Urban') {
   // Component: ArtistPhoto
   // Component: ArtistPhoto (avec layout intelligent)
     // Component: ArtistPhoto (Corrigé)
-     const componentArtistPhoto = `
+       // Component: ArtistPhoto (Cadre flexible – ne coupe jamais l'image)
+       const componentArtistPhoto = `
          <div data-layer="photo-safe-zone" style="
            position: absolute;
            top: 10%;
            left: 0;
            width: 100%;
-           height: 53%; /* Limite verticale maximum */
+           height: 53%;
            z-index: 10;
            display: flex;
            justify-content: center;
-           align-items: center; /* Centrage automatique dans la zone de sécurité */
+           align-items: center;
          ">
-           <!-- LE CADRE DYNAMIQUE : Il va s'ajuster au pixel près au ratio de l'image -->
            <div data-layer="photo-dynamic-frame" style="
              position: relative;
-             max-width: 88%; /* Marge de respiration horizontale */
-             max-height: 100%; /* Marge de respiration verticale */
-             display: inline-flex; /* Shrink-wrap magique Flexbox */
+             max-width: 88%;
+             max-height: 100%;
+             display: inline-flex;
              justify-content: center;
              border-radius: 6px;
              box-shadow: 0 35px 70px rgba(0,0,0,0.85);
              border: 1px solid rgba(255,255,255,0.05);
              overflow: hidden;
            ">
-             <!-- L'IMAGE : Dicte la forme finale sans jamais rogner -->
              <img src="${artistImage}" crossorigin="anonymous" style="
                max-width: 100%;
                max-height: 100%;
@@ -173,9 +172,8 @@ function generatePosterHTML(eventData, format = 'A4', selectedTheme = 'Urban') {
                height: auto;
                display: block;
                filter: grayscale(100%) contrast(115%) brightness(90%);
-             " onerror="this.src='https://via.placeholder.com/800x1000/222/fff?text=Image+Indisponible'" />
+             " onerror="this.style.display='none'; this.parentElement.style.background='#111'; this.parentElement.innerHTML+='<span style=position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#555;font-size:40px>🎵</span>'" />
 
-             <!-- LE DÉGRADÉ : Épouse parfaitement le cadre dynamique -->
              <div style="
                position: absolute;
                bottom: 0;
@@ -186,28 +184,6 @@ function generatePosterHTML(eventData, format = 'A4', selectedTheme = 'Urban') {
                pointer-events: none;
              "></div>
            </div>
-         </div>
-       `;
-
-       // Component: Typography Block
-       const componentTypographyBlock = `
-         <div data-layer="typography" style="position: absolute; top: 51%; left: 40px; right: 40px; text-align: center; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-           <div style="font-family: var(--font-body); font-weight: 700; font-size: 10px; color: var(--primary-color); letter-spacing: 5px; text-transform: uppercase; margin-bottom: 6px;">
-             // ${eventType} ${eventName ? `• ${eventName}` : ''}
-           </div>
-           <h1 style="font-family: var(--font-title); font-size: 120px; margin: 0; color: var(--text-color); line-height: 0.85; letter-spacing: -1px; text-transform: uppercase; text-shadow: 0 15px 30px rgba(0,0,0,0.95);">
-             ${artistName}
-           </h1>
-           ${subtitle ? `
-             <h2 style="font-family: var(--font-body); font-weight: 900; font-size: 20px; margin: 12px 0 0 0; color: var(--text-color); letter-spacing: 10px; text-transform: uppercase; opacity: 0.95;">
-               ${subtitle}
-             </h2>
-           ` : ''}
-           ${slogan ? `
-             <h3 style="font-family: var(--font-body); font-weight: 500; font-size: 11px; margin: 14px 0 0 0; color: var(--muted-color); letter-spacing: 4px; text-transform: uppercase; max-width: 80%; line-height: 1.4;">
-               ${slogan}
-             </h3>
-           ` : ''}
          </div>
        `;
   // Component: Typography Block (ArtistName, Subtitle, Slogan)
@@ -1149,7 +1125,7 @@ function getImageDimensions(url) {
 }
 
 // ============================================================================
-// EXPOSITION GLOBALE POUR COMPATIBILITÉ AVEC SHASHAP.JSS
+// EXPOSITION GLOBALE POUR COMPATIBILITÉ AVEC SHASHAP.JSSs
 // ============================================================================
 window.loadEvents = loadEvents;
 window.openEventModal = openEventModal;
