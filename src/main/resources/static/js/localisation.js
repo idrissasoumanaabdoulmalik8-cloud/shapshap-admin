@@ -1,10 +1,10 @@
 // ============================================================
-// 🗺️ LOCALISATION — Carte intelligente Shashap (icônes zoom + animation) V2
+// 🗺️ LOCALISATION — Carte intelligente Shashap (multi-entités)
 // ============================================================
 
 let locMap = null;
 let locMarkers = [];
-let markerIdCounter = 0; // pour des IDs de dégradé uniques
+let markerIdCounter = 0;
 
 function animateCounter(elementId, targetValue, duration = 800) {
     const el = document.getElementById(elementId);
@@ -22,7 +22,6 @@ function animateCounter(elementId, targetValue, duration = 800) {
     }, 16);
 }
 
-// Générateur d'icône SVG avec ID unique
 function buildMarkerIcon(type) {
     const id = 'grad' + (++markerIdCounter);
     let svg = '';
@@ -58,6 +57,15 @@ function buildMarkerIcon(type) {
                 <stop stop-color="#1E88E5"/><stop offset="1" stop-color="#00BCD4"/>
             </linearGradient></defs>
         </svg>`;
+    } else if (type === 'restaurants') {
+        svg = `<svg width="100%" height="100%" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="36" cy="36" r="36" fill="url(#${id})"/>
+            <path d="M28 22H44V26H40V38H32V26H28V22Z" fill="white" opacity="0.9"/>
+            <rect x="30" y="38" width="12" height="12" fill="white" opacity="0.8"/>
+            <defs><linearGradient id="${id}" x1="0" y1="0" x2="72" y2="72">
+                <stop stop-color="#DC2626"/><stop offset="1" stop-color="#F97316"/>
+            </linearGradient></defs>
+        </svg>`;
     }
     return svg;
 }
@@ -69,7 +77,7 @@ function getCurrentIconSize() {
     if (!locMap) return BASE_SIZE;
     const zoom = locMap.getZoom();
     const scale = Math.pow(2, BASE_ZOOM - zoom);
-    return Math.max(40, Math.round(BASE_SIZE * scale)); // taille minimum 40px
+    return Math.max(40, Math.round(BASE_SIZE * scale));
 }
 
 function updateMarkerIcons() {
@@ -84,6 +92,23 @@ function updateMarkerIcons() {
         });
         marker.setIcon(newIcon);
     });
+}
+
+async function geocodeAddress(address) {
+    try {
+        const resp = await axios.get('https://nominatim.openstreetmap.org/search', {
+            params: { q: address, format: 'json', limit: 1 }
+        });
+        if (resp.data && resp.data.length > 0) {
+            return {
+                lat: parseFloat(resp.data[0].lat),
+                lon: parseFloat(resp.data[0].lon)
+            };
+        }
+    } catch (e) {
+        console.warn('Géocodage échoué pour', address);
+    }
+    return null;
 }
 
 function loadLocalisation() {
@@ -109,36 +134,66 @@ async function loadLocalisationData() {
     const search = document.getElementById('locSearch')?.value?.toLowerCase() || '';
 
     try {
+        // Commandes
         const ordersRes = await axios.get(API + '/orders');
         const orders = ordersRes.data || [];
 
+        // Événements
         const events = (typeof storiesData !== 'undefined' ? storiesData.filter(s => s.isEvent) : []);
 
+        // Clients (avec géocodage optionnel)
         const clientsRes = await axios.get(API + '/clients');
-        const clients = clientsRes.data || [];
+        let clients = clientsRes.data || [];
+
+        // Restaurants (endpoint à créer si besoin)
+        let restaurants = [];
+        try {
+            const restRes = await axios.get(API + '/restaurants');
+            restaurants = restRes.data || [];
+        } catch (e) {
+            console.warn('Endpoint /restaurants non disponible.');
+        }
+
+        // Géocodage des clients sans coordonnées mais avec adresse
+        for (let client of clients) {
+            if ((!client.latitude || !client.longitude) && client.adresse) {
+                const coords = await geocodeAddress(client.adresse);
+                if (coords) {
+                    client.latitude = coords.lat;
+                    client.longitude = coords.lon;
+                }
+                await new Promise(r => setTimeout(r, 1000)); // respect du rate limit Nominatim
+            }
+        }
 
         animateCounter('locCountOrders', orders.length);
         animateCounter('locCountEvents', events.length);
         animateCounter('locCountClients', clients.length);
+        animateCounter('locCountRestaurants', restaurants.length);
 
         locMarkers.forEach(m => locMap.removeLayer(m));
         locMarkers = [];
 
         const currentSize = getCurrentIconSize();
 
+        const addMarker = (lat, lng, type, popupHtml) => {
+            const icon = L.divIcon({
+                html: buildMarkerIcon(type),
+                iconSize: [currentSize, currentSize],
+                iconAnchor: [currentSize/2, currentSize/2],
+                className: 'marker-icon-animated'
+            });
+            const marker = L.marker([lat, lng], { icon }).addTo(locMap);
+            marker.bindPopup(popupHtml);
+            locMarkers.push(marker);
+        };
+
         // Commandes
         if (type === 'all' || type === 'orders') {
             orders.filter(o => o.latitude && o.longitude).forEach(order => {
                 if (search && !(order.customerName || '').toLowerCase().includes(search)) return;
-                const icon = L.divIcon({
-                    html: buildMarkerIcon('orders'),
-                    iconSize: [currentSize, currentSize],
-                    iconAnchor: [currentSize/2, currentSize/2],
-                    className: 'marker-icon-animated'
-                });
-                const marker = L.marker([order.latitude, order.longitude], { icon }).addTo(locMap);
-                marker.bindPopup(`<b>📦 ${order.orderNumber || order.id}</b><br>${order.customerName || 'Client'}<br>${Number(order.totalAmount || 0).toLocaleString('fr-FR')} FCFA`);
-                locMarkers.push(marker);
+                addMarker(order.latitude, order.longitude, 'orders',
+                    `<b>📦 ${order.orderNumber || order.id}</b><br>${order.customerName || 'Client'}<br>${Number(order.totalAmount || 0).toLocaleString('fr-FR')} FCFA`);
             });
         }
 
@@ -146,15 +201,8 @@ async function loadLocalisationData() {
         if (type === 'all' || type === 'events') {
             events.filter(ev => ev.latitude && ev.longitude).forEach(ev => {
                 if (search && !(ev.name || ev.artistName || '').toLowerCase().includes(search)) return;
-                const icon = L.divIcon({
-                    html: buildMarkerIcon('events'),
-                    iconSize: [currentSize, currentSize],
-                    iconAnchor: [currentSize/2, currentSize/2],
-                    className: 'marker-icon-animated'
-                });
-                const marker = L.marker([ev.latitude, ev.longitude], { icon }).addTo(locMap);
-                marker.bindPopup(`<b>🎉 ${ev.artistName || ev.name}</b><br>${ev.venue || ''}<br>${ev.eventDate || ''}`);
-                locMarkers.push(marker);
+                addMarker(ev.latitude, ev.longitude, 'events',
+                    `<b>🎉 ${ev.artistName || ev.name}</b><br>${ev.venue || ''}<br>${ev.eventDate || ''}`);
             });
         }
 
@@ -162,15 +210,17 @@ async function loadLocalisationData() {
         if (type === 'all' || type === 'clients') {
             clients.filter(c => c.latitude && c.longitude).forEach(client => {
                 if (search && !(client.nom || '').toLowerCase().includes(search)) return;
-                const icon = L.divIcon({
-                    html: buildMarkerIcon('clients'),
-                    iconSize: [currentSize, currentSize],
-                    iconAnchor: [currentSize/2, currentSize/2],
-                    className: 'marker-icon-animated'
-                });
-                const marker = L.marker([client.latitude, client.longitude], { icon }).addTo(locMap);
-                marker.bindPopup(`<b>👤 ${client.nom}</b><br>📱 ${client.telephone}<br>📦 ${client.nombreCommandes || 0} commandes`);
-                locMarkers.push(marker);
+                addMarker(client.latitude, client.longitude, 'clients',
+                    `<b>👤 ${client.nom}</b><br>📱 ${client.telephone}<br>📦 ${client.nombreCommandes || 0} commandes`);
+            });
+        }
+
+        // Restaurants
+        if (type === 'all' || type === 'restaurants') {
+            restaurants.filter(r => r.latitude && r.longitude).forEach(resto => {
+                if (search && !(resto.nom || '').toLowerCase().includes(search)) return;
+                addMarker(resto.latitude, resto.longitude, 'restaurants',
+                    `<b>🍽️ ${resto.nom}</b><br>📞 ${resto.telephone || ''}<br>⭐ ${resto.note || '-'}`);
             });
         }
 
@@ -178,7 +228,7 @@ async function loadLocalisationData() {
             const group = L.featureGroup(locMarkers);
             locMap.fitBounds(group.getBounds().pad(0.1));
         } else {
-            console.log('Aucun marqueur à afficher (vérifiez latitude/longitude)');
+            console.log('Aucun marqueur trouvé.');
         }
 
     } catch (error) {

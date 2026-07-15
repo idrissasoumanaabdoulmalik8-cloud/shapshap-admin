@@ -707,14 +707,13 @@
 
             <div class="content" style="padding: 0 25px;">
                 <!-- Tableau de bord des compteurs (version premium) -->
-                <div id="loc-stats" class="loc-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; margin-bottom: 30px;">
+                <div id="loc-stats" class="loc-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 30px;">
 
                     <!-- Carte Commandes -->
                     <div class="loc-stat-card" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border-radius: 28px; padding: 28px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid rgba(255,255,255,0.6); transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1.2); cursor: default; position: relative; overflow: hidden;">
                         <div class="loc-icon-glow" style="position: absolute; top: -20px; right: -20px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(255,152,0,0.3) 0%, transparent 70%); z-index: 0;"></div>
                         <div style="position: relative; z-index: 2;">
                             <div class="loc-card-icon" style="display: flex; justify-content: center; margin-bottom: 16px;">
-                                <!-- Icône colis SVG premium -->
                                 <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <circle cx="36" cy="36" r="36" fill="url(#gradOrders)"/>
                                     <path d="M22 28L36 20L50 28L36 36L22 28Z" fill="white" opacity="0.95"/>
@@ -780,6 +779,28 @@
                             <div class="loc-card-label" style="font-size: 14px; font-weight: 600; text-align: center; color: #555; letter-spacing: 0.5px; margin-top: 8px;">Clients</div>
                         </div>
                     </div>
+
+                    <!-- Carte Restaurants -->
+                    <div class="loc-stat-card" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border-radius: 28px; padding: 28px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid rgba(255,255,255,0.6); transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1.2); cursor: default; position: relative; overflow: hidden;">
+                        <div class="loc-icon-glow" style="position: absolute; top: -20px; right: -20px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(220,38,38,0.3) 0%, transparent 70%); z-index: 0;"></div>
+                        <div style="position: relative; z-index: 2;">
+                            <div class="loc-card-icon" style="display: flex; justify-content: center; margin-bottom: 16px;">
+                                <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="36" cy="36" r="36" fill="url(#gradResto)"/>
+                                    <path d="M28 22H44V26H40V38H32V26H28V22Z" fill="white" opacity="0.9"/>
+                                    <rect x="30" y="38" width="12" height="12" fill="white" opacity="0.8"/>
+                                    <defs>
+                                        <linearGradient id="gradResto" x1="0" y1="0" x2="72" y2="72">
+                                            <stop stop-color="#DC2626"/>
+                                            <stop offset="1" stop-color="#F97316"/>
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                            </div>
+                            <div class="loc-card-value" id="locCountRestaurants" style="font-size: 48px; font-weight: 800; text-align: center; color: #DC2626; line-height: 1;">0</div>
+                            <div class="loc-card-label" style="font-size: 14px; font-weight: 600; text-align: center; color: #555; letter-spacing: 0.5px; margin-top: 8px;">Restaurants</div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Filtres -->
@@ -795,6 +816,7 @@
                             <option value="orders">📦 Commandes</option>
                             <option value="events">🎉 Événements</option>
                             <option value="clients">👥 Clients</option>
+                            <option value="restaurants">🍽️ Restaurants</option>
                         </select>
                     </div>
                     <button onclick="loadLocalisation()" style="background:#E91E63; color:#fff; border:none; padding:8px 18px; border-radius:20px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px;">🔄 Actualiser</button>
@@ -803,6 +825,58 @@
                 <!-- Carte principale -->
                 <div id="locMapContainer" style="width:100%; height:550px; border-radius:16px; overflow:hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.1); border:1px solid #eee; margin-bottom:30px;"></div>
             </div>
+
+            <style>
+                .loc-stat-card {
+                    animation: fadeInUp 0.6s ease both;
+                }
+                .loc-stat-card:nth-child(1) { animation-delay: 0.1s; }
+                .loc-stat-card:nth-child(2) { animation-delay: 0.2s; }
+                .loc-stat-card:nth-child(3) { animation-delay: 0.3s; }
+                .loc-stat-card:nth-child(4) { animation-delay: 0.4s; }
+
+                @keyframes fadeInUp {
+                    from { opacity: 0; transform: translateY(30px); }
+                    to   { opacity: 1; transform: translateY(0); }
+                }
+
+                .loc-stat-card:hover {
+                    transform: translateY(-10px) rotate(1deg);
+                    box-shadow: 0 25px 50px rgba(0,0,0,0.08) !important;
+                    border-color: rgba(255,255,255,0.9);
+                }
+
+                .loc-card-icon svg {
+                    animation: float 3s ease-in-out infinite;
+                }
+                @keyframes float {
+                    0%, 100% { transform: translateY(0); }
+                    50%      { transform: translateY(-6px); }
+                }
+
+                .loc-icon-glow {
+                    animation: pulseGlow 4s ease-in-out infinite;
+                }
+                @keyframes pulseGlow {
+                    0%, 100% { opacity: 0.7; }
+                    50%      { opacity: 1; }
+                }
+
+                .marker-icon-animated {
+                    animation: markerPulse 2.5s ease-in-out infinite;
+                    background: transparent !important;
+                    border: none !important;
+                }
+                .marker-icon-animated svg {
+                    display: block;
+                    width: 100%;
+                    height: 100%;
+                }
+                @keyframes markerPulse {
+                    0%, 100% { transform: scale(1); opacity: 0.9; }
+                    50%      { transform: scale(1.12); opacity: 1; }
+                }
+            </style>
         </div><!-- /page localisation -->
 
     </div><!-- /main -->
