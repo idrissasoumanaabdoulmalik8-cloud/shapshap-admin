@@ -83,6 +83,7 @@ function switchPage(page) {
   else if (page === 'clients')   loadClients();
   else if (page === 'favorites') loadFavorites();
   else if (page === 'events')    loadEvents();
+  else if (page === 'localisation') loadLocalisation();  // ← AJOUTER
 }
 
 // ============================================================

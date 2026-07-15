@@ -9,7 +9,8 @@
     <link rel="stylesheet" href="/css/shashap.css">
     <!-- Icônes Tabler -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
-
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- Libs JS -->
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -63,6 +64,11 @@
             <a href="#" data-page="events">
                 <div class="nav-icon"><i class="ti ti-calendar-event"></i></div>
                 <span>Événements</span>
+            </a>
+
+            <a href="#" data-page="localisation">
+                <div class="nav-icon"><i class="ti ti-map-pin"></i></div>
+                <span>Localisation</span>
             </a>
         </nav>
 
@@ -688,6 +694,57 @@
             </div>
         </div><!-- /page events -->
 
+        <!-- ════════════════════════════════════════════════════
+     PAGE : LOCALISATION (CARTE INTELLIGENTE)
+     ════════════════════════════════════════════════════ -->
+        <div id="localisation" class="page">
+            <div class="topbar" style="background: linear-gradient(135deg, #1E88E5, #1565C0); border-radius: 0 0 24px 24px; padding: 28px 30px; margin-bottom: 24px;">
+                <div>
+                    <div class="page-title" style="color: #fff; font-size: 26px; font-weight: 800;">📍 Localisation</div>
+                    <div class="page-sub" style="color: rgba(255,255,255,0.85); font-size: 14px; margin-top: 6px;">Commandes, événements, clients et restaurants</div>
+                </div>
+            </div>
+
+            <div class="content" style="padding: 0 25px;">
+                <!-- Tableau de bord des compteurs -->
+                <div id="loc-stats" style="display: flex; gap: 20px; margin-bottom: 24px; flex-wrap: wrap;">
+                    <div class="kpi-card" style="flex:1; min-width:150px; background:#fff; border-radius:16px; padding:16px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                        <div style="font-size:12px; color:#888;">📦 Commandes</div>
+                        <div style="font-size:24px; font-weight:800;" id="locCountOrders">0</div>
+                    </div>
+                    <div class="kpi-card" style="flex:1; min-width:150px; background:#fff; border-radius:16px; padding:16px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                        <div style="font-size:12px; color:#888;">🎉 Événements</div>
+                        <div style="font-size:24px; font-weight:800;" id="locCountEvents">0</div>
+                    </div>
+                    <div class="kpi-card" style="flex:1; min-width:150px; background:#fff; border-radius:16px; padding:16px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                        <div style="font-size:12px; color:#888;">👥 Clients</div>
+                        <div style="font-size:24px; font-weight:800;" id="locCountClients">0</div>
+                    </div>
+                </div>
+
+                <!-- Filtres -->
+                <div style="display:flex; gap:15px; margin-bottom:20px; flex-wrap:wrap;">
+                    <div class="filter-group">
+                        <label style="font-size:12px; color:#888;">🔍 Recherche</label>
+                        <input type="text" id="locSearch" placeholder="Ville, quartier, nom..." style="padding:8px 12px; border:1px solid #eee; border-radius:20px; font-size:13px; outline:none; min-width:220px;">
+                    </div>
+                    <div class="filter-group">
+                        <label style="font-size:12px; color:#888;">🏷️ Type</label>
+                        <select id="locTypeFilter" style="padding:8px 12px; border:1px solid #eee; border-radius:20px; font-size:13px; outline:none;">
+                            <option value="all">Tous</option>
+                            <option value="orders">📦 Commandes</option>
+                            <option value="events">🎉 Événements</option>
+                            <option value="clients">👥 Clients</option>
+                        </select>
+                    </div>
+                    <button onclick="loadLocalisation()" style="background:#E91E63; color:#fff; border:none; padding:8px 18px; border-radius:20px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px;">🔄 Actualiser</button>
+                </div>
+
+                <!-- Carte principale -->
+                <div id="locMapContainer" style="width:100%; height:550px; border-radius:16px; overflow:hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.1); border:1px solid #eee; margin-bottom:30px;"></div>
+            </div>
+        </div><!-- /page localisation -->
+
     </div><!-- /main -->
 </div><!-- /layout -->
 
@@ -941,6 +998,7 @@
 <script src="/js/clients.js"></script>
 <script src="/js/favorites.js"></script>
 <script src="/js/events.js"></script>
+<script src="/js/localisation.js"></script>
 <script src="/js/ImageManager.js"></script>
 <!-- ✅ NOUVEAU : script du carrousel de bannières promo du dashboard -->
 <script>
