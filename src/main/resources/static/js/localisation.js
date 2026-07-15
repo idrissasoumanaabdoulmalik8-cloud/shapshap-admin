@@ -5,6 +5,23 @@
 let locMap = null;
 let locMarkers = [];
 
+// Animation compteur progressif
+function animateCounter(elementId, targetValue, duration = 800) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    let start = 0;
+    const step = Math.ceil(targetValue / (duration / 16));
+    const timer = setInterval(() => {
+        start += step;
+        if (start >= targetValue) {
+            el.textContent = targetValue;
+            clearInterval(timer);
+        } else {
+            el.textContent = start;
+        }
+    }, 16);
+}
+
 function loadLocalisation() {
     console.log('📍 Chargement localisation...');
 
@@ -39,10 +56,10 @@ async function loadLocalisationData() {
         const clientsRes = await axios.get(API + '/clients');
         const clients = clientsRes.data || [];
 
-        // Mise à jour compteurs
-        document.getElementById('locCountOrders').textContent = orders.length;
-        document.getElementById('locCountEvents').textContent = events.length;
-        document.getElementById('locCountClients').textContent = clients.length;
+        // Mise à jour compteurs avec animation
+        animateCounter('locCountOrders', orders.length);
+        animateCounter('locCountEvents', events.length);
+        animateCounter('locCountClients', clients.length);
 
         // Nettoyer anciens marqueurs
         locMarkers.forEach(m => locMap.removeLayer(m));

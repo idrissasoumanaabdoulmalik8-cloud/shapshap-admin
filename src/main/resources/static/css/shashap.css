@@ -1624,3 +1624,40 @@ tbody tr:hover td { background: var(--rose-pale); }
   .story-nav-next { right: -2px; }
   .pagination-container { flex-direction: column; align-items: center; gap: 9px; }
 }
+
+/* ============================================================
+   LOCALISATION – Cartes statistiques premium
+   ============================================================ */
+.loc-stat-card {
+    animation: fadeInUp 0.6s ease both;
+}
+.loc-stat-card:nth-child(1) { animation-delay: 0.1s; }
+.loc-stat-card:nth-child(2) { animation-delay: 0.2s; }
+.loc-stat-card:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.loc-stat-card:hover {
+    transform: translateY(-10px) rotate(1deg);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.08) !important;
+    border-color: rgba(255,255,255,0.9);
+}
+
+.loc-card-icon svg {
+    animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px); }
+}
+
+.loc-icon-glow {
+    animation: pulseGlow 4s ease-in-out infinite;
+}
+@keyframes pulseGlow {
+    0%, 100% { opacity: 0.7; }
+    50%      { opacity: 1; }
+}
