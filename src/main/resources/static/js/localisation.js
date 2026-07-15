@@ -1,5 +1,6 @@
 // ============================================================
 // 🗺️ LOCALISATION — Carte intelligente Shashap (multi-entités)
+// Avec marqueur restaurant par défaut et logs de géocodage
 // ============================================================
 
 let locMap = null;
@@ -94,16 +95,20 @@ function updateMarkerIcons() {
     });
 }
 
+// Géocodage simple via Nominatim (OpenStreetMap) – utiliser avec parcimonie
 async function geocodeAddress(address) {
     try {
         const resp = await axios.get('https://nominatim.openstreetmap.org/search', {
             params: { q: address, format: 'json', limit: 1 }
         });
         if (resp.data && resp.data.length > 0) {
+            console.log(`✅ Géocodage réussi : ${address} → ${resp.data[0].lat}, ${resp.data[0].lon}`);
             return {
                 lat: parseFloat(resp.data[0].lat),
                 lon: parseFloat(resp.data[0].lon)
             };
+        } else {
+            console.warn(`⚠️ Adresse introuvable : ${address}`);
         }
     } catch (e) {
         console.warn('Géocodage échoué pour', address);
@@ -147,16 +152,20 @@ async function loadLocalisationData() {
 
         // Restaurants (endpoint à créer si besoin)
         let restaurants = [];
+        let hasApiRestaurants = false;
         try {
             const restRes = await axios.get(API + '/restaurants');
             restaurants = restRes.data || [];
+            hasApiRestaurants = restaurants.length > 0;
         } catch (e) {
-            console.warn('Endpoint /restaurants non disponible.');
+            console.warn('Endpoint /restaurants non disponible – utilisation du restaurant par défaut.');
         }
 
         // Géocodage des clients sans coordonnées mais avec adresse
+        console.log(`👥 ${clients.length} clients récupérés, vérification des adresses...`);
         for (let client of clients) {
             if ((!client.latitude || !client.longitude) && client.adresse) {
+                console.log(`🔄 Tentative de géocodage pour ${client.nom} : ${client.adresse}`);
                 const coords = await geocodeAddress(client.adresse);
                 if (coords) {
                     client.latitude = coords.lat;
@@ -166,10 +175,13 @@ async function loadLocalisationData() {
             }
         }
 
+        // Compteurs
         animateCounter('locCountOrders', orders.length);
         animateCounter('locCountEvents', events.length);
         animateCounter('locCountClients', clients.length);
-        animateCounter('locCountRestaurants', restaurants.length);
+        // Au moins 1 restaurant (le fixe si aucun via API)
+        const totalRestaurants = Math.max(restaurants.length, 1);
+        animateCounter('locCountRestaurants', totalRestaurants);
 
         locMarkers.forEach(m => locMap.removeLayer(m));
         locMarkers = [];
@@ -217,11 +229,19 @@ async function loadLocalisationData() {
 
         // Restaurants
         if (type === 'all' || type === 'restaurants') {
+            // Ajout des restaurants de l'API s'ils existent
             restaurants.filter(r => r.latitude && r.longitude).forEach(resto => {
                 if (search && !(resto.nom || '').toLowerCase().includes(search)) return;
                 addMarker(resto.latitude, resto.longitude, 'restaurants',
                     `<b>🍽️ ${resto.nom}</b><br>📞 ${resto.telephone || ''}<br>⭐ ${resto.note || '-'}`);
             });
+
+            // Ajout du restaurant par défaut si aucun restaurant API n'a été trouvé
+            if (!hasApiRestaurants) {
+                const defaultResto = { lat: 13.5116, lng: 2.1254, nom: "Shashap" };
+                addMarker(defaultResto.lat, defaultResto.lng, 'restaurants',
+                    `<b>🍽️ ${defaultResto.nom}</b><br>📍 Position par défaut`);
+            }
         }
 
         if (locMarkers.length > 0) {
