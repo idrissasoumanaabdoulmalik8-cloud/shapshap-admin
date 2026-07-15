@@ -1,5 +1,5 @@
 // ============================================================
-// 🗺️ LOCALISATION — Carte intelligente Shashap
+// 🗺️ LOCALISATION — Carte intelligente Shashap (icônes zoom + animation)
 // ============================================================
 
 let locMap = null;
@@ -22,9 +22,9 @@ function animateCounter(elementId, targetValue, duration = 800) {
     }, 16);
 }
 
-// Icônes SVG pour les marqueurs (×4 la taille, 120×120)
+// Icônes SVG fluides (taille = 100% du conteneur)
 const markerIcons = {
-    orders: `<svg width="120" height="120" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+    orders: `<svg width="100%" height="100%" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="36" cy="36" r="36" fill="url(#gradOrders)"/>
         <path d="M22 28L36 20L50 28L36 36L22 28Z" fill="white" opacity="0.95"/>
         <path d="M22 28V42L36 50V36L22 28Z" fill="white" opacity="0.85"/>
@@ -33,7 +33,7 @@ const markerIcons = {
             <stop stop-color="#FF9800"/><stop offset="1" stop-color="#F57C00"/>
         </linearGradient></defs>
     </svg>`,
-    events: `<svg width="120" height="120" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+    events: `<svg width="100%" height="100%" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="36" cy="36" r="36" fill="url(#gradEvents)"/>
         <path d="M24 20H48V28H24V20Z" fill="white" opacity="0.9"/>
         <path d="M26 28V46H46V28H26Z" fill="white" opacity="0.8"/>
@@ -44,7 +44,7 @@ const markerIcons = {
             <stop stop-color="#9C27B0"/><stop offset="1" stop-color="#E91E63"/>
         </linearGradient></defs>
     </svg>`,
-    clients: `<svg width="120" height="120" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+    clients: `<svg width="100%" height="100%" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="36" cy="36" r="36" fill="url(#gradClients)"/>
         <circle cx="28" cy="28" r="6" fill="white" opacity="0.9"/>
         <circle cx="44" cy="28" r="6" fill="white" opacity="0.9"/>
@@ -54,6 +54,33 @@ const markerIcons = {
         </linearGradient></defs>
     </svg>`
 };
+
+// Taille de référence à zoom 13
+const BASE_ZOOM = 13;
+const BASE_SIZE = 120;
+
+// Calcule la taille actuelle selon le zoom : plus on zoome, plus l'icône est petite
+function getCurrentIconSize() {
+    if (!locMap) return BASE_SIZE;
+    const zoom = locMap.getZoom();
+    const scale = Math.pow(2, BASE_ZOOM - zoom); // zoom > 13 => scale < 1, zoom < 13 => scale > 1
+    return Math.round(BASE_SIZE * scale);
+}
+
+// Met à jour toutes les icônes avec la nouvelle taille
+function updateMarkerIcons() {
+    const size = getCurrentIconSize();
+    locMarkers.forEach(marker => {
+        const oldIcon = marker.getIcon();
+        const newIcon = L.divIcon({
+            html: oldIcon.options.html,
+            iconSize: [size, size],
+            iconAnchor: [size/2, size/2],
+            className: 'marker-icon-animated' // classe CSS pour l'animation
+        });
+        marker.setIcon(newIcon);
+    });
+}
 
 function loadLocalisation() {
     console.log('📍 Chargement localisation...');
@@ -66,6 +93,9 @@ function loadLocalisation() {
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap'
         }).addTo(locMap);
+
+        // Écouteur de zoom pour ajuster la taille des icônes
+        locMap.on('zoomend', updateMarkerIcons);
     }
 
     loadLocalisationData();
@@ -91,15 +121,17 @@ async function loadLocalisationData() {
         locMarkers.forEach(m => locMap.removeLayer(m));
         locMarkers = [];
 
+        const currentSize = getCurrentIconSize();
+
         // Commandes
         if (type === 'all' || type === 'orders') {
             orders.filter(o => o.latitude && o.longitude).forEach(order => {
                 if (search && !(order.customerName || '').toLowerCase().includes(search)) return;
                 const icon = L.divIcon({
                     html: markerIcons.orders,
-                    iconSize: [120, 120],
-                    iconAnchor: [60, 60],
-                    className: '' // pas de classe pour éviter les conflits CSS
+                    iconSize: [currentSize, currentSize],
+                    iconAnchor: [currentSize/2, currentSize/2],
+                    className: 'marker-icon-animated'
                 });
                 const marker = L.marker([order.latitude, order.longitude], { icon }).addTo(locMap);
                 marker.bindPopup(`<b>📦 ${order.orderNumber || order.id}</b><br>${order.customerName || 'Client'}<br>${Number(order.totalAmount || 0).toLocaleString('fr-FR')} FCFA`);
@@ -113,9 +145,9 @@ async function loadLocalisationData() {
                 if (search && !(ev.name || ev.artistName || '').toLowerCase().includes(search)) return;
                 const icon = L.divIcon({
                     html: markerIcons.events,
-                    iconSize: [120, 120],
-                    iconAnchor: [60, 60],
-                    className: ''
+                    iconSize: [currentSize, currentSize],
+                    iconAnchor: [currentSize/2, currentSize/2],
+                    className: 'marker-icon-animated'
                 });
                 const marker = L.marker([ev.latitude, ev.longitude], { icon }).addTo(locMap);
                 marker.bindPopup(`<b>🎉 ${ev.artistName || ev.name}</b><br>${ev.venue || ''}<br>${ev.eventDate || ''}`);
@@ -129,9 +161,9 @@ async function loadLocalisationData() {
                 if (search && !(client.nom || '').toLowerCase().includes(search)) return;
                 const icon = L.divIcon({
                     html: markerIcons.clients,
-                    iconSize: [120, 120],
-                    iconAnchor: [60, 60],
-                    className: ''
+                    iconSize: [currentSize, currentSize],
+                    iconAnchor: [currentSize/2, currentSize/2],
+                    className: 'marker-icon-animated'
                 });
                 const marker = L.marker([client.latitude, client.longitude], { icon }).addTo(locMap);
                 marker.bindPopup(`<b>👤 ${client.nom}</b><br>📱 ${client.telephone}<br>📦 ${client.nombreCommandes || 0} commandes`);
