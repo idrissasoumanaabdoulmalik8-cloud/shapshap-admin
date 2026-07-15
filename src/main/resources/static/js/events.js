@@ -141,51 +141,235 @@ function generatePosterHTML(eventData, format = 'A4', selectedTheme = 'Urban') {
   // Component: ArtistPhoto
   // Component: ArtistPhoto (avec layout intelligent)
     // Component: ArtistPhoto (Corrigé)
-       // Component: ArtistPhoto (Cadre flexible – ne coupe jamais l'image)
-       const componentArtistPhoto = `
-         <div data-layer="photo-safe-zone" style="
-           position: absolute;
-           top: 10%;
-           left: 0;
-           width: 100%;
-           height: 53%;
-           z-index: 10;
-           display: flex;
-           justify-content: center;
-           align-items: center;
-         ">
-           <div data-layer="photo-dynamic-frame" style="
-             position: relative;
-             max-width: 88%;
-             max-height: 100%;
-             display: inline-flex;
-             justify-content: center;
-             border-radius: 6px;
-             box-shadow: 0 35px 70px rgba(0,0,0,0.85);
-             border: 1px solid rgba(255,255,255,0.05);
-             overflow: hidden;
-           ">
-             <img src="${artistImage}" crossorigin="anonymous" style="
-               max-width: 100%;
-               max-height: 100%;
-               width: auto;
-               height: auto;
-               display: block;
-               filter: grayscale(100%) contrast(115%) brightness(90%);
-             " onerror="this.style.display='none'; this.parentElement.style.background='#111'; this.parentElement.innerHTML+='<span style=position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#555;font-size:40px>🎵</span>'" />
+      // ============================================================
+      // Component: ArtistPhoto — Moteur de cadrage intelligent
+      // Gère portrait / paysage / carré / haute-basse résolution
+      // sans jamais déformer, sans dépendre du timing de rendu,
+      // avec un résultat identique aperçu ↔ export html2canvas.
+      // ============================================================
 
-             <div style="
-               position: absolute;
-               bottom: 0;
-               left: 0;
-               width: 100%;
-               height: 30%;
-               background: linear-gradient(to top, var(--background-color) 0%, transparent 100%);
-               pointer-events: none;
-             "></div>
-           </div>
-         </div>
-       `;
+      // ------------------------------------------------------------
+      // Utilitaire : échappement défensif pour l'attribut src
+      // (protège contre une valeur artistImage mal formée / injectée)
+      // ------------------------------------------------------------
+      function escapeAttr(value) {
+        return String(value)
+          .replace(/&/g, '&amp;')
+          .replace(/"/g, '&quot;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+      }
+
+      // ------------------------------------------------------------
+      // Niveau 1 (par défaut, synchrone, zéro dépendance) :
+      // Composant robuste avec un biais de cadrage universel,
+      // sans avoir besoin de connaître les dimensions réelles
+      // de l'image à l'avance.
+      // ------------------------------------------------------------
+      function componentArtistPhoto(artistImage) {
+        const safeImage = escapeAttr(artistImage || '');
+        const uid = 'artistPhoto_' + Math.random().toString(36).slice(2, 9);
+
+        return `
+        <div data-layer="photo-safe-zone" style="
+          position: absolute;
+          top: 10%;
+          left: 0;
+          width: 100%;
+          height: 53%;
+          z-index: 10;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        ">
+          <div data-layer="photo-dynamic-frame" style="
+            position: relative;
+            width: 88%;
+            max-width: 88%;
+
+            /* ✅ CLÉ DU FIX : ratio FIXE, jamais dépendant du contenu.
+               Élimine le bug 'max-height:100% sur parent auto' à la racine,
+               et donne à html2canvas une boîte totalement déterministe. */
+            aspect-ratio: 4 / 5;
+
+            border-radius: 6px;
+            box-shadow: 0 35px 70px rgba(0,0,0,0.85);
+            border: 1px solid rgba(255,255,255,0.05);
+            overflow: hidden;
+            background: #111; /* fond visible pendant le chargement / en cas d'échec */
+          ">
+            <img
+              id="${uid}"
+              src="${safeImage}"
+              alt="Photo de l'artiste"
+              crossorigin="anonymous"
+              style="
+                position: absolute;
+                top: 0; left: 0;
+                width: 100%;
+                height: 100%;
+
+                /* ✅ cover : remplit le cadre fixe sans jamais déformer
+                   (préserve le ratio original de la photo) */
+                object-fit: cover;
+
+                /* Biais universel raisonnable : légèrement au-dessus du
+                   centre, pour éviter de couper le haut des visages sans
+                   pour autant sur-cadrer sur le vide au-dessus de la tête */
+                object-position: center 25%;
+
+                display: block;
+                filter: grayscale(100%) contrast(115%) brightness(90%);
+              "
+              onerror="
+                this.style.display='none';
+                const fb = this.nextElementSibling;
+                if (fb) fb.style.display='flex';
+              "
+            />
+
+            <!-- ✅ Fallback pré-rendu, jamais injecté dynamiquement.
+                 Le cadre garde toujours sa taille (aspect-ratio fixe),
+                 donc ce fallback est toujours correctement centré. -->
+            <div style="
+              display: none;
+              position: absolute;
+              top: 0; left: 0;
+              width: 100%; height: 100%;
+              align-items: center;
+              justify-content: center;
+              background: #111;
+              color: #555;
+              font-size: 40px;
+            ">🎵</div>
+
+            <div style="
+              position: absolute;
+              bottom: 0;
+              left: 0;
+              width: 100%;
+              height: 30%;
+              background: linear-gradient(to top, var(--background-color, #000) 0%, transparent 100%);
+              pointer-events: none;
+            "></div>
+          </div>
+        </div>
+        `;
+      }
+
+
+      // ------------------------------------------------------------
+      // Niveau 2 (optionnel, asynchrone) : amélioration du cadrage
+      // selon l'orientation réelle de la photo source.
+      // À utiliser si tu peux te permettre un léger délai (préchargement)
+      // avant l'insertion — donne un résultat sensiblement meilleur que
+      // le biais universel du niveau 1.
+      // ------------------------------------------------------------
+      function loadImageMeta(url) {
+        return new Promise((resolve) => {
+          const img = new Image();
+
+          const finish = (corsOk) => {
+            resolve({
+              url,
+              naturalWidth: img.naturalWidth || 0,
+              naturalHeight: img.naturalHeight || 0,
+              corsOk,
+              failed: img.naturalWidth === 0
+            });
+          };
+
+          img.onload = () => finish(true);
+          img.onerror = () => {
+            // ⚠️ Repli : nouvelle tentative SANS crossOrigin.
+            // L'aperçu s'affichera correctement dans ce cas, mais
+            // l'image ne sera probablement pas capturable proprement
+            // par html2canvas (limitation connue, pas un bug du composant).
+            const fallbackImg = new Image();
+            fallbackImg.onload = () => {
+              img.naturalWidth = fallbackImg.naturalWidth;
+              img.naturalHeight = fallbackImg.naturalHeight;
+              finish(false);
+            };
+            fallbackImg.onerror = () => finish(false);
+            fallbackImg.src = url;
+          };
+
+          img.crossOrigin = 'anonymous';
+          img.src = url;
+        });
+      }
+
+      function computeObjectPosition(naturalWidth, naturalHeight) {
+        if (!naturalWidth || !naturalHeight) return 'center 25%'; // repli sûr
+        const ratio = naturalWidth / naturalHeight;
+
+        if (ratio < 0.85) {
+          // Portrait clairement vertical : le sujet est presque
+          // toujours dans le tiers supérieur de l'image
+          return 'center 15%';
+        }
+        if (ratio > 1.3) {
+          // Paysage large : sujet généralement centré horizontalement
+          return 'center center';
+        }
+        // Proche du carré : compromis
+        return 'center 25%';
+      }
+
+      async function componentArtistPhotoSmart(artistImage) {
+        const meta = await loadImageMeta(artistImage);
+        const objectPosition = computeObjectPosition(meta.naturalWidth, meta.naturalHeight);
+        const safeImage = escapeAttr(artistImage || '');
+        const uid = 'artistPhoto_' + Math.random().toString(36).slice(2, 9);
+
+        return `
+        <div data-layer="photo-safe-zone" style="
+          position: absolute; top: 10%; left: 0; width: 100%; height: 53%;
+          z-index: 10; display: flex; justify-content: center; align-items: center;
+        ">
+          <div data-layer="photo-dynamic-frame" style="
+            position: relative; width: 88%; max-width: 88%;
+            aspect-ratio: 4 / 5;
+            border-radius: 6px;
+            box-shadow: 0 35px 70px rgba(0,0,0,0.85);
+            border: 1px solid rgba(255,255,255,0.05);
+            overflow: hidden;
+            background: #111;
+          ">
+            <img
+              id="${uid}"
+              src="${safeImage}"
+              alt="Photo de l'artiste"
+              ${meta.corsOk ? 'crossorigin="anonymous"' : ''}
+              style="
+                position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                object-fit: cover;
+                object-position: ${objectPosition};
+                display: block;
+                filter: grayscale(100%) contrast(115%) brightness(90%);
+              "
+              onerror="
+                this.style.display='none';
+                const fb = this.nextElementSibling;
+                if (fb) fb.style.display='flex';
+              "
+            />
+            <div style="
+              display: ${meta.failed ? 'flex' : 'none'};
+              position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+              align-items: center; justify-content: center;
+              background: #111; color: #555; font-size: 40px;
+            ">🎵</div>
+            <div style="
+              position: absolute; bottom: 0; left: 0; width: 100%; height: 30%;
+              background: linear-gradient(to top, var(--background-color, #000) 0%, transparent 100%);
+              pointer-events: none;
+            "></div>
+          </div>
+        </div>
+        `;
+      }
   // Component: Typography Block (ArtistName, Subtitle, Slogan)
   const componentTypographyBlock = `
     <div data-layer="typography" style="position: absolute; top: 51%; left: 40px; right: 40px; text-align: center; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center;">
