@@ -2356,4 +2356,4 @@ function fetchQrCodeBase64(targetUrl) {
     img.onerror = function() { resolve(null); };
     img.src = qrApiUrl;
   });
-});
+};
