@@ -187,11 +187,10 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ── Init ─────────────────────────────────────────────────
-  loadStoriesFromStorage();
-  renderStories();
-  setView('list');
-  loadDashboard();
-});
+ loadStoriesFromStorage();
+ renderStories();
+ setView('list');
+ loadDashboard();
 
 // ============================================================
 // UTILITAIRES
@@ -1026,6 +1025,8 @@ function displayProductsGrid(products) {
     });
   }, 60);
 }
+
+
 
 // ============================================================
 // STORIES
