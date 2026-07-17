@@ -1026,7 +1026,43 @@ function displayProductsGrid(products) {
   }, 60);
 }
 
-
+// ============================================================
+// CHARGEMENT DES STORIES DEPUIS LE BACKEND (source de vérité)
+// ============================================================
+async function loadStoriesFromBackend() {
+    try {
+        const response = await axios.get(API + '/products/stories');
+        if (response.data && response.data.length > 0) {
+            // Transformer les données du backend en format utilisé par le frontend
+            storiesData = response.data.map((story, index) => ({
+                id: story.isEvent ? ('event_' + Date.now() + '_' + index) : story.productId,
+                name: story.name || story.artistName,
+                image: story.imageUrl,
+                category: story.isEvent ? 'Événement' : '',
+                price: story.originalPrice || 0,
+                promo: story.promoLabel,
+                seen: story.seen || false,
+                isEvent: story.isEvent || false,
+                eventDate: story.eventDate,
+                artistName: story.artistName,
+                description: story.description,
+                startDate: story.startDate,
+                endDate: story.endDate
+            }));
+            // Mettre à jour le cache local
+            saveStoriesToStorage();
+        } else {
+            // Si le serveur est vide, on garde le localStorage existant
+            loadStoriesFromStorage();
+        }
+    } catch (error) {
+        console.warn('⚠️ Impossible de charger les stories depuis le backend, utilisation du cache local.');
+        loadStoriesFromStorage();
+    }
+    // Mise à jour de l'affichage
+    renderStories();
+    if (typeof loadEvents === 'function') loadEvents();
+}
 
 // ============================================================
 // STORIES
