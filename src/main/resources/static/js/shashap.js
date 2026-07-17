@@ -191,6 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
  renderStories();
  setView('list');
  loadDashboard();
+ });
 
 // ============================================================
 // UTILITAIRES
