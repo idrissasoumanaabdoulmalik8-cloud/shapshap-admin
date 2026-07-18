@@ -695,187 +695,286 @@
         </div><!-- /page events -->
 
         <!-- ════════════════════════════════════════════════════
-     PAGE : LOCALISATION (CARTE INTELLIGENTE)
-     ════════════════════════════════════════════════════ -->
-        <div id="localisation" class="page">
-            <div class="topbar" style="background: linear-gradient(135deg, #1E88E5, #1565C0); border-radius: 0 0 24px 24px; padding: 28px 30px; margin-bottom: 24px;">
-                <div>
-                    <div class="page-title" style="color: #fff; font-size: 26px; font-weight: 800;">📍 Localisation</div>
-                    <div class="page-sub" style="color: rgba(255,255,255,0.85); font-size: 14px; margin-top: 6px;">Commandes, événements, clients et restaurants</div>
-                </div>
+   PAGE : LOCALISATION (CARTE INTELLIGENTE PREMIUM)
+   ════════════════════════════════════════════════════ -->
+        <div id="localisation" class="page shashap-map-page">
+
+            <!-- Wrapper principal (prend tout l'écran) -->
+            <div class="shashap-map-wrapper">
+
+                <!-- La Carte (Plein écran en arrière-plan) -->
+                <div id="locMapContainer" class="shashap-map-fullscreen"></div>
+
+                <!-- Le Panneau Latéral Flottant (Glassmorphism) -->
+                <aside class="shashap-sidebar">
+
+                    <!-- En-tête du panneau -->
+                    <div class="sidebar-header">
+                        <h2>📍 Localisation</h2>
+                        <p>Commandes, événements, clients et restaurants</p>
+                    </div>
+
+                    <!-- Contrôles : Recherche et Filtres -->
+                    <div class="sidebar-controls">
+                        <!-- Champ de recherche -->
+                        <div class="input-group">
+                            <span class="icon">🔍</span>
+                            <input type="text" id="locSearch" placeholder="Ville, quartier, nom..." oninput="loadLocalisation()">
+                        </div>
+
+                        <!-- Menu déroulant des types -->
+                        <div class="input-group">
+                            <span class="icon">🏷️</span>
+                            <select id="locTypeFilter" onchange="loadLocalisation()">
+                                <option value="all">Toutes les entités</option>
+                                <option value="restaurants">🍔 Restaurants</option>
+                                <option value="orders">📦 Commandes</option>
+                                <option value="clients">👤 Clients</option>
+                                <option value="events">🎉 Événements</option>
+                            </select>
+                        </div>
+
+                        <!-- Bouton Actualiser -->
+                        <button class="btn-primary" onclick="loadLocalisation()">
+                            🔄 Actualiser la carte
+                        </button>
+                    </div>
+
+                    <!-- Grille des Statistiques / Compteurs compacts -->
+                    <div class="sidebar-stats">
+                        <div class="stat-card" style="--theme-color: #DC2626; --theme-bg: rgba(220,38,38,0.1);">
+                            <div class="stat-icon">🍔</div>
+                            <div class="stat-info">
+                                <span class="stat-label">Restaurants</span>
+                                <strong class="stat-value" id="locCountRestaurants">0</strong>
+                            </div>
+                        </div>
+
+                        <div class="stat-card" style="--theme-color: #FF9800; --theme-bg: rgba(255,152,0,0.1);">
+                            <div class="stat-icon">📦</div>
+                            <div class="stat-info">
+                                <span class="stat-label">Commandes</span>
+                                <strong class="stat-value" id="locCountOrders">0</strong>
+                            </div>
+                        </div>
+
+                        <div class="stat-card" style="--theme-color: #1E88E5; --theme-bg: rgba(30,136,229,0.1);">
+                            <div class="stat-icon">👤</div>
+                            <div class="stat-info">
+                                <span class="stat-label">Clients</span>
+                                <strong class="stat-value" id="locCountClients">0</strong>
+                            </div>
+                        </div>
+
+                        <div class="stat-card" style="--theme-color: #9C27B0; --theme-bg: rgba(156,39,176,0.1);">
+                            <div class="stat-icon">🎉</div>
+                            <div class="stat-info">
+                                <span class="stat-label">Événements</span>
+                                <strong class="stat-value" id="locCountEvents">0</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                </aside>
             </div>
 
-            <div class="content" style="padding: 0 25px;">
-                <!-- Tableau de bord des compteurs (version premium) -->
-                <div id="loc-stats" class="loc-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 30px;">
-
-                    <!-- Carte Commandes -->
-                    <div class="loc-stat-card" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border-radius: 28px; padding: 28px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid rgba(255,255,255,0.6); transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1.2); cursor: default; position: relative; overflow: hidden;">
-                        <div class="loc-icon-glow" style="position: absolute; top: -20px; right: -20px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(255,152,0,0.3) 0%, transparent 70%); z-index: 0;"></div>
-                        <div style="position: relative; z-index: 2;">
-                            <div class="loc-card-icon" style="display: flex; justify-content: center; margin-bottom: 16px;">
-                                <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <circle cx="36" cy="36" r="36" fill="url(#gradOrders)"/>
-                                    <path d="M22 28L36 20L50 28L36 36L22 28Z" fill="white" opacity="0.95"/>
-                                    <path d="M22 28V42L36 50V36L22 28Z" fill="white" opacity="0.85"/>
-                                    <path d="M50 28V42L36 50V36L50 28Z" fill="white" opacity="0.75"/>
-                                    <defs>
-                                        <linearGradient id="gradOrders" x1="0" y1="0" x2="72" y2="72">
-                                            <stop stop-color="#FF9800"/>
-                                            <stop offset="1" stop-color="#F57C00"/>
-                                        </linearGradient>
-                                    </defs>
-                                </svg>
-                            </div>
-                            <div class="loc-card-value" id="locCountOrders" style="font-size: 48px; font-weight: 800; text-align: center; color: #FF9800; line-height: 1;">0</div>
-                            <div class="loc-card-label" style="font-size: 14px; font-weight: 600; text-align: center; color: #555; letter-spacing: 0.5px; margin-top: 8px;">Commandes</div>
-                        </div>
-                    </div>
-
-                    <!-- Carte Événements -->
-                    <div class="loc-stat-card" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border-radius: 28px; padding: 28px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid rgba(255,255,255,0.6); transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1.2); cursor: default; position: relative; overflow: hidden;">
-                        <div class="loc-icon-glow" style="position: absolute; top: -20px; right: -20px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(156,39,176,0.3) 0%, transparent 70%); z-index: 0;"></div>
-                        <div style="position: relative; z-index: 2;">
-                            <div class="loc-card-icon" style="display: flex; justify-content: center; margin-bottom: 16px;">
-                                <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <circle cx="36" cy="36" r="36" fill="url(#gradEvents)"/>
-                                    <path d="M24 20H48V28H24V20Z" fill="white" opacity="0.9"/>
-                                    <path d="M26 28V46H46V28H26Z" fill="white" opacity="0.8"/>
-                                    <circle cx="32" cy="38" r="2" fill="#9C27B0"/>
-                                    <circle cx="40" cy="38" r="2" fill="#9C27B0"/>
-                                    <path d="M30 44H42" stroke="#9C27B0" stroke-width="2" stroke-linecap="round"/>
-                                    <defs>
-                                        <linearGradient id="gradEvents" x1="0" y1="0" x2="72" y2="72">
-                                            <stop stop-color="#9C27B0"/>
-                                            <stop offset="1" stop-color="#E91E63"/>
-                                        </linearGradient>
-                                    </defs>
-                                </svg>
-                            </div>
-                            <div class="loc-card-value" id="locCountEvents" style="font-size: 48px; font-weight: 800; text-align: center; color: #9C27B0; line-height: 1;">0</div>
-                            <div class="loc-card-label" style="font-size: 14px; font-weight: 600; text-align: center; color: #555; letter-spacing: 0.5px; margin-top: 8px;">Événements</div>
-                        </div>
-                    </div>
-
-                    <!-- Carte Clients -->
-                    <div class="loc-stat-card" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border-radius: 28px; padding: 28px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid rgba(255,255,255,0.6); transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1.2); cursor: default; position: relative; overflow: hidden;">
-                        <div class="loc-icon-glow" style="position: absolute; top: -20px; right: -20px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(30,136,229,0.3) 0%, transparent 70%); z-index: 0;"></div>
-                        <div style="position: relative; z-index: 2;">
-                            <div class="loc-card-icon" style="display: flex; justify-content: center; margin-bottom: 16px;">
-                                <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <circle cx="36" cy="36" r="36" fill="url(#gradClients)"/>
-                                    <circle cx="28" cy="28" r="6" fill="white" opacity="0.9"/>
-                                    <circle cx="44" cy="28" r="6" fill="white" opacity="0.9"/>
-                                    <path d="M22 48C22 42.477 26.477 38 32 38H40C45.523 38 50 42.477 50 48V50H22V48Z" fill="white" opacity="0.9"/>
-                                    <defs>
-                                        <linearGradient id="gradClients" x1="0" y1="0" x2="72" y2="72">
-                                            <stop stop-color="#1E88E5"/>
-                                            <stop offset="1" stop-color="#00BCD4"/>
-                                        </linearGradient>
-                                    </defs>
-                                </svg>
-                            </div>
-                            <div class="loc-card-value" id="locCountClients" style="font-size: 48px; font-weight: 800; text-align: center; color: #1E88E5; line-height: 1;">0</div>
-                            <div class="loc-card-label" style="font-size: 14px; font-weight: 600; text-align: center; color: #555; letter-spacing: 0.5px; margin-top: 8px;">Clients</div>
-                        </div>
-                    </div>
-
-                    <!-- Carte Restaurants -->
-                    <div class="loc-stat-card" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border-radius: 28px; padding: 28px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid rgba(255,255,255,0.6); transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1.2); cursor: default; position: relative; overflow: hidden;">
-                        <div class="loc-icon-glow" style="position: absolute; top: -20px; right: -20px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(220,38,38,0.3) 0%, transparent 70%); z-index: 0;"></div>
-                        <div style="position: relative; z-index: 2;">
-                            <div class="loc-card-icon" style="display: flex; justify-content: center; margin-bottom: 16px;">
-                                <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <circle cx="36" cy="36" r="36" fill="url(#gradResto)"/>
-                                    <path d="M28 22H44V26H40V38H32V26H28V22Z" fill="white" opacity="0.9"/>
-                                    <rect x="30" y="38" width="12" height="12" fill="white" opacity="0.8"/>
-                                    <defs>
-                                        <linearGradient id="gradResto" x1="0" y1="0" x2="72" y2="72">
-                                            <stop stop-color="#DC2626"/>
-                                            <stop offset="1" stop-color="#F97316"/>
-                                        </linearGradient>
-                                    </defs>
-                                </svg>
-                            </div>
-                            <div class="loc-card-value" id="locCountRestaurants" style="font-size: 48px; font-weight: 800; text-align: center; color: #DC2626; line-height: 1;">0</div>
-                            <div class="loc-card-label" style="font-size: 14px; font-weight: 600; text-align: center; color: #555; letter-spacing: 0.5px; margin-top: 8px;">Restaurants</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Filtres -->
-                <div style="display:flex; gap:15px; margin-bottom:20px; flex-wrap:wrap;">
-                    <div class="filter-group">
-                        <label style="font-size:12px; color:#888;">🔍 Recherche</label>
-                        <input type="text" id="locSearch" placeholder="Ville, quartier, nom..." style="padding:8px 12px; border:1px solid #eee; border-radius:20px; font-size:13px; outline:none; min-width:220px;">
-                    </div>
-                    <div class="filter-group">
-                        <label style="font-size:12px; color:#888;">🏷️ Type</label>
-                        <select id="locTypeFilter" style="padding:8px 12px; border:1px solid #eee; border-radius:20px; font-size:13px; outline:none;">
-                            <option value="all">Tous</option>
-                            <option value="orders">📦 Commandes</option>
-                            <option value="events">🎉 Événements</option>
-                            <option value="clients">👥 Clients</option>
-                            <option value="restaurants">🍽️ Restaurants</option>
-                        </select>
-                    </div>
-                    <button onclick="loadLocalisation()" style="background:#E91E63; color:#fff; border:none; padding:8px 18px; border-radius:20px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px;">🔄 Actualiser</button>
-                </div>
-
-                <!-- Carte principale -->
-                <div id="locMapContainer" style="width:100%; height:550px; border-radius:16px; overflow:hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.1); border:1px solid #eee; margin-bottom:30px;"></div>
-            </div>
-
+            <!-- Styles embarqués pour la page Localisation -->
             <style>
-                .loc-stat-card {
-                    animation: fadeInUp 0.6s ease both;
-                }
-                .loc-stat-card:nth-child(1) { animation-delay: 0.1s; }
-                .loc-stat-card:nth-child(2) { animation-delay: 0.2s; }
-                .loc-stat-card:nth-child(3) { animation-delay: 0.3s; }
-                .loc-stat-card:nth-child(4) { animation-delay: 0.4s; }
+                /* Variables globales pour cette page */
+                .shashap-map-page {
+                    --primary: #111827;
+                    --surface: #ffffff;
+                    --surface-glass: rgba(255, 255, 255, 0.85);
+                    --border: #e2e8f0;
+                    --text-main: #0f172a;
+                    --text-muted: #64748b;
+                    --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.08);
+                    --radius-xl: 20px;
+                    --radius-lg: 14px;
+                    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-                @keyframes fadeInUp {
-                    from { opacity: 0; transform: translateY(30px); }
-                    to   { opacity: 1; transform: translateY(0); }
-                }
-
-                .loc-stat-card:hover {
-                    transform: translateY(-10px) rotate(1deg);
-                    box-shadow: 0 25px 50px rgba(0,0,0,0.08) !important;
-                    border-color: rgba(255,255,255,0.9);
-                }
-
-                .loc-card-icon svg {
-                    animation: float 3s ease-in-out infinite;
-                }
-                @keyframes float {
-                    0%, 100% { transform: translateY(0); }
-                    50%      { transform: translateY(-6px); }
+                    padding: 0 !important; /* Annule le padding par défaut de la page */
+                    height: 100vh; /* Utilise toute la hauteur de l'écran */
+                    overflow: hidden;
+                    background: #f8fafc;
                 }
 
-                .loc-icon-glow {
-                    animation: pulseGlow 4s ease-in-out infinite;
-                }
-                @keyframes pulseGlow {
-                    0%, 100% { opacity: 0.7; }
-                    50%      { opacity: 1; }
-                }
-
-                .marker-icon-animated {
-                    animation: markerPulse 2.5s ease-in-out infinite;
-                    background: transparent !important;
-                    border: none !important;
-                }
-                .marker-icon-animated svg {
-                    display: block;
+                /* Layout Plein écran */
+                .shashap-map-wrapper {
+                    position: relative;
                     width: 100%;
                     height: 100%;
                 }
-                @keyframes markerPulse {
-                    0%, 100% { transform: scale(1); opacity: 0.9; }
-                    50%      { transform: scale(1.12); opacity: 1; }
+
+                .shashap-map-fullscreen {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    z-index: 1;
                 }
+
+                /* Astuce OpenStreetMap Premium */
+                .leaflet-tile-pane {
+                    filter: grayscale(85%) contrast(1.05) brightness(1.05) hue-rotate(-10deg);
+                    transition: filter 0.5s ease;
+                }
+
+                /* Panneau Latéral */
+                .shashap-sidebar {
+                    position: absolute;
+                    top: 20px;
+                    left: 20px;
+                    width: 320px;
+                    max-height: calc(100% - 40px);
+                    background: var(--surface-glass);
+                    backdrop-filter: blur(16px);
+                    -webkit-backdrop-filter: blur(16px);
+                    border-radius: var(--radius-xl);
+                    box-shadow: var(--shadow-soft), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+                    z-index: 1000;
+                    padding: 24px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 20px;
+                    overflow-y: auto;
+                    animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                }
+
+                .shashap-sidebar::-webkit-scrollbar {
+                    display: none;
+                }
+
+                /* En-tête */
+                .sidebar-header h2 {
+                    margin: 0 0 4px 0;
+                    font-size: 24px;
+                    font-weight: 800;
+                    color: var(--primary);
+                    letter-spacing: -0.5px;
+                }
+                .sidebar-header p {
+                    margin: 0;
+                    font-size: 13px;
+                    color: var(--text-muted);
+                    font-weight: 500;
+                }
+
+                /* Contrôles */
+                .sidebar-controls {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                    padding-bottom: 20px;
+                    border-bottom: 1px solid rgba(0,0,0,0.06);
+                }
+
+                .input-group {
+                    display: flex;
+                    align-items: center;
+                    background: var(--surface);
+                    border: 1px solid var(--border);
+                    border-radius: var(--radius-lg);
+                    padding: 10px 14px;
+                    transition: var(--transition);
+                }
+                .input-group:focus-within {
+                    border-color: var(--primary);
+                    box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.05);
+                }
+                .input-group .icon { margin-right: 10px; font-size: 16px; opacity: 0.7; }
+                .input-group input, .input-group select {
+                    border: none; outline: none; width: 100%;
+                    background: transparent; font-size: 13px;
+                    font-weight: 500; color: var(--text-main);
+                    font-family: inherit;
+                }
+
+                /* Bouton */
+                .btn-primary {
+                    background: var(--primary);
+                    color: white; border: none;
+                    padding: 12px; border-radius: var(--radius-lg);
+                    font-weight: 600; font-size: 13px;
+                    cursor: pointer; transition: var(--transition);
+                    display: flex; justify-content: center; align-items: center; gap: 8px;
+                }
+                .btn-primary:hover {
+                    background: #000;
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+                }
+
+                /* Statistiques Compactes */
+                .sidebar-stats {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 12px;
+                }
+                .stat-card {
+                    background: var(--surface);
+                    border: 1px solid var(--border);
+                    border-radius: var(--radius-lg);
+                    padding: 14px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                    transition: var(--transition);
+                    cursor: default;
+                    animation: fadeInUp 0.5s ease backwards;
+                }
+                .stat-card:nth-child(1) { animation-delay: 0.1s; }
+                .stat-card:nth-child(2) { animation-delay: 0.2s; }
+                .stat-card:nth-child(3) { animation-delay: 0.3s; }
+                .stat-card:nth-child(4) { animation-delay: 0.4s; }
+
+                .stat-card:hover {
+                    border-color: var(--theme-color);
+                    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+                    transform: translateY(-2px);
+                }
+                .stat-icon {
+                    width: 36px; height: 36px;
+                    background: var(--theme-bg);
+                    color: var(--theme-color);
+                    border-radius: 10px;
+                    display: flex; align-items: center; justify-content: center;
+                    font-size: 18px;
+                }
+                .stat-label {
+                    font-size: 11px; text-transform: uppercase;
+                    color: var(--text-muted); font-weight: 700;
+                    letter-spacing: 0.5px;
+                }
+                .stat-value {
+                    font-size: 22px; font-weight: 800;
+                    color: var(--theme-color); line-height: 1.1;
+                    font-variant-numeric: tabular-nums;
+                }
+
+                /* Animations */
+                @keyframes slideInLeft {
+                    from { opacity: 0; transform: translateX(-40px); }
+                    to   { opacity: 1; transform: translateX(0); }
+                }
+                @keyframes fadeInUp {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to   { opacity: 1; transform: translateY(0); }
+                }
+
+                /* Style des Popups Leaflet injecté */
+                .leaflet-popup-content-wrapper { background: transparent; box-shadow: none; padding: 0; border-radius: 0; }
+                .leaflet-popup-tip-container { display: none; }
+                .shashap-popup {
+                    background: #fff; border-radius: 16px;
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+                    padding: 16px; min-width: 200px;
+                    border: 1px solid rgba(0,0,0,0.05);
+                    font-family: inherit; transform: translateY(10px);
+                }
+                .shashap-popup b { display: block; font-size: 15px; color: #111827; margin-bottom: 4px; }
+                .leaflet-popup-close-button { color: #64748b !important; top: 12px !important; right: 12px !important; }
             </style>
         </div><!-- /page localisation -->
 
