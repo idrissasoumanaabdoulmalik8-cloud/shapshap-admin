@@ -1,6 +1,6 @@
 // ============================================================
 // 🗺️ LOCALISATION — Carte intelligente Shashap (multi-entités)
-// Avec marqueur restaurant par défaut et logs de géocodage
+// Avec CSS premium Gemini : popups design, animations
 // ============================================================
 
 let locMap = null;
@@ -95,7 +95,6 @@ function updateMarkerIcons() {
     });
 }
 
-// Géocodage simple via Nominatim (OpenStreetMap) – utiliser avec parcimonie
 async function geocodeAddress(address) {
     try {
         const resp = await axios.get('https://nominatim.openstreetmap.org/search', {
@@ -139,18 +138,14 @@ async function loadLocalisationData() {
     const search = document.getElementById('locSearch')?.value?.toLowerCase() || '';
 
     try {
-        // Commandes
         const ordersRes = await axios.get(API + '/orders');
         const orders = ordersRes.data || [];
 
-        // Événements
         const events = (typeof storiesData !== 'undefined' ? storiesData.filter(s => s.isEvent) : []);
 
-        // Clients (avec géocodage optionnel)
         const clientsRes = await axios.get(API + '/clients');
         let clients = clientsRes.data || [];
 
-        // Restaurants (endpoint à créer si besoin)
         let restaurants = [];
         let hasApiRestaurants = false;
         try {
@@ -161,7 +156,6 @@ async function loadLocalisationData() {
             console.warn('Endpoint /restaurants non disponible – utilisation du restaurant par défaut.');
         }
 
-        // Géocodage des clients sans coordonnées mais avec adresse
         console.log(`👥 ${clients.length} clients récupérés, vérification des adresses...`);
         for (let client of clients) {
             if ((!client.latitude || !client.longitude) && client.adresse) {
@@ -171,15 +165,13 @@ async function loadLocalisationData() {
                     client.latitude = coords.lat;
                     client.longitude = coords.lon;
                 }
-                await new Promise(r => setTimeout(r, 1000)); // respect du rate limit Nominatim
+                await new Promise(r => setTimeout(r, 1000));
             }
         }
 
-        // Compteurs
         animateCounter('locCountOrders', orders.length);
         animateCounter('locCountEvents', events.length);
         animateCounter('locCountClients', clients.length);
-        // Au moins 1 restaurant (le fixe si aucun via API)
         const totalRestaurants = Math.max(restaurants.length, 1);
         animateCounter('locCountRestaurants', totalRestaurants);
 
@@ -196,11 +188,10 @@ async function loadLocalisationData() {
                 className: 'marker-icon-animated'
             });
             const marker = L.marker([lat, lng], { icon }).addTo(locMap);
-            marker.bindPopup(popupHtml);
+            marker.bindPopup(`<div class="shashap-popup">${popupHtml}</div>`);
             locMarkers.push(marker);
         };
 
-        // Commandes
         if (type === 'all' || type === 'orders') {
             orders.filter(o => o.latitude && o.longitude).forEach(order => {
                 if (search && !(order.customerName || '').toLowerCase().includes(search)) return;
@@ -209,7 +200,6 @@ async function loadLocalisationData() {
             });
         }
 
-        // Événements
         if (type === 'all' || type === 'events') {
             events.filter(ev => ev.latitude && ev.longitude).forEach(ev => {
                 if (search && !(ev.name || ev.artistName || '').toLowerCase().includes(search)) return;
@@ -218,7 +208,6 @@ async function loadLocalisationData() {
             });
         }
 
-        // Clients
         if (type === 'all' || type === 'clients') {
             clients.filter(c => c.latitude && c.longitude).forEach(client => {
                 if (search && !(client.nom || '').toLowerCase().includes(search)) return;
@@ -227,16 +216,13 @@ async function loadLocalisationData() {
             });
         }
 
-        // Restaurants
         if (type === 'all' || type === 'restaurants') {
-            // Ajout des restaurants de l'API s'ils existent
             restaurants.filter(r => r.latitude && r.longitude).forEach(resto => {
                 if (search && !(resto.nom || '').toLowerCase().includes(search)) return;
                 addMarker(resto.latitude, resto.longitude, 'restaurants',
                     `<b>🍽️ ${resto.nom}</b><br>📞 ${resto.telephone || ''}<br>⭐ ${resto.note || '-'}`);
             });
 
-            // Ajout du restaurant par défaut si aucun restaurant API n'a été trouvé
             if (!hasApiRestaurants) {
                 const defaultResto = { lat: 13.5116, lng: 2.1254, nom: "Shashap" };
                 addMarker(defaultResto.lat, defaultResto.lng, 'restaurants',
