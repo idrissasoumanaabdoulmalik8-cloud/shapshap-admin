@@ -1082,6 +1082,7 @@ function deleteEventByIndex(index) {
 }
 
 function confirmDelete(button, index) {
+  if (!button || !button.dataset) return;
   if (button.dataset.confirm === 'true') {
     deleteEventByIndex(index);
     return;
@@ -1099,7 +1100,7 @@ function confirmDelete(button, index) {
   `;
 
   setTimeout(() => {
-    if (button.dataset.confirm === 'true') {
+    if (button && button.dataset && button.dataset.confirm === 'true') {
       button.dataset.confirm = 'false';
       button.style.background = '#ffffff';
       button.style.color = '#DC2626';
