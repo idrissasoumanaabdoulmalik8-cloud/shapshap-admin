@@ -452,7 +452,7 @@ function generatePosterHTML(eventData, format = 'A4', selectedTheme = 'Urban') {
       <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Inter:wght@400;600;700;900&family=Montserrat:wght@400;600;700;900&family=Oswald:wght@400;700&family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
       ${componentBackground}
       ${componentHeader}
-      ${componentArtistPhoto}
+      ${componentArtistPhoto(artistImage)}
       ${componentTypographyBlock}
       ${componentMetadataBlock}
       ${componentSponsorsBlock}
