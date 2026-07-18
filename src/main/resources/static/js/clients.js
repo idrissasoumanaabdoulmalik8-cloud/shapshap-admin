@@ -150,18 +150,35 @@ function searchClients() {
 // ============================================================
 // 🔎 FICHE DÉTAIL CLIENT
 // ============================================================
-function openClientDetailModal(clientId) {
+async function openClientDetailModal(clientId) {
     const client = allClients.find(c => c.id === clientId);
     if (!client) return;
 
-    const totalSpent = client.totalDepense || client.history?.reduce((sum, order) => sum + (order.total || 0), 0) || 0;
-    const totalOrders = client.nombreCommandes || client.history?.length || 0;
+    // 🔄 Charger les commandes depuis l'API et filtrer par téléphone
+    let clientOrders = [];
+    try {
+        const ordersRes = await axios.get(API + '/orders');
+        const allOrders = ordersRes.data || [];
+        // Nettoie le téléphone pour la comparaison
+        const cleanPhone = client.phone.replace(/[\s\+-]/g, '');
+        clientOrders = allOrders.filter(o => {
+            const orderPhone = (o.clientPhone || o.phoneNumber || '').replace(/[\s\+-]/g, '');
+            return orderPhone.includes(cleanPhone) || cleanPhone.includes(orderPhone);
+        });
+    } catch (e) {
+        console.warn('Impossible de charger les commandes du client');
+    }
+
+    // Calculs à partir des vraies commandes
+    const totalSpent = clientOrders.reduce((sum, o) => sum + (o.totalAmount || o.total || 0), 0);
+    const totalOrders = clientOrders.length;
     const averageBasket = totalOrders > 0 ? Math.round(totalSpent / totalOrders) : 0;
 
     let badge = LOYALTY_LEVELS.BRONZE;
     if (totalSpent >= LOYALTY_LEVELS.GOLD.min) badge = LOYALTY_LEVELS.GOLD;
     else if (totalSpent >= LOYALTY_LEVELS.SILVER.min) badge = LOYALTY_LEVELS.SILVER;
 
+    // Remplissage des infos client
     document.getElementById('detClientAvatar').innerText = client.name.charAt(0).toUpperCase();
     document.getElementById('profileClientName').innerText = client.name;
     document.getElementById('profileClientPhone').innerText = `📱 ${client.phone}`;
@@ -177,16 +194,17 @@ function openClientDetailModal(clientId) {
     document.getElementById('statTotalSpent').innerText = `${totalSpent.toLocaleString('fr-FR')} FCFA`;
     document.getElementById('statAverageBasket').innerText = `${averageBasket.toLocaleString('fr-FR')} FCFA`;
 
+    // Historique des commandes
     const historyContainer = document.getElementById('profileOrdersList');
-    if (!client.history || client.history.length === 0) {
+    if (clientOrders.length === 0) {
         historyContainer.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:15px; color:#aaa;">Aucun achat enregistré</td></tr>`;
     } else {
-        historyContainer.innerHTML = client.history.map(order => `
+        historyContainer.innerHTML = clientOrders.map(order => `
             <tr style="border-bottom: 1px solid #fbfbfb;">
                 <td style="padding: 10px 15px; font-weight: bold; color: #E91E63;">#${order.id}</td>
-                <td style="padding: 10px 15px; color:#666;">${new Date(order.date).toLocaleDateString('fr-FR')}</td>
-                <td style="padding: 10px 15px; font-size:12px; color:#444;">${order.items}</td>
-                <td style="padding: 10px 15px; text-align: right; font-weight: bold; color: #181823;">${order.total.toLocaleString('fr-FR')} FCFA</td>
+                <td style="padding: 10px 15px; color:#666;">${order.date ? new Date(order.date).toLocaleDateString('fr-FR') : '—'}</td>
+                <td style="padding: 10px 15px; font-size:12px; color:#444;">${(order.items || []).map(i => i.name || i.productName || '—').join(', ')}</td>
+                <td style="padding: 10px 15px; text-align: right; font-weight: bold; color: #181823;">${(order.totalAmount || order.total || 0).toLocaleString('fr-FR')} FCFA</td>
             </tr>
         `).join('');
     }
