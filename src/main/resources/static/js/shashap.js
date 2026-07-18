@@ -187,10 +187,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ── Init ─────────────────────────────────────────────────
- loadStoriesFromStorage();
- renderStories();
- setView('list');
- loadDashboard();
+  loadStoriesFromBackend();
+  setView('list');
+  loadDashboard();
  });
 
 // ============================================================
