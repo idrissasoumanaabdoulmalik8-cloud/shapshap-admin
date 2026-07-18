@@ -7,6 +7,10 @@ let locMap = null;
 let locMarkers = [];
 let markerIdCounter = 0;
 
+// Gestion des fonds de carte professionnels
+let locLayerGroups = {};
+let currentLayerKey = 'standard';
+
 function animateCounter(elementId, targetValue, duration = 800) {
     const el = document.getElementById(elementId);
     if (!el) return;
@@ -115,6 +119,183 @@ async function geocodeAddress(address) {
     return null;
 }
 
+function initLayerSwitcher() {
+    // 1. Définition des groupes de calques professionnels
+    locLayerGroups.standard = L.layerGroup([
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        })
+    ]);
+
+    locLayerGroups.satellite = L.layerGroup([
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '© Esri'
+        })
+    ]);
+
+    locLayerGroups.hybrid = L.layerGroup([
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '© Esri'
+        }),
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
+            attribution: '© CartoDB',
+            pane: 'shadowPane' // Maintient les étiquettes lisibles au-dessus des tuiles satellites
+        })
+    ]);
+
+    // Activation de la couche standard par défaut
+    locLayerGroups[currentLayerKey].addTo(locMap);
+
+    // 2. Injection dynamique des styles CSS pour un rendu premium sans toucher à vos fichiers CSS externes
+    if (!document.getElementById('shashap-switcher-styles')) {
+        const style = document.createElement('style');
+        style.id = 'shashap-switcher-styles';
+        style.innerHTML = `
+            .shashap-layer-control {
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                z-index: 1100;
+                font-family: inherit;
+            }
+            .switcher-btn {
+                background: rgba(255, 255, 255, 0.85);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border: 1px solid rgba(0, 0, 0, 0.08);
+                border-radius: 14px;
+                width: 44px;
+                height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                font-size: 18px;
+            }
+            .switcher-btn:hover {
+                transform: scale(1.04);
+                background: #ffffff;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            }
+            .switcher-menu {
+                position: absolute;
+                top: 56px;
+                right: 0;
+                background: rgba(255, 255, 255, 0.9);
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+                border: 1px solid rgba(0, 0, 0, 0.06);
+                border-radius: 18px;
+                padding: 12px;
+                display: flex;
+                gap: 12px;
+                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+                opacity: 0;
+                transform: translateY(-12px) scale(0.95);
+                pointer-events: none;
+                transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            }
+            .shashap-layer-control.open .switcher-menu {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                pointer-events: auto;
+            }
+            .layer-opt {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+                cursor: pointer;
+                width: 58px;
+            }
+            .layer-thumb {
+                width: 54px;
+                height: 54px;
+                border-radius: 12px;
+                border: 2px solid transparent;
+                transition: all 0.25s ease;
+            }
+            .layer-opt:hover .layer-thumb {
+                transform: translateY(-2px);
+            }
+            .layer-opt.active .layer-thumb {
+                border-color: #111827;
+                box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.15);
+            }
+            .layer-opt span {
+                font-size: 11px;
+                font-weight: 600;
+                color: #64748b;
+                transition: color 0.2s;
+            }
+            .layer-opt.active span {
+                color: #111827;
+                font-weight: 700;
+            }
+            .thumb-standard { background: linear-gradient(135deg, #aad3df 0%, #f2efe9 100%); border: 1px solid rgba(0,0,0,0.1); }
+            .thumb-satellite { background: linear-gradient(135deg, #182c16 0%, #3a5337 100%); }
+            .thumb-hybrid { background: linear-gradient(135deg, #1e293b 0%, #64748b 100%); }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // 3. Construction et injection des éléments DOM dans le conteneur de la carte
+    const container = document.getElementById('locMapContainer');
+    if (!container) return;
+
+    const controlDiv = document.createElement('div');
+    controlDiv.className = 'shashap-layer-control';
+    controlDiv.innerHTML = `
+        <button class="switcher-btn" title="Changer de vue">🗺️</button>
+        <div class="switcher-menu">
+            <div class="layer-opt active" data-layer="standard">
+                <div class="layer-thumb thumb-standard"></div>
+                <span>Standard</span>
+            </div>
+            <div class="layer-opt" data-layer="satellite">
+                <div class="layer-thumb thumb-satellite"></div>
+                <span>Satellite</span>
+            </div>
+            <div class="layer-opt" data-layer="hybrid">
+                <div class="layer-thumb thumb-hybrid"></div>
+                <span>Hybride</span>
+            </div>
+        </div>
+    `;
+    container.appendChild(controlDiv);
+
+    // 4. Attachement des gestionnaires d'événements interactifs
+    const btn = controlDiv.querySelector('.switcher-btn');
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        controlDiv.classList.toggle('open');
+    });
+
+    locMap.on('click', () => {
+        controlDiv.classList.remove('open');
+    });
+
+    controlDiv.querySelectorAll('.layer-opt').forEach(opt => {
+        opt.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const targetLayer = opt.getAttribute('data-layer');
+            if (targetLayer === currentLayerKey) return;
+
+            // Remplacement instantané de la couche de tuiles sans impacter les marqueurs
+            locMap.removeLayer(locLayerGroups[currentLayerKey]);
+            locLayerGroups[targetLayer].addTo(locMap);
+
+            // Mise à jour de l'état visuel de l'interface
+            controlDiv.querySelector('.layer-opt.active').classList.remove('active');
+            opt.classList.add('active');
+            currentLayerKey = targetLayer;
+            controlDiv.classList.remove('open');
+        });
+    });
+}
+
 function loadLocalisation() {
     console.log('📍 Chargement localisation...');
 
@@ -123,9 +304,9 @@ function loadLocalisation() {
         if (!container) return;
 
         locMap = L.map('locMapContainer').setView([13.5116, 2.1254], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
-        }).addTo(locMap);
+
+        // Initialisation de la gestion avancée des calques
+        initLayerSwitcher();
 
         locMap.on('zoomend', updateMarkerIcons);
     }
