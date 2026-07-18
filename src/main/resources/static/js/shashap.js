@@ -1034,7 +1034,6 @@ async function loadStoriesFromBackend() {
     try {
         const response = await axios.get(API + '/products/stories');
         if (response.data && response.data.length > 0) {
-            // Transformer les données du backend en format utilisé par le frontend
             storiesData = response.data.map((story, index) => ({
                 id: story.isEvent ? ('event_' + Date.now() + '_' + index) : story.productId,
                 name: story.name || story.artistName,
@@ -1050,21 +1049,22 @@ async function loadStoriesFromBackend() {
                 startDate: story.startDate,
                 endDate: story.endDate
             }));
-            // Mettre à jour le cache local
             saveStoriesToStorage();
         } else {
-            // Si le serveur est vide, on garde le localStorage existant
+            // La base est vide, on charge le localStorage
             loadStoriesFromStorage();
+            // Et on synchronise vers le backend pour remplir la base
+            if (storiesData.length > 0) {
+                await syncStoriesToBackend();
+            }
         }
     } catch (error) {
-        console.warn('⚠️ Impossible de charger les stories depuis le backend, utilisation du cache local.');
+        console.warn('⚠️ Impossible de charger les stories depuis le backend.');
         loadStoriesFromStorage();
     }
-    // Mise à jour de l'affichage
     renderStories();
     if (typeof loadEvents === 'function') loadEvents();
 }
-
 // ============================================================
 // STORIES
 // ============================================================
