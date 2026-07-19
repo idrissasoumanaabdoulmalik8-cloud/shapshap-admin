@@ -625,8 +625,8 @@
 
 
         <!-- ════════════════════════════════════════════════════
-             PAGE : CLIENTS
-             ════════════════════════════════════════════════════ -->
+     PAGE : CLIENTS
+     ════════════════════════════════════════════════════ -->
         <div id="clients" class="page">
 
             <div class="topbar">
@@ -639,9 +639,50 @@
                            placeholder="Rechercher par nom ou téléphone..."
                            onkeyup="searchClients()"
                            style="width:280px;padding:9px 18px;border:1.5px solid #eee;
-                        border-radius:25px;font-size:13px;font-family:inherit;
-                        outline:none;color:#333;background:#fff;">
+                border-radius:25px;font-size:13px;font-family:inherit;
+                outline:none;color:#333;background:#fff;">
                 </div>
+            </div>
+
+            <!-- Stats globales clients -->
+            <div id="clientsStats" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 0 28px 20px;">
+                <div class="stat-card-pro">
+                    <div class="stat-card-pro-icon" style="background: linear-gradient(135deg, #9C27B0, #E91E63);">👥</div>
+                    <div class="stat-card-pro-content">
+                        <span class="stat-card-pro-label">Total clients</span>
+                        <span class="stat-card-pro-value" id="statTotalClients">0</span>
+                    </div>
+                </div>
+                <div class="stat-card-pro">
+                    <div class="stat-card-pro-icon" style="background: linear-gradient(135deg, #FFD700, #F5A623);">🥇</div>
+                    <div class="stat-card-pro-content">
+                        <span class="stat-card-pro-label">VIP</span>
+                        <span class="stat-card-pro-value" id="statTotalVIP">0</span>
+                    </div>
+                </div>
+                <div class="stat-card-pro">
+                    <div class="stat-card-pro-icon" style="background: linear-gradient(135deg, #3b82f6, #22c55e);">📦</div>
+                    <div class="stat-card-pro-content">
+                        <span class="stat-card-pro-label">Commandes ce mois</span>
+                        <span class="stat-card-pro-value" id="statMonthlyOrders">0</span>
+                    </div>
+                </div>
+                <div class="stat-card-pro">
+                    <div class="stat-card-pro-icon" style="background: linear-gradient(135deg, #22c55e, #9C27B0);">💰</div>
+                    <div class="stat-card-pro-content">
+                        <span class="stat-card-pro-label">CA total</span>
+                        <span class="stat-card-pro-value" id="statTotalCA">0 FCFA</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtres -->
+            <div id="clientsFilters" style="display: flex; gap: 10px; margin: 0 28px 16px; flex-wrap: wrap;">
+                <button class="filter-btn active" onclick="filterClients('all')">👥 Tous</button>
+                <button class="filter-btn" onclick="filterClients('VIP')">🥇 VIP</button>
+                <button class="filter-btn" onclick="filterClients('Fidèle')">🥈 Fidèles</button>
+                <button class="filter-btn" onclick="filterClients('Nouveau')">🥉 Nouveaux</button>
+                <button class="btn btn-sm" onclick="exportClientsCSV()" style="margin-left: auto;">📥 Export CSV</button>
             </div>
 
             <div class="content">
