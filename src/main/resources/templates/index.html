@@ -1220,17 +1220,17 @@
             <div style="position: absolute; bottom: -30px; left: -20px; width: 100px; height: 100px; background: rgba(233,30,99,0.1); border-radius: 50%;"></div>
 
             <div style="position: relative; z-index: 2; display: flex; align-items: center; gap: 20px;">
-                <!-- Avatar -->
-                <div id="detClientAvatar" style="width: 80px; height: 80px; background: linear-gradient(135deg, #9C27B0, #E91E63); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 32px; color: #fff; box-shadow: 0 8px 25px rgba(156,39,176,0.4); border: 3px solid rgba(255,255,255,0.2); flex-shrink: 0;">?</div>
+                <!-- Avatar animé -->
+                <div id="detClientAvatar" style="width: 80px; height: 80px; background: linear-gradient(135deg, #9C27B0, #E91E63); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 32px; color: #fff; box-shadow: 0 8px 25px rgba(156,39,176,0.4); border: 3px solid rgba(255,255,255,0.2); flex-shrink: 0; animation: avatarPulse 3s ease-in-out infinite;">?</div>
 
-                <div>
-                    <button onclick="closeClientDetailModal()" style="position: absolute; top: 0; right: 0; background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 50%; color: #fff; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center;">✕</button>
-                    <h2 id="profileClientName" style="margin: 0; font-size: 24px; font-weight: 800; color: #fff;">—</h2>
+                <div style="flex: 1;">
+                    <button onclick="closeClientDetailModal()" style="position: absolute; top: 0; right: 0; background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 50%; color: #fff; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">✕</button>
+                    <h2 id="profileClientName" style="margin: 0; font-size: 24px; font-weight: 800; color: #fff; letter-spacing: -0.3px;">—</h2>
                     <div style="display: flex; gap: 15px; margin-top: 6px; flex-wrap: wrap;">
                         <span id="profileClientPhone" style="font-size: 13px; color: rgba(255,255,255,0.7); display: flex; align-items: center; gap: 5px;">📱 —</span>
                         <span id="profileClientEmail" style="font-size: 13px; color: rgba(255,255,255,0.7); display: flex; align-items: center; gap: 5px;">✉️ —</span>
                     </div>
-                    <span id="profileLoyaltyBadge" style="display: inline-block; margin-top: 10px; padding: 5px 14px; border-radius: 20px; font-weight: 700; font-size: 11px;">—</span>
+                    <span id="profileLoyaltyBadge" style="display: inline-block; margin-top: 10px; padding: 5px 14px; border-radius: 20px; font-weight: 700; font-size: 11px; background: rgba(255,215,0,0.2); color: #FFD700; border: 1px solid rgba(255,215,0,0.3);">—</span>
                 </div>
             </div>
         </div>
@@ -1269,7 +1269,7 @@
                     <tr style="background: #f5f5f5;">
                         <th style="padding: 12px 16px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #888;">N°</th>
                         <th style="padding: 12px 16px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #888;">Date</th>
-                        <th style="padding: 12px 16px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #888;">Articles</th>
+                        <th style="padding: 12px 16px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #888;">Produits</th>
                         <th style="padding: 12px 16px; text-align: right; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #888;">Montant</th>
                     </tr>
                     </thead>
@@ -1281,13 +1281,20 @@
 
             <!-- Actions -->
             <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <a id="profileCallLink" href="#" style="flex: 1; background: #22c55e; color: #fff; text-decoration: none; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 13px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">📞 Appeler</a>
-                <a id="profileEmailLink" href="#" style="flex: 1; background: #3b82f6; color: #fff; text-decoration: none; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 13px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">✉️ Email</a>
-                <button onclick="closeClientDetailModal()" style="flex: 1; background: #f5f5f5; color: #555; border: none; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer;">Fermer</button>
+                <a id="profileCallLink" href="#" style="flex: 1; background: #22c55e; color: #fff; text-decoration: none; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 13px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">📞 Appeler</a>
+                <a id="profileEmailLink" href="#" style="flex: 1; background: #3b82f6; color: #fff; text-decoration: none; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 13px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">✉️ Email</a>
+                <button onclick="closeClientDetailModal()" style="flex: 1; background: #f5f5f5; color: #555; border: none; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#eee'" onmouseout="this.style.background='#f5f5f5'">Fermer</button>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    @keyframes avatarPulse {
+        0%, 100% { box-shadow: 0 8px 25px rgba(156,39,176,0.4); transform: scale(1); }
+        50% { box-shadow: 0 12px 35px rgba(233,30,99,0.5); transform: scale(1.05); }
+    }
+</style>
 
 <style>
     @keyframes modalSlideUp {

@@ -1714,47 +1714,6 @@ async function bulkDelete() {
   clearSelection(); loadProducts();
 }
 
-// ============================================================
-// CLIENTS
-// ============================================================
-async function loadClients() {
-  try {
-    const res = await axios.get(API + '/clients');
-    const c   = document.getElementById('clientsList');
-    if (!c) return;
-    if (!res.data.length) {
-      c.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><p>Aucun client trouvé</p></div>';
-      return;
-    }
-    c.innerHTML = `
-      <table class="clients-table">
-        <thead><tr>
-          <th>ID</th><th>Nom</th><th>Téléphone</th>
-          <th>Commandes</th><th>Total dépensé</th><th>Statut</th>
-        </tr></thead>
-        <tbody>${res.data.map(cl => `
-          <tr>
-            <td><span class="id-pill">${cl.id}</span></td>
-            <td>
-              <div class="client-chip">
-                <div class="client-avatar">${initials(cl.nom)}</div>
-                <strong>${cl.nom}</strong>
-              </div>
-            </td>
-            <td style="color:#777;">${cl.telephone}</td>
-            <td style="font-weight:800;color:#1565C0;">${cl.nombreCommandes || 0}</td>
-            <td class="amount-text">${fmtPrice(cl.totalDepense)} FCFA</td>
-            <td>
-              <span class="status-badge" style="background:#e8f5e9;color:#1b5e20;">
-                ${cl.statut || 'ACTIF'}
-              </span>
-            </td>
-          </tr>`).join('')}
-        </tbody>
-      </table>`;
-  } catch (e) { console.error('Clients:', e); }
-}
-
 function searchClients() {
   const q = (document.getElementById('searchClient')?.value || '').toLowerCase();
   document.querySelectorAll('#clientsList tbody tr').forEach(r => {

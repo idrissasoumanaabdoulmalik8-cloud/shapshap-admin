@@ -43,6 +43,7 @@ async function loadClients() {
         }));
 
         renderClientsTable(allClients);
+         updateClientsStats();
 
     } catch (error) {
         console.error("Erreur base client:", error);
@@ -217,4 +218,69 @@ document.getElementById('profileEmailLink').href = 'mailto:' + client.email;
 
 function closeClientDetailModal() {
     document.getElementById('clientDetailModal').style.display = 'none';
+}
+
+// Stats globales
+async function updateClientsStats() {
+    try {
+        const [clientsRes, ordersRes] = await Promise.all([
+            axios.get(API + '/clients'),
+            axios.get(API + '/orders')
+        ]);
+        const clients = clientsRes.data || [];
+        const orders = ordersRes.data || [];
+
+        // Total clients
+        document.getElementById('statTotalClients').textContent = clients.length;
+
+        // VIP (totalDepense >= 15000)
+        const vips = clients.filter(c => (c.totalDepense || 0) >= 15000).length;
+        document.getElementById('statTotalVIP').textContent = vips;
+
+        // Commandes ce mois
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const monthlyOrders = orders.filter(o => {
+            const d = o.orderDate || o.createdAt || o.date;
+            return d && new Date(d) >= monthStart;
+        }).length;
+        document.getElementById('statMonthlyOrders').textContent = monthlyOrders;
+
+        // CA total
+        const totalCA = orders.reduce((s, o) => s + (o.totalAmount || o.total || 0), 0);
+        document.getElementById('statTotalCA').textContent = totalCA.toLocaleString('fr-FR') + ' FCFA';
+
+    } catch (e) {
+        console.error('Erreur stats clients:', e);
+    }
+}
+
+// Filtres
+let currentFilter = 'all';
+function filterClients(filter) {
+    currentFilter = filter;
+    // Mise à jour des boutons
+    document.querySelectorAll('#clientsFilters .filter-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+
+    let filtered = allClients;
+    if (filter === 'VIP') filtered = allClients.filter(c => (c.totalDepense || 0) >= 15000);
+    else if (filter === 'Fidèle') filtered = allClients.filter(c => (c.totalDepense || 0) >= 5000 && (c.totalDepense || 0) < 15000);
+    else if (filter === 'Nouveau') filtered = allClients.filter(c => (c.totalDepense || 0) < 5000);
+
+    renderClientsTable(filtered);
+}
+
+// Export CSV
+function exportClientsCSV() {
+    let csv = 'ID,Nom,Téléphone,Email,Commandes,Total dépensé,Statut\n';
+    allClients.forEach(c => {
+        csv += `${c.id},"${c.name}","${c.phone}","${c.email}",${c.nombreCommandes || 0},${c.totalDepense || 0},${c.statut || 'ACTIF'}\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'clients_shashap_' + new Date().toISOString().split('T')[0] + '.csv';
+    a.click();
 }
