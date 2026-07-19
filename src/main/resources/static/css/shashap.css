@@ -1882,3 +1882,83 @@ tr:hover .client-avatar {
     color: #fff;
     border-color: #9C27B0;
 }
+
+
+/* ============================================================
+   FAVORIS - Design premium
+   ============================================================ */
+.favorites-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+}
+
+.fav-card {
+    background: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 2px 16px rgba(233,30,99,0.06);
+    border: 1px solid rgba(233,30,99,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.fav-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(233,30,99,0.12);
+}
+
+.fav-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 20px;
+    background: linear-gradient(135deg, #fdf2f8, #fff5f8);
+    border-bottom: 1px solid rgba(233,30,99,0.06);
+}
+.fav-avatar {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #E91E63, #9C27B0);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 18px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(233,30,99,0.3);
+}
+.fav-info { flex: 1; }
+.fav-info strong { font-size: 15px; color: #1a1a2e; }
+.fav-info .fav-phone { font-size: 12px; color: #888; margin-top: 2px; }
+.fav-badge {
+    background: linear-gradient(135deg, #E91E63, #C2185B);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.fav-items {
+    padding: 14px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.fav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #fafafa;
+    border-radius: 12px;
+    transition: background 0.2s;
+}
+.fav-item:hover { background: #fdf2f8; }
+.fav-item-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #fce4ec, #f8f0f6);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+}
+.fav-item-name { flex: 1; font-weight: 600; font-size: 13px; color: #333; }
+.fav-item-price { font-weight: 800; color: #E91E63; font-size: 14px; }

@@ -10,70 +10,56 @@ async function loadFavorites() {
 
     container.innerHTML = `
         <div style="text-align:center; padding: 40px; color: #888;">
-            <div class="spinner" style="margin-bottom:10px;">❤️</div>
+            <div class="spinner">❤️</div>
             Chargement des favoris...
         </div>`;
 
     try {
         const clientsRes = await axios.get(API + '/clients');
         const clients = clientsRes.data || [];
-        let html = '';
-
-        if (clients.length === 0) {
-            container.innerHTML = `
-                <div style="text-align:center; padding: 50px; color: #aaa;">
-                    📭 Aucun client enregistré
-                </div>`;
-            return;
-        }
+        let totalFavs = 0;
+        let cardsHtml = '';
 
         for (const client of clients) {
-            try {
-                const favRes = await axios.get(FAVORITES_API + '/' + client.telephone + '/ids');
-                const favIds = favRes.data || [];
+            const favRes = await axios.get(API + '/favorites/' + client.telephone + '/ids');
+            const favIds = favRes.data || [];
 
-                if (favIds.length > 0) {
-                    // Récupérer les produits favoris pour avoir leurs noms
-                    const productsRes = await axios.get(API + '/products');
-                    const allProducts = productsRes.data || [];
-                    const favProducts = allProducts.filter(p => favIds.includes(p.id));
+            if (favIds.length > 0) {
+                totalFavs += favIds.length;
+                const productsRes = await axios.get(API + '/products');
+                const allProducts = productsRes.data || [];
+                const favProducts = allProducts.filter(p => favIds.includes(p.id));
 
-                    html += `
-                        <div class="favorite-client-card">
-                            <div class="fav-client-header">
-                                <div class="fav-client-avatar">${client.nom.charAt(0).toUpperCase()}</div>
-                                <div>
-                                    <strong>${client.nom}</strong>
-                                    <div style="font-size:12px; color:#888;">📱 ${client.telephone}</div>
+                cardsHtml += `
+                    <div class="fav-card">
+                        <div class="fav-header">
+                            <div class="fav-avatar">${(client.nom || 'C').charAt(0).toUpperCase()}</div>
+                            <div class="fav-info">
+                                <strong>${client.nom}</strong>
+                                <div class="fav-phone">📱 ${client.telephone}</div>
+                            </div>
+                            <span class="fav-badge">❤️ ${favIds.length}</span>
+                        </div>
+                        <div class="fav-items">
+                            ${favProducts.map(p => `
+                                <div class="fav-item">
+                                    <div class="fav-item-icon">🍔</div>
+                                    <span class="fav-item-name">${p.name}</span>
+                                    <span class="fav-item-price">${p.price} FCFA</span>
                                 </div>
-                                <span class="fav-count">${favIds.length} ❤️</span>
-                            </div>
-                            <div class="fav-products-list">
-                                ${favProducts.map(p => `
-                                    <div class="fav-product-item">
-                                        <span>🍔</span>
-                                        <span style="flex:1;">${p.name}</span>
-                                        <span style="color:#E91E63; font-weight:bold;">${p.price} FCFA</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>`;
-                }
-            } catch (e) {
-                console.error('Erreur chargement favoris pour', client.telephone, e);
+                            `).join('')}
+                        </div>
+                    </div>`;
             }
         }
 
-        container.innerHTML = html || `
-            <div style="text-align:center; padding: 50px; color: #aaa;">
-                ❤️ Aucun favori trouvé
-            </div>`;
+        document.getElementById('favoritesStats').textContent = totalFavs + ' favori' + (totalFavs > 1 ? 's' : '');
 
-    } catch (error) {
-        console.error('Erreur chargement favoris:', error);
-        container.innerHTML = `
-            <div style="text-align:center; padding: 30px; color: #e53935;">
-                ❌ Erreur de chargement
-            </div>`;
+        container.innerHTML = cardsHtml
+            ? `<div class="favorites-grid">${cardsHtml}</div>`
+            : `<div style="text-align:center; padding:50px; color:#aaa;">❤️ Aucun favori trouvé</div>`;
+
+    } catch (e) {
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:#e53935;">❌ Erreur</div>`;
     }
 }
