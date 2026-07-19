@@ -206,7 +206,7 @@ document.getElementById('profileEmailLink').href = 'mailto:' + client.email;
             <tr style="border-bottom: 1px solid #fbfbfb;">
                 <td style="padding: 10px 15px; font-weight: bold; color: #E91E63;">#${order.id}</td>
                 <td style="padding: 10px 15px; color:#666;">${order.date ? new Date(order.date).toLocaleDateString('fr-FR') : '—'}</td>
-                <td style="padding: 10px 15px; font-size:12px; color:#444;">${(order.items || []).map(i => i.name || i.productName || '—').join(', ')}</td>
+                <td style="padding: 10px 15px; font-size:12px; color:#444;">${(order.items || []).length > 0 ? order.items.map(i => (i.qty || 1) + 'x ' + (i.name || i.productName || '—')).join(', ') : 'Commande #' + order.id}</td>
                 <td style="padding: 10px 15px; text-align: right; font-weight: bold; color: #181823;">${(order.totalAmount || order.total || 0).toLocaleString('fr-FR')} FCFA</td>
             </tr>
         `).join('');
