@@ -2177,66 +2177,6 @@ async function exportTablePDF() {
   }
 }
 
-// ============================================================
-// ❤️ FAVORIS
-// ============================================================
-async function loadFavorites() {
-    console.log("🟢 loadFavorites appelée !");
-    const container = document.getElementById('favoritesList');
-    console.log("📦 container:", container);
-    if (!container) { console.log("❌ container introuvable"); return; }
-
-    container.innerHTML = '<div style="text-align:center;padding:40px;">❤️ Chargement...</div>';
-
-    try {
-        const clientsRes = await axios.get(API + '/clients');
-        const clients = clientsRes.data || [];
-        console.log("👥 Clients:", clients.length);
-
-        if (clients.length === 0) {
-            container.innerHTML = '<div style="text-align:center;padding:50px;">📭 Aucun client</div>';
-            return;
-        }
-
-        let html = '';
-        for (const client of clients) {
-            try {
-                const favRes = await axios.get(API + '/favorites/' + client.telephone + '/ids');
-                const favIds = favRes.data || [];
-                console.log("📱 " + client.telephone + " → " + favIds.length + " favoris");
-
-                if (favIds.length > 0) {
-                    const productsRes = await axios.get(API + '/products');
-                    const allProducts = productsRes.data || [];
-                    const favProducts = allProducts.filter(p => favIds.includes(p.id));
-
-                    html += '<div style="background:#fff;margin:16px;padding:16px;border-radius:12px;border:1px solid #fce4ec;">';
-                    html += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">';
-                    html += '<div style="width:40px;height:40px;background:#E91E63;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;">' + client.nom.charAt(0).toUpperCase() + '</div>';
-                    html += '<div><strong>' + client.nom + '</strong><div style="font-size:12px;color:#888;">📱 ' + client.telephone + '</div></div>';
-                    html += '<span style="margin-left:auto;background:#E91E63;color:#fff;padding:2px 10px;border-radius:12px;font-size:12px;">❤️ ' + favIds.length + '</span>';
-                    html += '</div>';
-                    favProducts.forEach(function(p) {
-                        html += '<div style="display:flex;align-items:center;gap:8px;padding:8px;background:#fff5f8;border-radius:8px;margin-bottom:6px;">';
-                        html += '<span>🍔</span><span style="flex:1;">' + p.name + '</span>';
-                        html += '<span style="color:#E91E63;font-weight:bold;">' + p.price + ' FCFA</span>';
-                        html += '</div>';
-                    });
-                    html += '</div>';
-                }
-            } catch(e) {
-                console.error('Erreur pour', client.telephone, e);
-            }
-        }
-
-        container.innerHTML = html || '<div style="text-align:center;padding:50px;">❤️ Aucun favori trouvé</div>';
-        console.log("✅ Affichage terminé");
-
-    } catch(error) {
-        console.error('Erreur loadFavorites:', error);
-        container.innerHTML = '<div style="text-align:center;padding:30px;color:red;">❌ Erreur</div>';
-    }
-}
 
 // ============================================================
 // 🖼️ CONVERTISSEUR ET DÉCOUPEUR D'IMAGE EN CERCLE PARFAIT
