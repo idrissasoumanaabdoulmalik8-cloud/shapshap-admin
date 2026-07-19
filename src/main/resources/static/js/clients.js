@@ -183,6 +183,9 @@ async function openClientDetailModal(clientId) {
     document.getElementById('profileClientName').innerText = client.name;
     document.getElementById('profileClientPhone').innerText = `📱 ${client.phone}`;
     document.getElementById('profileClientEmail').innerText = `✉️ ${client.email}`;
+// Liens d'action
+document.getElementById('profileCallLink').href = 'tel:' + client.phone.replace(/[\s]/g, '');
+document.getElementById('profileEmailLink').href = 'mailto:' + client.email;
 
     const badgeEl = document.getElementById('profileLoyaltyBadge');
     badgeEl.innerText = badge.label;
