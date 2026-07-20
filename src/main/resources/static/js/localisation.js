@@ -335,7 +335,6 @@ function loadLocalisation() {
         initLayerSwitcher();
         injectPremiumStyles(); // Injection des styles premium (Marqueurs, Clusters, Popups)
 
-        locMap.on('zoomend', updateMarkerIcons);
     }
 
     loadLocalisationData();
