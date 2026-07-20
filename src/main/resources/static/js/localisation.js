@@ -11,6 +11,9 @@ let markerIdCounter = 0;
 let locLayerGroups = {};
 let currentLayerKey = 'standard';
 
+// Groupe de clusters (Leaflet.markercluster)
+let locClusterGroup = null;
+
 function animateCounter(elementId, targetValue, duration = 800) {
     const el = document.getElementById(elementId);
     if (!el) return;
@@ -27,76 +30,31 @@ function animateCounter(elementId, targetValue, duration = 800) {
     }, 16);
 }
 
+// Remplacement des SVG par vos images officielles avec L.icon()
 function buildMarkerIcon(type) {
-    const id = 'grad' + (++markerIdCounter);
-    let svg = '';
-    if (type === 'orders') {
-        svg = `<svg width="100%" height="100%" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="36" cy="36" r="36" fill="url(#${id})"/>
-            <path d="M22 28L36 20L50 28L36 36L22 28Z" fill="white" opacity="0.95"/>
-            <path d="M22 28V42L36 50V36L22 28Z" fill="white" opacity="0.85"/>
-            <path d="M50 28V42L36 50V36L50 28Z" fill="white" opacity="0.75"/>
-            <defs><linearGradient id="${id}" x1="0" y1="0" x2="72" y2="72">
-                <stop stop-color="#FF9800"/><stop offset="1" stop-color="#F57C00"/>
-            </linearGradient></defs>
-        </svg>`;
-    } else if (type === 'events') {
-        svg = `<svg width="100%" height="100%" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="36" cy="36" r="36" fill="url(#${id})"/>
-            <path d="M24 20H48V28H24V20Z" fill="white" opacity="0.9"/>
-            <path d="M26 28V46H46V28H26Z" fill="white" opacity="0.8"/>
-            <circle cx="32" cy="38" r="2" fill="#9C27B0"/>
-            <circle cx="40" cy="38" r="2" fill="#9C27B0"/>
-            <path d="M30 44H42" stroke="#9C27B0" stroke-width="2" stroke-linecap="round"/>
-            <defs><linearGradient id="${id}" x1="0" y1="0" x2="72" y2="72">
-                <stop stop-color="#9C27B0"/><stop offset="1" stop-color="#E91E63"/>
-            </linearGradient></defs>
-        </svg>`;
-    } else if (type === 'clients') {
-        svg = `<svg width="100%" height="100%" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="36" cy="36" r="36" fill="url(#${id})"/>
-            <circle cx="28" cy="28" r="6" fill="white" opacity="0.9"/>
-            <circle cx="44" cy="28" r="6" fill="white" opacity="0.9"/>
-            <path d="M22 48C22 42.477 26.477 38 32 38H40C45.523 38 50 42.477 50 48V50H22V48Z" fill="white" opacity="0.9"/>
-            <defs><linearGradient id="${id}" x1="0" y1="0" x2="72" y2="72">
-                <stop stop-color="#1E88E5"/><stop offset="1" stop-color="#00BCD4"/>
-            </linearGradient></defs>
-        </svg>`;
-    } else if (type === 'restaurants') {
-        svg = `<svg width="100%" height="100%" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="36" cy="36" r="36" fill="url(#${id})"/>
-            <path d="M28 22H44V26H40V38H32V26H28V22Z" fill="white" opacity="0.9"/>
-            <rect x="30" y="38" width="12" height="12" fill="white" opacity="0.8"/>
-            <defs><linearGradient id="${id}" x1="0" y1="0" x2="72" y2="72">
-                <stop stop-color="#DC2626"/><stop offset="1" stop-color="#F97316"/>
-            </linearGradient></defs>
-        </svg>`;
-    }
-    return svg;
+   const iconUrls = {
+       restaurants: 'images/image_2f3f9f.png',
+       clients: 'images/image_2f4017.png',
+       orders: 'images/image_2f405b.png',
+       events: 'images/image_2f4098.png'
+   };
+
+    return L.icon({
+        iconUrl: iconUrls[type] || 'image_2f4017.png',
+        iconSize: [46, 46],       // Taille homogène de 46px
+        iconAnchor: [23, 46],     // Le point d'ancrage est la pointe bas-centre (23 = moitié de 46)
+        popupAnchor: [0, -42],    // Le popup s'ouvre juste au-dessus du marqueur
+        className: 'shashap-marker' // Classe pour les animations CSS (ombre, rebond, survol)
+    });
 }
 
-const BASE_ZOOM = 13;
-const BASE_SIZE = 120;
-
+// Les icônes ont désormais une taille fixe (46px) et restent visibles partout
 function getCurrentIconSize() {
-    if (!locMap) return BASE_SIZE;
-    const zoom = locMap.getZoom();
-    const scale = Math.pow(2, BASE_ZOOM - zoom);
-    return Math.max(40, Math.round(BASE_SIZE * scale));
+    return 46;
 }
 
 function updateMarkerIcons() {
-    const size = getCurrentIconSize();
-    locMarkers.forEach(marker => {
-        const oldHtml = marker.getIcon().options.html;
-        const newIcon = L.divIcon({
-            html: oldHtml,
-            iconSize: [size, size],
-            iconAnchor: [size/2, size/2],
-            className: 'marker-icon-animated'
-        });
-        marker.setIcon(newIcon);
-    });
+    // Désactivé : Exigence respectée (rester visibles à tous les niveaux de zoom sans redimensionnement dynamique).
 }
 
 async function geocodeAddress(address) {
@@ -119,6 +77,154 @@ async function geocodeAddress(address) {
     return null;
 }
 
+function injectPremiumStyles() {
+    if (document.getElementById('shashap-premium-ui-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'shashap-premium-ui-styles';
+    style.innerHTML = `
+        /* 🎨 MARQUEURS (Animations et Ombres) */
+        .shashap-marker {
+            filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.2));
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease !important;
+            animation: markerPopIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+            will-change: transform;
+        }
+        .shashap-marker:hover {
+            transform: scale(1.15) translateY(-4px) !important;
+            filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.3));
+            z-index: 1000 !important;
+        }
+        .shashap-bounce {
+            animation: markerBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        }
+
+        /* 📦 CLUSTERS */
+        .shashap-cluster-custom {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 2px solid #111827;
+            border-radius: 50%;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: markerPopIn 0.4s ease backwards;
+            transition: transform 0.2s, background 0.2s;
+        }
+        .shashap-cluster-custom:hover {
+            transform: scale(1.1);
+            background: #ffffff;
+        }
+        .shashap-cluster-icon {
+            font-weight: 800;
+            font-size: 15px;
+            color: #111827;
+            font-family: inherit;
+        }
+
+        /* 💬 POPUPS MODERNES */
+        .shashap-popup-wrapper .leaflet-popup-content-wrapper {
+            padding: 0 !important;
+            border-radius: 16px !important;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            background: #ffffff;
+        }
+        .shashap-popup-wrapper .leaflet-popup-content {
+            margin: 0 !important;
+            width: 240px !important;
+        }
+        .shashap-popup-wrapper .leaflet-popup-tip {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        .shashap-popup-wrapper .leaflet-popup-close-button {
+            color: #111827 !important;
+            top: 10px !important;
+            right: 10px !important;
+            background: rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(4px);
+            border-radius: 50%;
+            width: 26px !important;
+            height: 26px !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            transition: all 0.2s;
+        }
+        .shashap-popup-wrapper .leaflet-popup-close-button:hover {
+            background: #f1f5f9 !important;
+            transform: scale(1.05);
+        }
+
+        .shashap-modern-popup {
+            font-family: inherit;
+            display: flex;
+            flex-direction: column;
+        }
+        .popup-header {
+            padding: 14px 16px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .popup-body {
+            padding: 16px;
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.6;
+        }
+        .popup-body b {
+            display: block;
+            font-size: 16px;
+            color: #0f172a;
+            margin-bottom: 6px;
+            letter-spacing: -0.3px;
+        }
+        .popup-btn {
+            margin: 0 16px 16px 16px;
+            padding: 12px;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .popup-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+        }
+
+        /* KEYFRAMES */
+        @keyframes markerPopIn {
+            0% { opacity: 0; transform: scale(0) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes markerBounce {
+            0%, 100% { transform: scale(1) translateY(0); }
+            50% { transform: scale(0.8) translateY(6px); }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 function initLayerSwitcher() {
     // 1. Définition des groupes de calques professionnels
     locLayerGroups.standard = L.layerGroup([
@@ -139,101 +245,28 @@ function initLayerSwitcher() {
         }),
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
             attribution: '© CartoDB',
-            pane: 'shadowPane' // Maintient les étiquettes lisibles au-dessus des tuiles satellites
+            pane: 'shadowPane'
         })
     ]);
 
-    // Activation de la couche standard par défaut
     locLayerGroups[currentLayerKey].addTo(locMap);
 
-    // 2. Injection dynamique des styles CSS pour un rendu premium sans toucher à vos fichiers CSS externes
+    // 2. Injection dynamique des styles CSS (Géré dans le fichier HTML précédent ou maintenu ici)
     if (!document.getElementById('shashap-switcher-styles')) {
         const style = document.createElement('style');
         style.id = 'shashap-switcher-styles';
         style.innerHTML = `
-            .shashap-layer-control {
-                position: absolute;
-                top: 20px;
-                right: 20px;
-                z-index: 1100;
-                font-family: inherit;
-            }
-            .switcher-btn {
-                background: rgba(255, 255, 255, 0.85);
-                backdrop-filter: blur(12px);
-                -webkit-backdrop-filter: blur(12px);
-                border: 1px solid rgba(0, 0, 0, 0.08);
-                border-radius: 14px;
-                width: 44px;
-                height: 44px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                font-size: 18px;
-            }
-            .switcher-btn:hover {
-                transform: scale(1.04);
-                background: #ffffff;
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            }
-            .switcher-menu {
-                position: absolute;
-                top: 56px;
-                right: 0;
-                background: rgba(255, 255, 255, 0.9);
-                backdrop-filter: blur(16px);
-                -webkit-backdrop-filter: blur(16px);
-                border: 1px solid rgba(0, 0, 0, 0.06);
-                border-radius: 18px;
-                padding: 12px;
-                display: flex;
-                gap: 12px;
-                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
-                opacity: 0;
-                transform: translateY(-12px) scale(0.95);
-                pointer-events: none;
-                transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            }
-            .shashap-layer-control.open .switcher-menu {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-                pointer-events: auto;
-            }
-            .layer-opt {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 6px;
-                cursor: pointer;
-                width: 58px;
-            }
-            .layer-thumb {
-                width: 54px;
-                height: 54px;
-                border-radius: 12px;
-                border: 2px solid transparent;
-                transition: all 0.25s ease;
-            }
-            .layer-opt:hover .layer-thumb {
-                transform: translateY(-2px);
-            }
-            .layer-opt.active .layer-thumb {
-                border-color: #111827;
-                box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.15);
-            }
-            .layer-opt span {
-                font-size: 11px;
-                font-weight: 600;
-                color: #64748b;
-                transition: color 0.2s;
-            }
-            .layer-opt.active span {
-                color: #111827;
-                font-weight: 700;
-            }
+            .shashap-layer-control { position: absolute; top: 20px; right: 20px; z-index: 1100; font-family: inherit; }
+            .switcher-btn { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 14px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06); transition: all 0.3s; font-size: 18px; }
+            .switcher-btn:hover { transform: scale(1.04); background: #ffffff; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1); }
+            .switcher-menu { position: absolute; top: 56px; right: 0; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(16px); border: 1px solid rgba(0, 0, 0, 0.06); border-radius: 18px; padding: 12px; display: flex; gap: 12px; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12); opacity: 0; transform: translateY(-12px) scale(0.95); pointer-events: none; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+            .shashap-layer-control.open .switcher-menu { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+            .layer-opt { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; width: 58px; }
+            .layer-thumb { width: 54px; height: 54px; border-radius: 12px; border: 2px solid transparent; transition: all 0.25s ease; }
+            .layer-opt:hover .layer-thumb { transform: translateY(-2px); }
+            .layer-opt.active .layer-thumb { border-color: #111827; box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.15); }
+            .layer-opt span { font-size: 11px; font-weight: 600; color: #64748b; transition: color 0.2s; }
+            .layer-opt.active span { color: #111827; font-weight: 700; }
             .thumb-standard { background: linear-gradient(135deg, #aad3df 0%, #f2efe9 100%); border: 1px solid rgba(0,0,0,0.1); }
             .thumb-satellite { background: linear-gradient(135deg, #182c16 0%, #3a5337 100%); }
             .thumb-hybrid { background: linear-gradient(135deg, #1e293b 0%, #64748b 100%); }
@@ -241,7 +274,6 @@ function initLayerSwitcher() {
         document.head.appendChild(style);
     }
 
-    // 3. Construction et injection des éléments DOM dans le conteneur de la carte
     const container = document.getElementById('locMapContainer');
     if (!container) return;
 
@@ -266,16 +298,13 @@ function initLayerSwitcher() {
     `;
     container.appendChild(controlDiv);
 
-    // 4. Attachement des gestionnaires d'événements interactifs
     const btn = controlDiv.querySelector('.switcher-btn');
     btn.addEventListener('click', (e) => {
         e.stopPropagation();
         controlDiv.classList.toggle('open');
     });
 
-    locMap.on('click', () => {
-        controlDiv.classList.remove('open');
-    });
+    locMap.on('click', () => controlDiv.classList.remove('open'));
 
     controlDiv.querySelectorAll('.layer-opt').forEach(opt => {
         opt.addEventListener('click', (e) => {
@@ -283,11 +312,9 @@ function initLayerSwitcher() {
             const targetLayer = opt.getAttribute('data-layer');
             if (targetLayer === currentLayerKey) return;
 
-            // Remplacement instantané de la couche de tuiles sans impacter les marqueurs
             locMap.removeLayer(locLayerGroups[currentLayerKey]);
             locLayerGroups[targetLayer].addTo(locMap);
 
-            // Mise à jour de l'état visuel de l'interface
             controlDiv.querySelector('.layer-opt.active').classList.remove('active');
             opt.classList.add('active');
             currentLayerKey = targetLayer;
@@ -305,8 +332,8 @@ function loadLocalisation() {
 
         locMap = L.map('locMapContainer').setView([13.5116, 2.1254], 13);
 
-        // Initialisation de la gestion avancée des calques
         initLayerSwitcher();
+        injectPremiumStyles(); // Injection des styles premium (Marqueurs, Clusters, Popups)
 
         locMap.on('zoomend', updateMarkerIcons);
     }
@@ -356,23 +383,82 @@ async function loadLocalisationData() {
         const totalRestaurants = Math.max(restaurants.length, 1);
         animateCounter('locCountRestaurants', totalRestaurants);
 
-        locMarkers.forEach(m => locMap.removeLayer(m));
+        // Nettoyage intelligent des anciens marqueurs
+        if (locClusterGroup) {
+            locClusterGroup.clearLayers();
+            locMap.removeLayer(locClusterGroup);
+        } else {
+            locMarkers.forEach(m => locMap.removeLayer(m));
+        }
         locMarkers = [];
 
-        const currentSize = getCurrentIconSize();
-
-        const addMarker = (lat, lng, type, popupHtml) => {
-            const icon = L.divIcon({
-                html: buildMarkerIcon(type),
-                iconSize: [currentSize, currentSize],
-                iconAnchor: [currentSize/2, currentSize/2],
-                className: 'marker-icon-animated'
+        // Initialisation de Leaflet.markercluster (ou FeatureGroup classique si le script JS est manquant)
+        if (typeof L.markerClusterGroup === 'function') {
+            locClusterGroup = L.markerClusterGroup({
+                showCoverageOnHover: false,
+                spiderfyOnMaxZoom: true,
+                maxClusterRadius: 45,
+                iconCreateFunction: function (cluster) {
+                    return L.divIcon({
+                        html: `<div class="shashap-cluster-icon">${cluster.getChildCount()}</div>`,
+                        className: 'shashap-cluster-custom',
+                        iconSize: [44, 44]
+                    });
+                }
             });
-            const marker = L.marker([lat, lng], { icon }).addTo(locMap);
-            marker.bindPopup(`<div class="shashap-popup">${popupHtml}</div>`);
-            locMarkers.push(marker);
+        } else {
+            console.warn("Leaflet.markercluster non détecté, repli sur L.featureGroup.");
+            locClusterGroup = L.featureGroup();
+        }
+
+        // Fonction addMarker repensée pour le design premium sans casser vos chaînes de caractères existantes
+        const addMarker = (lat, lng, type, popupHtml) => {
+            const marker = L.marker([lat, lng], { icon: buildMarkerIcon(type) });
+
+            // Dictionnaire des thèmes pour les popups
+            const themes = {
+                orders: { color: '#FF9800', bg: '#fff3e0', label: 'Commande' },
+                events: { color: '#9C27B0', bg: '#f3e5f5', label: 'Événement' },
+                clients: { color: '#1E88E5', bg: '#e3f2fd', label: 'Client' },
+                restaurants: { color: '#DC2626', bg: '#ffebee', label: 'Restaurant' }
+            };
+            const theme = themes[type] || themes.clients;
+
+            // Enrobage de vos données exactes dans une structure HTML moderne
+            const modernPopup = `
+                <div class="shashap-modern-popup">
+                    <div class="popup-header" style="background: ${theme.bg}; color: ${theme.color};">
+                        <span class="badge-dot" style="background: ${theme.color}"></span>
+                        ${theme.label}
+                    </div>
+                    <div class="popup-body">
+                        ${popupHtml}
+                    </div>
+                    <button class="popup-btn" style="background: ${theme.color}">Voir les détails</button>
+                </div>
+            `;
+
+            marker.bindPopup(modernPopup, {
+                className: 'shashap-popup-wrapper',
+                closeButton: true
+            });
+
+            // Animation de rebond au clic
+            marker.on('click', function(e) {
+                const el = e.target.getElement();
+                if (el) {
+                    el.classList.remove('shashap-bounce');
+                    void el.offsetWidth; // Force le reflow pour relancer l'animation
+                    el.classList.add('shashap-bounce');
+                }
+            });
+
+            // Ajout au cluster au lieu de la carte
+            locClusterGroup.addLayer(marker);
+            locMarkers.push(marker); // On conserve votre tableau pour le zoom automatique
         };
 
+        // --- INJECTION DES DONNÉES INTACTE ---
         if (type === 'all' || type === 'orders') {
             orders.filter(o => o.latitude && o.longitude).forEach(order => {
                 if (search && !(order.customerName || '').toLowerCase().includes(search)) return;
@@ -411,9 +497,11 @@ async function loadLocalisationData() {
             }
         }
 
+        // Ajout du cluster final sur la carte
+        locMap.addLayer(locClusterGroup);
+
         if (locMarkers.length > 0) {
-            const group = L.featureGroup(locMarkers);
-            locMap.fitBounds(group.getBounds().pad(0.1));
+            locMap.fitBounds(locClusterGroup.getBounds().pad(0.1));
         } else {
             console.log('Aucun marqueur trouvé.');
         }
