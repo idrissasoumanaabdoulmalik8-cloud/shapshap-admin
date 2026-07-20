@@ -14,6 +14,15 @@ let currentLayerKey = 'standard';
 // Groupe de clusters (Leaflet.markercluster)
 let locClusterGroup = null;
 
+// Cache géocodage
+const geocodeCache = {};
+
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+}
+
 function animateCounter(elementId, targetValue, duration = 800) {
     const el = document.getElementById(elementId);
     if (!el) return;
@@ -30,44 +39,49 @@ function animateCounter(elementId, targetValue, duration = 800) {
     }, 16);
 }
 
-// Remplacement des SVG par vos images officielles avec L.icon()
 function buildMarkerIcon(type) {
-   const iconUrls = {
-       restaurants: 'images/image_2f3f9f.png',
-       clients: 'images/image_2f4017.png',
-       orders: 'images/image_2f405b.png',
-       events: 'images/image_2f4098.png'
-   };
+    const iconUrls = {
+        restaurants: 'images/image_2f3f9f.png',
+        clients: 'images/image_2f4017.png',
+        orders: 'images/image_2f405b.png',
+        events: 'images/image_2f4098.png'
+    };
 
     return L.icon({
-        iconUrl: iconUrls[type] || 'image_2f4017.png',
-        iconSize: [46, 46],       // Taille homogène de 46px
-        iconAnchor: [23, 46],     // Le point d'ancrage est la pointe bas-centre (23 = moitié de 46)
-        popupAnchor: [0, -42],    // Le popup s'ouvre juste au-dessus du marqueur
-        className: 'shashap-marker' // Classe pour les animations CSS (ombre, rebond, survol)
+        iconUrl: iconUrls[type] || 'images/image_2f4017.png',
+        iconSize: [46, 46],
+        iconAnchor: [23, 46],
+        popupAnchor: [0, -42],
+        className: 'shashap-marker'
     });
 }
 
-// Les icônes ont désormais une taille fixe (46px) et restent visibles partout
 function getCurrentIconSize() {
     return 46;
 }
 
 function updateMarkerIcons() {
-    // Désactivé : Exigence respectée (rester visibles à tous les niveaux de zoom sans redimensionnement dynamique).
+    // Désactivé
 }
 
 async function geocodeAddress(address) {
+    if (!address) return null;
+    if (geocodeCache[address]) {
+        console.log(`📦 Cache : ${address} → ${geocodeCache[address].lat}, ${geocodeCache[address].lon}`);
+        return geocodeCache[address];
+    }
     try {
         const resp = await axios.get('https://nominatim.openstreetmap.org/search', {
             params: { q: address, format: 'json', limit: 1 }
         });
         if (resp.data && resp.data.length > 0) {
-            console.log(`✅ Géocodage réussi : ${address} → ${resp.data[0].lat}, ${resp.data[0].lon}`);
-            return {
+            const result = {
                 lat: parseFloat(resp.data[0].lat),
                 lon: parseFloat(resp.data[0].lon)
             };
+            geocodeCache[address] = result;
+            console.log(`✅ Géocodage réussi : ${address} → ${result.lat}, ${result.lon}`);
+            return result;
         } else {
             console.warn(`⚠️ Adresse introuvable : ${address}`);
         }
@@ -82,7 +96,6 @@ function injectPremiumStyles() {
     const style = document.createElement('style');
     style.id = 'shashap-premium-ui-styles';
     style.innerHTML = `
-        /* 🎨 MARQUEURS (Animations et Ombres) */
         .shashap-marker {
             filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.2));
             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease !important;
@@ -97,8 +110,6 @@ function injectPremiumStyles() {
         .shashap-bounce {
             animation: markerBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
         }
-
-        /* 📦 CLUSTERS */
         .shashap-cluster-custom {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(8px);
@@ -122,8 +133,6 @@ function injectPremiumStyles() {
             color: #111827;
             font-family: inherit;
         }
-
-        /* 💬 POPUPS MODERNES */
         .shashap-popup-wrapper .leaflet-popup-content-wrapper {
             padding: 0 !important;
             border-radius: 16px !important;
@@ -159,7 +168,6 @@ function injectPremiumStyles() {
             background: #f1f5f9 !important;
             transform: scale(1.05);
         }
-
         .shashap-modern-popup {
             font-family: inherit;
             display: flex;
@@ -211,8 +219,6 @@ function injectPremiumStyles() {
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba(0,0,0,0.15);
         }
-
-        /* KEYFRAMES */
         @keyframes markerPopIn {
             0% { opacity: 0; transform: scale(0) translateY(20px); }
             100% { opacity: 1; transform: scale(1) translateY(0); }
@@ -226,7 +232,6 @@ function injectPremiumStyles() {
 }
 
 function initLayerSwitcher() {
-    // 1. Définition des groupes de calques professionnels
     locLayerGroups.standard = L.layerGroup([
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap'
@@ -251,7 +256,6 @@ function initLayerSwitcher() {
 
     locLayerGroups[currentLayerKey].addTo(locMap);
 
-    // 2. Injection dynamique des styles CSS (Géré dans le fichier HTML précédent ou maintenu ici)
     if (!document.getElementById('shashap-switcher-styles')) {
         const style = document.createElement('style');
         style.id = 'shashap-switcher-styles';
@@ -324,6 +328,10 @@ function initLayerSwitcher() {
 }
 
 function loadLocalisation() {
+    if (typeof L === 'undefined') { console.error('❌ Leaflet non chargé'); return; }
+    if (typeof axios === 'undefined') { console.error('❌ Axios non chargé'); return; }
+    if (typeof API === 'undefined') { console.error('❌ API non définie'); return; }
+
     console.log('📍 Chargement localisation...');
 
     if (!locMap) {
@@ -333,8 +341,7 @@ function loadLocalisation() {
         locMap = L.map('locMapContainer').setView([13.5116, 2.1254], 13);
 
         initLayerSwitcher();
-        injectPremiumStyles(); // Injection des styles premium (Marqueurs, Clusters, Popups)
-
+        injectPremiumStyles();
     }
 
     loadLocalisationData();
@@ -345,19 +352,20 @@ async function loadLocalisationData() {
     const search = document.getElementById('locSearch')?.value?.toLowerCase() || '';
 
     try {
-        const ordersRes = await axios.get(API + '/orders');
+        const [ordersRes, clientsRes] = await Promise.all([
+            axios.get(API + '/orders', { timeout: 10000 }),
+            axios.get(API + '/clients', { timeout: 10000 })
+        ]);
         const orders = ordersRes.data || [];
-
-        const events = (typeof storiesData !== 'undefined' ? storiesData.filter(s => s.isEvent) : []);
-
-        const clientsRes = await axios.get(API + '/clients');
         let clients = clientsRes.data || [];
+
+        const events = (typeof storiesData !== 'undefined' && Array.isArray(storiesData) ? storiesData.filter(s => s && s.isEvent) : []);
 
         let restaurants = [];
         let hasApiRestaurants = false;
         try {
-            const restRes = await axios.get(API + '/restaurants');
-            restaurants = restRes.data || [];
+            const restRes = await axios.get(API + '/restaurants', { timeout: 5000 });
+            restaurants = Array.isArray(restRes.data) ? restRes.data : [];
             hasApiRestaurants = restaurants.length > 0;
         } catch (e) {
             console.warn('Endpoint /restaurants non disponible – utilisation du restaurant par défaut.');
@@ -365,14 +373,13 @@ async function loadLocalisationData() {
 
         console.log(`👥 ${clients.length} clients récupérés, vérification des adresses...`);
         for (let client of clients) {
-            if ((!client.latitude || !client.longitude) && client.adresse) {
-                console.log(`🔄 Tentative de géocodage pour ${client.nom} : ${client.adresse}`);
+            if (client && (!client.latitude || !client.longitude) && client.adresse) {
                 const coords = await geocodeAddress(client.adresse);
                 if (coords) {
                     client.latitude = coords.lat;
                     client.longitude = coords.lon;
                 }
-                await new Promise(r => setTimeout(r, 1000));
+                await new Promise(r => setTimeout(r, 200));
             }
         }
 
@@ -382,7 +389,6 @@ async function loadLocalisationData() {
         const totalRestaurants = Math.max(restaurants.length, 1);
         animateCounter('locCountRestaurants', totalRestaurants);
 
-        // Nettoyage intelligent des anciens marqueurs
         if (locClusterGroup) {
             locClusterGroup.clearLayers();
             locMap.removeLayer(locClusterGroup);
@@ -391,7 +397,6 @@ async function loadLocalisationData() {
         }
         locMarkers = [];
 
-        // Initialisation de Leaflet.markercluster (ou FeatureGroup classique si le script JS est manquant)
         if (typeof L.markerClusterGroup === 'function') {
             locClusterGroup = L.markerClusterGroup({
                 showCoverageOnHover: false,
@@ -410,11 +415,9 @@ async function loadLocalisationData() {
             locClusterGroup = L.featureGroup();
         }
 
-        // Fonction addMarker repensée pour le design premium sans casser vos chaînes de caractères existantes
         const addMarker = (lat, lng, type, popupHtml) => {
             const marker = L.marker([lat, lng], { icon: buildMarkerIcon(type) });
 
-            // Dictionnaire des thèmes pour les popups
             const themes = {
                 orders: { color: '#FF9800', bg: '#fff3e0', label: 'Commande' },
                 events: { color: '#9C27B0', bg: '#f3e5f5', label: 'Événement' },
@@ -423,7 +426,6 @@ async function loadLocalisationData() {
             };
             const theme = themes[type] || themes.clients;
 
-            // Enrobage de vos données exactes dans une structure HTML moderne
             const modernPopup = `
                 <div class="shashap-modern-popup">
                     <div class="popup-header" style="background: ${theme.bg}; color: ${theme.color};">
@@ -433,7 +435,6 @@ async function loadLocalisationData() {
                     <div class="popup-body">
                         ${popupHtml}
                     </div>
-                    <button class="popup-btn" style="background: ${theme.color}">Voir les détails</button>
                 </div>
             `;
 
@@ -442,67 +443,64 @@ async function loadLocalisationData() {
                 closeButton: true
             });
 
-            // Animation de rebond au clic
             marker.on('click', function(e) {
                 const el = e.target.getElement();
                 if (el) {
                     el.classList.remove('shashap-bounce');
-                    void el.offsetWidth; // Force le reflow pour relancer l'animation
+                    void el.offsetWidth;
                     el.classList.add('shashap-bounce');
                 }
             });
 
-            // Ajout au cluster au lieu de la carte
             locClusterGroup.addLayer(marker);
-            locMarkers.push(marker); // On conserve votre tableau pour le zoom automatique
+            locMarkers.push(marker);
         };
 
-        // --- INJECTION DES DONNÉES INTACTE ---
         if (type === 'all' || type === 'orders') {
-            orders.filter(o => o.latitude && o.longitude).forEach(order => {
+            orders.filter(o => o && o.latitude && o.longitude).forEach(order => {
                 if (search && !(order.customerName || '').toLowerCase().includes(search)) return;
                 addMarker(order.latitude, order.longitude, 'orders',
-                    `<b>📦 ${order.orderNumber || order.id}</b><br>${order.customerName || 'Client'}<br>${Number(order.totalAmount || 0).toLocaleString('fr-FR')} FCFA`);
+                    `<b>📦 ${escapeHtml(order.orderNumber || order.id)}</b><br>${escapeHtml(order.customerName || 'Client')}<br>${Number(order.totalAmount || 0).toLocaleString('fr-FR')} FCFA`);
             });
         }
 
         if (type === 'all' || type === 'events') {
-            events.filter(ev => ev.latitude && ev.longitude).forEach(ev => {
+            events.filter(ev => ev && ev.latitude && ev.longitude).forEach(ev => {
                 if (search && !(ev.name || ev.artistName || '').toLowerCase().includes(search)) return;
                 addMarker(ev.latitude, ev.longitude, 'events',
-                    `<b>🎉 ${ev.artistName || ev.name}</b><br>${ev.venue || ''}<br>${ev.eventDate || ''}`);
+                    `<b>🎉 ${escapeHtml(ev.artistName || ev.name)}</b><br>${escapeHtml(ev.venue || '')}<br>${escapeHtml(ev.eventDate || '')}`);
             });
         }
 
         if (type === 'all' || type === 'clients') {
-            clients.filter(c => c.latitude && c.longitude).forEach(client => {
+            clients.filter(c => c && c.latitude && c.longitude).forEach(client => {
                 if (search && !(client.nom || '').toLowerCase().includes(search)) return;
                 addMarker(client.latitude, client.longitude, 'clients',
-                    `<b>👤 ${client.nom}</b><br>📱 ${client.telephone}<br>📦 ${client.nombreCommandes || 0} commandes`);
+                    `<b>👤 ${escapeHtml(client.nom)}</b><br>📱 ${escapeHtml(client.telephone)}<br>📦 ${client.nombreCommandes || 0} commandes`);
             });
         }
 
         if (type === 'all' || type === 'restaurants') {
-            restaurants.filter(r => r.latitude && r.longitude).forEach(resto => {
+            restaurants.filter(r => r && r.latitude && r.longitude).forEach(resto => {
                 if (search && !(resto.nom || '').toLowerCase().includes(search)) return;
                 addMarker(resto.latitude, resto.longitude, 'restaurants',
-                    `<b>🍽️ ${resto.nom}</b><br>📞 ${resto.telephone || ''}<br>⭐ ${resto.note || '-'}`);
+                    `<b>🍽️ ${escapeHtml(resto.nom)}</b><br>📞 ${escapeHtml(resto.telephone || '')}<br>⭐ ${escapeHtml(resto.note || '-')}`);
             });
 
             if (!hasApiRestaurants) {
                 const defaultResto = { lat: 13.5116, lng: 2.1254, nom: "Shashap" };
                 addMarker(defaultResto.lat, defaultResto.lng, 'restaurants',
-                    `<b>🍽️ ${defaultResto.nom}</b><br>📍 Position par défaut`);
+                    `<b>🍽️ ${escapeHtml(defaultResto.nom)}</b><br>📍 Position par défaut`);
             }
         }
 
-        // Ajout du cluster final sur la carte
         locMap.addLayer(locClusterGroup);
 
         if (locMarkers.length > 0) {
             locMap.fitBounds(locClusterGroup.getBounds().pad(0.1));
         } else {
             console.log('Aucun marqueur trouvé.');
+            locMap.setView([13.5116, 2.1254], 13);
         }
 
     } catch (error) {
