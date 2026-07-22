@@ -411,6 +411,7 @@ function fetchQrCodeBase64(targetUrl) {
     img.src = qrApiUrl;
   });
 }
+
 function loadCatalog() {
     if (typeof loadCatalogFromAPI === 'function') {
         loadCatalogFromAPI();
