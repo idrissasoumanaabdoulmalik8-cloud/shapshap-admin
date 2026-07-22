@@ -20,6 +20,105 @@
  // ============================================================
  // 🔔 TOAST NOTIFICATION
  // ============================================================
+ // ============================================================
+ // 🔄 CHARGEMENT DES PRODUITS DEPUIS L'API
+ // ============================================================
+ async function loadCatalogFromAPI() {
+     var container = document.getElementById('catalogMain');
+     if (!container) return;
+
+     container.innerHTML = '<div style="text-align:center; padding:60px; color:#B8708F;">🌸 Chargement du catalogue...</div>';
+
+     try {
+         var response = await axios.get(API + '/products');
+         catalogProducts = response.data || [];
+         renderCatalogWeb();
+     } catch (e) {
+         console.error('Erreur chargement catalogue:', e);
+         container.innerHTML = '<div style="text-align:center; padding:60px; color:#E91E63;">❌ Erreur de chargement du catalogue</div>';
+     }
+ }
+
+ // ============================================================
+ // 🖥️ RENDU WEB DU CATALOGUE
+ // ============================================================
+ function renderCatalogWeb() {
+     var container = document.getElementById('catalogMain');
+     if (!container) return;
+
+     container.innerHTML = '';
+
+     var available = catalogProducts.filter(function(p) { return p.isAvailable; });
+
+     if (available.length === 0) {
+         container.innerHTML = '<div style="text-align:center; padding:60px; color:#B8708F;">📭 Aucun produit disponible</div>';
+         return;
+     }
+
+     var sections = {};
+     available.forEach(function(p) {
+         var cat = (p.category || 'Incontournables').toUpperCase();
+         if (!sections[cat]) sections[cat] = [];
+         sections[cat].push(p);
+     });
+
+     for (var sec in sections) {
+         if (!sections.hasOwnProperty(sec)) continue;
+         var prods = sections[sec];
+
+         var sectionEl = document.createElement('section');
+         sectionEl.className = 'category-block';
+
+         var titleEl = document.createElement('h2');
+         titleEl.className = 'category-title';
+         titleEl.textContent = '— ' + sec + ' —';
+         sectionEl.appendChild(titleEl);
+
+         var gridEl = document.createElement('div');
+         gridEl.className = 'products-grid';
+
+         prods.forEach(function(p) {
+             var cardEl = document.createElement('div');
+             cardEl.className = 'product-card';
+
+             var imgSrc = p.imageUrl || '';
+             var proxyUrl = imgSrc ? '/proxy-image?url=' + encodeURIComponent(imgSrc) : '';
+
+             var imageHtml = imgSrc
+                 ? '<img src="' + proxyUrl + '" alt="' + (p.name || '') + '" class="product-image" loading="lazy" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
+                   '<div class="product-image-fallback" style="display:none; width:100%; height:100%; align-items:center; justify-content:center; background:var(--color-charbon-doux); font-size:40px;">' +
+                   getCatalogCategoryEmoji(p.category) +
+                   '</div>'
+                 : '<div class="product-image-fallback" style="display:flex; width:100%; height:100%; align-items:center; justify-content:center; background:var(--color-charbon-doux); font-size:40px;">' +
+                   getCatalogCategoryEmoji(p.category) +
+                   '</div>';
+
+             cardEl.innerHTML =
+                 '<div class="product-image-container">' +
+                 imageHtml +
+                 '</div>' +
+                 '<div class="product-info">' +
+                 '<div>' +
+                 '<h3 class="product-name">' + (p.name || 'Sans nom') + '</h3>' +
+                 '<p class="product-desc">' + (p.description || 'Une création Shashap') + '</p>' +
+                 '</div>' +
+                 '<div class="product-price">' + Number(p.price || 0).toLocaleString('fr-FR') + ' FCFA</div>' +
+                 '</div>';
+
+             gridEl.appendChild(cardEl);
+         });
+
+         sectionEl.appendChild(gridEl);
+         container.appendChild(sectionEl);
+     }
+ }
+
+ function getCatalogCategoryEmoji(cat) {
+     var map = { 'Burger': '🍔', 'Pizza': '🍕', 'Boisson': '🥤', 'Dessert': '🍰', 'Accompagnement': '🍟' };
+     return map[cat] || '🍽️';
+ }
+
+
  function showCatalogToast(message, type) {
      type = type || 'success';
      var toastContainer = document.getElementById('toastContainer');
