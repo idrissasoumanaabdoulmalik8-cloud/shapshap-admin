@@ -1,7 +1,7 @@
 /* ==========================================================================
    🎨 SHASHAP UI - VARIABLES PREMIUM
    ========================================================================== */
-:root {
+#catalog {
     /* Palette de couleurs */
     --primary: #111827;        /* Noir moderne */
     --surface: #ffffff;        /* Blanc pur */
