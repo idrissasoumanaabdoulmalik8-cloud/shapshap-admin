@@ -65,7 +65,7 @@ function renderCatalogWeb() {
 
         const titleEl = document.createElement('h2');
         titleEl.className = 'category-title';
-        titleEl.textContent = `— ${sec} —`;
+        titleEl.textContent = '\u2014 ' + sec + ' \u2014';
         sectionEl.appendChild(titleEl);
 
         const gridEl = document.createElement('div');
@@ -76,27 +76,29 @@ function renderCatalogWeb() {
             cardEl.className = 'product-card';
 
             const imgSrc = p.imageUrl || '';
+            const proxyUrl = imgSrc ? '/proxy-image?url=' + encodeURIComponent(imgSrc) : '';
 
-            cardEl.innerHTML = `
-                <div class="product-image-container">
-                    ${imgSrc
-                        ? `<img src="/proxy-image?url=${encodeURIComponent(imgSrc)}" alt="${p.name || ''}" class="product-image" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                           <div class="product-image-fallback" style="display:none; width:100%; height:100%; align-items:center; justify-content:center; background:var(--color-charbon-doux); font-size:40px;">
-                               ${getCatalogCategoryEmoji(p.category)}
-                           </div>`
-                        : `<div class="product-image-fallback" style="display:flex; width:100%; height:100%; align-items:center; justify-content:center; background:var(--color-charbon-doux); font-size:40px;">
-                               ${getCatalogCategoryEmoji(p.category)}
-                           </div>`
-                    }
-                </div>
-                <div class="product-info">
-                    <div>
-                        <h3 class="product-name">${p.name || 'Sans nom'}</h3>
-                        <p class="product-desc">${p.description || 'Une création Shashap'}</p>
-                    </div>
-                    <div class="product-price">${Number(p.price || 0).toLocaleString('fr-FR')} FCFA</div>
-                </div>
-            `;
+            const imageHtml = imgSrc
+                ? '<img src="' + proxyUrl + '" alt="' + (p.name || '') + '" class="product-image" loading="lazy" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
+                  '<div class="product-image-fallback" style="display:none; width:100%; height:100%; align-items:center; justify-content:center; background:var(--color-charbon-doux); font-size:40px;">' +
+                  getCatalogCategoryEmoji(p.category) +
+                  '</div>'
+                : '<div class="product-image-fallback" style="display:flex; width:100%; height:100%; align-items:center; justify-content:center; background:var(--color-charbon-doux); font-size:40px;">' +
+                  getCatalogCategoryEmoji(p.category) +
+                  '</div>';
+
+            cardEl.innerHTML =
+                '<div class="product-image-container">' +
+                imageHtml +
+                '</div>' +
+                '<div class="product-info">' +
+                '<div>' +
+                '<h3 class="product-name">' + (p.name || 'Sans nom') + '</h3>' +
+                '<p class="product-desc">' + (p.description || 'Une création Shashap') + '</p>' +
+                '</div>' +
+                '<div class="product-price">' + Number(p.price || 0).toLocaleString('fr-FR') + ' FCFA</div>' +
+                '</div>';
+
             gridEl.appendChild(cardEl);
         });
 
@@ -110,25 +112,29 @@ function renderCatalogWeb() {
 // ============================================================
 function getCatalogCategoryEmoji(cat) {
     const map = {
-        'Burger': '🍔', 'Pizza': '🍕', 'Boisson': '🥤',
-        'Dessert': '🍰', 'Accompagnement': '🍟'
+        'Burger': '\uD83C\uDF54',
+        'Pizza': '\uD83C\uDF55',
+        'Boisson': '\uD83E\uDD64',
+        'Dessert': '\uD83C\uDF70',
+        'Accompagnement': '\uD83C\uDF5F'
     };
-    return map[cat] || '🍽️';
+    return map[cat] || '\uD83C\uDF7D\uFE0F';
 }
 
 // ============================================================
 // 🔔 SYSTÈME DE TOAST NOTIFICATION
 // ============================================================
-function showCatalogToast(message, type = 'success') {
-    const toastContainer = document.getElementById('toastContainer');
+function showCatalogToast(message, type) {
+    type = type || 'success';
+    var toastContainer = document.getElementById('toastContainer');
     if (!toastContainer) return;
 
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
+    var toast = document.createElement('div');
+    toast.className = 'toast ' + type;
     toast.textContent = message;
 
     toastContainer.appendChild(toast);
-    setTimeout(() => {
+    setTimeout(function() {
         toast.remove();
     }, 3000);
 }
@@ -143,7 +149,7 @@ async function exportCatalogPDF() {
       return;
     }
 
-    const products = catalogProducts.filter(p => p.isAvailable);
+    var products = catalogProducts.filter(function(p) { return p.isAvailable; });
     if (!products.length) {
       showCatalogToast("Aucun produit disponible pour l'export", 'error');
       return;
@@ -151,55 +157,58 @@ async function exportCatalogPDF() {
 
     showCatalogToast('Génération du catalogue premium...', 'info');
 
-    const menuUrl = 'https://shapshap-admin-malik.up.railway.app';
-    const [qrCodeImg] = await Promise.all([
-      fetchCatalogQrCodeBase64(menuUrl),
-      ...products.map(async (p) => {
-        p._cachedImg = p.imageUrl ? await urlToCatalogCircleBase64(p.imageUrl) : null;
-      })
-    ]);
+    var menuUrl = 'https://shapshap-admin-malik.up.railway.app';
+    var qrCodeImg = null;
 
-    const doc = new jspdf.jsPDF('p', 'mm', 'a4');
-    const pW = 210, pH = 297, mg = 15, IMG = 25;
-    const HY = 42;
+    var results = await Promise.all([
+      fetchCatalogQrCodeBase64(menuUrl)
+    ].concat(products.map(async function(p) {
+      p._cachedImg = p.imageUrl ? await urlToCatalogCircleBase64(p.imageUrl) : null;
+    })));
 
-    const cNoir = [13, 12, 16];
-    const cCharbon = [38, 32, 41];
-    const cRose = [184, 112, 143];
-    const cBlush = [240, 184, 205];
-    const cCreme = [248, 238, 243];
+    qrCodeImg = results[0];
+
+    var doc = new jspdf.jsPDF('p', 'mm', 'a4');
+    var pW = 210, pH = 297, mg = 15, IMG = 25;
+    var HY = 42;
+
+    var cNoir = [13, 12, 16];
+    var cCharbon = [38, 32, 41];
+    var cRose = [184, 112, 143];
+    var cBlush = [240, 184, 205];
+    var cCreme = [248, 238, 243];
 
     // ── PAGE 1 : LA COUVERTURE ───────────────────
-    doc.setFillColor(...cNoir);
+    doc.setFillColor(cNoir[0], cNoir[1], cNoir[2]);
     doc.rect(0, 0, pW, pH, 'F');
 
     doc.setFont('times', 'normal');
     doc.setFontSize(32);
-    doc.setTextColor(...cCreme);
+    doc.setTextColor(cCreme[0], cCreme[1], cCreme[2]);
     doc.text('S H A S H A P', mg, 35);
 
-    doc.setFillColor(...cRose);
+    doc.setFillColor(cRose[0], cRose[1], cRose[2]);
     doc.rect(mg, 42, 40, 0.5, 'F');
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(11);
-    doc.setTextColor(...cBlush);
+    doc.setTextColor(cBlush[0], cBlush[1], cBlush[2]);
     doc.text("l'art de la gastronomie", mg, 50);
 
     doc.setFontSize(8);
-    doc.setTextColor(...cCharbon);
+    doc.setTextColor(cCharbon[0], cCharbon[1], cCharbon[2]);
     doc.text('Édition du ' + new Date().toLocaleDateString('fr-FR'), pW - mg, pH - mg, { align: 'right' });
 
     // ── PAGE 2 : LE MANIFESTE ───────────────────
     doc.addPage();
-    doc.setFillColor(...cCharbon);
+    doc.setFillColor(cCharbon[0], cCharbon[1], cCharbon[2]);
     doc.rect(0, 0, pW, pH, 'F');
 
     doc.setFont('times', 'italic');
     doc.setFontSize(26);
-    doc.setTextColor(...cCreme);
+    doc.setTextColor(cCreme[0], cCreme[1], cCreme[2]);
 
-    const manifeste = [
+    var manifeste = [
       "Chaque plat est une intention.",
       "Chaque saveur, une conversation.",
       "Shashap est né à Niamey",
@@ -211,58 +220,63 @@ async function exportCatalogPDF() {
 
     doc.text(manifeste, pW / 2, pH / 2 - 30, { align: 'center', lineHeightFactor: 1.8 });
 
-    doc.setFillColor(...cRose);
+    doc.setFillColor(cRose[0], cRose[1], cRose[2]);
     doc.rect(30, pH / 2 - 45, 0.5, 80, 'F');
 
     doc.setFont('times', 'normal');
     doc.setFontSize(12);
-    doc.setTextColor(...cRose);
+    doc.setTextColor(cRose[0], cRose[1], cRose[2]);
     doc.text("II", pW / 2, pH - 20, { align: 'center' });
 
     // ── PAGES PRODUITS ──────────────────────────────────────
     doc.addPage();
 
-    const drawHeader = () => {
-        doc.setFillColor(...cNoir);
+    var drawHeader = function() {
+        doc.setFillColor(cNoir[0], cNoir[1], cNoir[2]);
         doc.rect(0, 0, pW, pH, 'F');
-        doc.setFont('times', 'normal'); doc.setFontSize(16); doc.setTextColor(...cCreme);
+        doc.setFont('times', 'normal'); doc.setFontSize(16); doc.setTextColor(cCreme[0], cCreme[1], cCreme[2]);
         doc.text('SHASHAP', mg, 22);
-        doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...cBlush);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(cBlush[0], cBlush[1], cBlush[2]);
         doc.text('LA CARTE', mg, 27);
-        doc.setDrawColor(...cCharbon); doc.setLineWidth(0.2);
+        doc.setDrawColor(cCharbon[0], cCharbon[1], cCharbon[2]); doc.setLineWidth(0.2);
         doc.line(mg, 32, pW - mg, 32);
     };
 
     drawHeader();
 
-    const sections = {};
-    products.forEach(p => {
-      const cat = (p.category || 'INCONTOURNABLES').toUpperCase();
+    var sections = {};
+    products.forEach(function(p) {
+      var cat = (p.category || 'INCONTOURNABLES').toUpperCase();
       if (!sections[cat]) sections[cat] = [];
       sections[cat].push(p);
     });
 
-    let curY = HY;
-    const cellH = IMG + 10;
+    var curY = HY;
+    var cellH = IMG + 10;
 
-    for (const [sec, prods] of Object.entries(sections)) {
+    for (var sec in sections) {
+      if (!sections.hasOwnProperty(sec)) continue;
+      var prods = sections[sec];
+
       if (curY > pH - 45) {
         doc.addPage();
         drawHeader();
         curY = HY;
       }
 
-      doc.setFont('times', 'italic'); doc.setFontSize(18); doc.setTextColor(...cRose);
-      doc.text('— ' + sec + ' —', pW / 2, curY + 6, { align: 'center' });
+      doc.setFont('times', 'italic'); doc.setFontSize(18); doc.setTextColor(cRose[0], cRose[1], cRose[2]);
+      doc.text('\u2014 ' + sec + ' \u2014', pW / 2, curY + 6, { align: 'center' });
       curY += 15;
 
       doc.autoTable({
         startY: curY,
-        body: prods.map(p => [
-          '',
-          (p.name || 'CRÉATION').toUpperCase() + '\n' + (p.description || ''),
-          p.price ? Number(p.price).toLocaleString('fr-FR') + ' FCFA' : '—'
-        ]),
+        body: prods.map(function(p) {
+          return [
+            '',
+            (p.name || 'CRÉATION').toUpperCase() + '\n' + (p.description || ''),
+            p.price ? Number(p.price).toLocaleString('fr-FR') + ' FCFA' : '\u2014'
+          ];
+        }),
         theme: 'plain',
         margin: { top: HY, left: mg, right: mg },
         bodyStyles: {
@@ -275,11 +289,11 @@ async function exportCatalogPDF() {
           1: { cellWidth: 100, font: 'times', fontStyle: 'bold', valign: 'middle' },
           2: { cellWidth: 40, halign: 'right', textColor: cRose, font: 'times', fontSize: 12 },
         },
-        didDrawCell(d) {
+        didDrawCell: function(d) {
           if (d.column.index === 0 && d.section === 'body') {
-            const p = prods[d.row.index];
-            const xo = d.cell.x;
-            const yo = d.cell.y + (d.cell.height - IMG) / 2;
+            var p = prods[d.row.index];
+            var xo = d.cell.x;
+            var yo = d.cell.y + (d.cell.height - IMG) / 2;
 
             if (p && p._cachedImg) {
               try {
@@ -290,8 +304,8 @@ async function exportCatalogPDF() {
             }
           }
         },
-        didDrawPage() {
-          const activePage = doc.internal.getNumberOfPages();
+        didDrawPage: function() {
+          var activePage = doc.internal.getNumberOfPages();
           doc.setPage(activePage);
           drawHeader();
         }
@@ -301,15 +315,15 @@ async function exportCatalogPDF() {
 
     // ── DERNIÈRE PAGE : CONTACT & QR ────────────────────────
     doc.addPage();
-    doc.setFillColor(...cNoir); doc.rect(0, 0, pW, pH, 'F');
+    doc.setFillColor(cNoir[0], cNoir[1], cNoir[2]); doc.rect(0, 0, pW, pH, 'F');
 
-    doc.setFont('times', 'normal'); doc.setFontSize(24); doc.setTextColor(...cCreme);
+    doc.setFont('times', 'normal'); doc.setFontSize(24); doc.setTextColor(cCreme[0], cCreme[1], cCreme[2]);
     doc.text('SHASHAP', pW / 2, 60, { align: 'center' });
 
-    const qrS = 50, qrX = (pW - qrS) / 2, qrY = 90;
-    doc.setFillColor(...cCharbon);
+    var qrS = 50, qrX = (pW - qrS) / 2, qrY = 90;
+    doc.setFillColor(cCharbon[0], cCharbon[1], cCharbon[2]);
     doc.roundedRect(qrX - 5, qrY - 5, qrS + 10, qrS + 10, 3, 3, 'F');
-    doc.setDrawColor(...cRose); doc.setLineWidth(0.3);
+    doc.setDrawColor(cRose[0], cRose[1], cRose[2]); doc.setLineWidth(0.3);
     doc.roundedRect(qrX - 5, qrY - 5, qrS + 10, qrS + 10, 3, 3, 'S');
 
     if (qrCodeImg) {
@@ -317,11 +331,11 @@ async function exportCatalogPDF() {
     }
     doc.link(qrX, qrY, qrS, qrS, { url: menuUrl });
 
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...cBlush);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(cBlush[0], cBlush[1], cBlush[2]);
     doc.text("Scannez pour commander.", pW / 2, 160, { align: 'center' });
 
-    doc.setFontSize(8); doc.setTextColor(...cCharbon);
-    doc.text("S H A S H A P   C O  —  N I A M E Y ,  N I G E R", pW / 2, pH - 20, { align: 'center' });
+    doc.setFontSize(8); doc.setTextColor(cCharbon[0], cCharbon[1], cCharbon[2]);
+    doc.text("S H A S H A P   C O  \u2014  N I A M E Y ,  N I G E R", pW / 2, pH - 20, { align: 'center' });
 
     doc.save('Catalogue_Shashap_' + new Date().toISOString().split('T')[0] + '.pdf');
     showCatalogToast('Catalogue premium prêt !', 'success');
@@ -336,23 +350,23 @@ async function exportCatalogPDF() {
 // 🖼️ CONVERTISSEUR D'IMAGE
 // ============================================================
 function urlToCatalogCircleBase64(url) {
-  return new Promise((resolve) => {
+  return new Promise(function(resolve) {
     if (!url || typeof url !== 'string' || url === 'null' || url.trim() === '') {
       resolve(null);
       return;
     }
 
-    const img = new Image();
+    var img = new Image();
     if (url.startsWith('http://') || url.startsWith('https://')) {
       img.crossOrigin = 'Anonymous';
     }
 
     img.onload = function() {
-      const canvas = document.createElement('canvas');
+      var canvas = document.createElement('canvas');
       canvas.width = img.width;
       canvas.height = img.height;
 
-      const ctx = canvas.getContext('2d');
+      var ctx = canvas.getContext('2d');
       if (!ctx) { resolve(null); return; }
 
       ctx.drawImage(img, 0, 0, img.width, img.height);
@@ -378,17 +392,17 @@ function urlToCatalogCircleBase64(url) {
 // 🎨 GÉNÉRATEUR QR CODE
 // ============================================================
 function fetchCatalogQrCodeBase64(targetUrl) {
-  return new Promise((resolve) => {
-    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(targetUrl)}&color=0D0C10&bgcolor=F8EEF3&qzone=1`;
+  return new Promise(function(resolve) {
+    var qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + encodeURIComponent(targetUrl) + '&color=0D0C10&bgcolor=F8EEF3&qzone=1';
 
-    const img = new Image();
+    var img = new Image();
     img.crossOrigin = 'Anonymous';
 
     img.onload = function() {
-      const canvas = document.createElement('canvas');
+      var canvas = document.createElement('canvas');
       canvas.width = img.width;
       canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
+      var ctx = canvas.getContext('2d');
       if (!ctx) { resolve(null); return; }
 
       ctx.drawImage(img, 0, 0);
