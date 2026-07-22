@@ -11,6 +11,25 @@
  * Supprime tous les caractères HTML et entités indésirables.
  * Corrige définitivement le bug "&2 /&5&0&0&" dans jsPDF.
  */
+
+ // ============================================================
+ // 📋 CATALOGUE — Variables globales
+ // ============================================================
+ var catalogProducts = [];
+
+ // ============================================================
+ // 🔔 TOAST NOTIFICATION
+ // ============================================================
+ function showCatalogToast(message, type) {
+     type = type || 'success';
+     var toastContainer = document.getElementById('toastContainer');
+     if (!toastContainer) return;
+     var toast = document.createElement('div');
+     toast.className = 'toast ' + type;
+     toast.textContent = message;
+     toastContainer.appendChild(toast);
+     setTimeout(function() { toast.remove(); }, 3000);
+ }
 function stripHtml(str) {
   if (!str || typeof str !== 'string') return '';
   return str
