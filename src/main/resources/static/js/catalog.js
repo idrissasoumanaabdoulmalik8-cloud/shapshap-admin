@@ -1,5 +1,5 @@
 // ============================================================
-// 📋 CATALOGUE — Chargement réel depuis l'API Shashap
+// 📋 CATALOGUE — Chargement réel depuis l'API Shashapp
 // ============================================================
 let catalogProducts = [];
 
