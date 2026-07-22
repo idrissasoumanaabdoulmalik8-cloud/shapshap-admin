@@ -142,6 +142,9 @@ function showCatalogToast(message, type) {
 // ============================================================
 // 📥 EXPORT DU CATALOGUE PREMIUM (PDF)
 // ============================================================
+// ============================================================
+// 📥 EXPORT DU CATALOGUE MAGAZINE PREMIUM (PDF)
+// ============================================================
 async function exportCatalogPDF() {
   try {
     if (!window.jspdf) {
@@ -155,11 +158,12 @@ async function exportCatalogPDF() {
       return;
     }
 
-    showCatalogToast('Génération du catalogue premium...', 'info');
+    showCatalogToast('Création de votre magazine gastronomique...', 'info');
 
     var menuUrl = 'https://shapshap-admin-malik.up.railway.app';
     var qrCodeImg = null;
 
+    // 1. Préchargement de toutes les images via le proxy
     var results = await Promise.all([
       fetchCatalogQrCodeBase64(menuUrl)
     ].concat(products.map(async function(p) {
@@ -173,82 +177,100 @@ async function exportCatalogPDF() {
 
     qrCodeImg = results[0];
 
+    // 2. Initialisation du document
     var doc = new jspdf.jsPDF('p', 'mm', 'a4');
-    var pW = 210, pH = 297, mg = 15, IMG = 25;
-    var HY = 42;
+    var pW = 210, pH = 297, mg = 15;
+    var pageNum = 1;
 
-    var cNoir = [13, 12, 16];
-    var cCharbon = [38, 32, 41];
-    var cRose = [184, 112, 143];
-    var cBlush = [240, 184, 205];
-    var cCreme = [248, 238, 243];
+    // Palette de couleurs exactes
+    var cNoir = [13, 12, 16];     // #0D0C10
+    var cCharbon = [38, 32, 41];  // #262029
+    var cRose = [184, 112, 143];  // #B8708F
+    var cBlush = [240, 184, 205]; // #F0B8CD
+    var cCreme = [248, 238, 243]; // #F8EEF3
 
-    // ── PAGE 1 : LA COUVERTURE ───────────────────
-    doc.setFillColor(cNoir[0], cNoir[1], cNoir[2]);
-    doc.rect(0, 0, pW, pH, 'F');
+    // Fonction utilitaire pour le fond des pages intérieures
+    var drawPageBg = function() {
+      doc.setFillColor.apply(doc, cNoir);
+      doc.rect(0, 0, pW, pH, 'F');
 
-    doc.setFont('times', 'normal');
-    doc.setFontSize(32);
-    doc.setTextColor(cCreme[0], cCreme[1], cCreme[2]);
-    doc.text('S H A S H A P', mg, 35);
+      // Bordures décoratives haut/bas
+      doc.setDrawColor.apply(doc, cCharbon);
+      doc.setLineWidth(0.5);
+      doc.line(mg, mg, pW - mg, mg);
+      doc.line(mg, pH - mg, pW - mg, pH - mg);
 
-    doc.setFillColor(cRose[0], cRose[1], cRose[2]);
-    doc.rect(mg, 42, 40, 0.5, 'F');
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(11);
-    doc.setTextColor(cBlush[0], cBlush[1], cBlush[2]);
-    doc.text("l'art de la gastronomie", mg, 50);
-
-    doc.setFontSize(8);
-    doc.setTextColor(cCharbon[0], cCharbon[1], cCharbon[2]);
-    doc.text('Édition du ' + new Date().toLocaleDateString('fr-FR'), pW - mg, pH - mg, { align: 'right' });
-
-    // ── PAGE 2 : LE MANIFESTE ───────────────────
-    doc.addPage();
-    doc.setFillColor(cCharbon[0], cCharbon[1], cCharbon[2]);
-    doc.rect(0, 0, pW, pH, 'F');
-
-    doc.setFont('times', 'italic');
-    doc.setFontSize(26);
-    doc.setTextColor(cCreme[0], cCreme[1], cCreme[2]);
-
-    var manifeste = [
-      "Chaque plat est une intention.",
-      "Chaque saveur, une conversation.",
-      "Shashap est né à Niamey",
-      "pour que la gastronomie",
-      "devienne accessible,",
-      "sans jamais cesser",
-      "d'être exceptionnelle."
-    ];
-
-    doc.text(manifeste, pW / 2, pH / 2 - 30, { align: 'center', lineHeightFactor: 1.8 });
-
-    doc.setFillColor(cRose[0], cRose[1], cRose[2]);
-    doc.rect(30, pH / 2 - 45, 0.5, 80, 'F');
-
-    doc.setFont('times', 'normal');
-    doc.setFontSize(12);
-    doc.setTextColor(cRose[0], cRose[1], cRose[2]);
-    doc.text("II", pW / 2, pH - 20, { align: 'center' });
-
-    // ── PAGES PRODUITS ──────────────────────────────────────
-    doc.addPage();
-
-    var drawHeader = function() {
-        doc.setFillColor(cNoir[0], cNoir[1], cNoir[2]);
-        doc.rect(0, 0, pW, pH, 'F');
-        doc.setFont('times', 'normal'); doc.setFontSize(16); doc.setTextColor(cCreme[0], cCreme[1], cCreme[2]);
-        doc.text('SHASHAP', mg, 22);
-        doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(cBlush[0], cBlush[1], cBlush[2]);
-        doc.text('LA CARTE', mg, 27);
-        doc.setDrawColor(cCharbon[0], cCharbon[1], cCharbon[2]); doc.setLineWidth(0.2);
-        doc.line(mg, 32, pW - mg, 32);
+      // Footer
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text("SHASHAP \u2014 L'ART DE LA GASTRONOMIE", mg, pH - 8);
+      doc.text("PAGE " + pageNum, pW - mg, pH - 8, { align: 'right' });
+      pageNum++;
     };
 
-    drawHeader();
+    // ── PAGE 1 : LA COUVERTURE MAGAZINE ─────────────────────────────
+    doc.setFillColor.apply(doc, cNoir);
+    doc.rect(0, 0, pW, pH, 'F');
 
+    // Recherche d'une image pour la couverture
+    var coverImgSrc = products.find(function(p) { return p._cachedImg; });
+    if (coverImgSrc && coverImgSrc._cachedImg) {
+      doc.addImage(coverImgSrc._cachedImg, 'PNG', 0, 0, pW, 160);
+      // Ligne de séparation élégante
+      doc.setFillColor.apply(doc, cRose);
+      doc.rect(0, 160, pW, 1.5, 'F');
+    }
+
+    // Encart sombre flottant pour le titre (Effet studio design)
+    doc.setFillColor.apply(doc, cNoir);
+    doc.roundedRect(mg, 110, pW - 2 * mg, 110, 4, 4, 'F');
+
+    doc.setDrawColor.apply(doc, cCharbon);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(mg + 3, 113, pW - 2 * mg - 6, 104, 3, 3, 'S');
+
+    doc.setFont('times', 'bold');
+    doc.setFontSize(42);
+    doc.setTextColor.apply(doc, cCreme);
+    doc.text("S H A S H A P", pW / 2, 145, { align: 'center' });
+
+    doc.setFont('times', 'italic');
+    doc.setFontSize(14);
+    doc.setTextColor.apply(doc, cBlush);
+    doc.text("L'expérience gastronomique ultime", pW / 2, 155, { align: 'center' });
+
+    doc.setFillColor.apply(doc, cRose);
+    doc.rect(pW / 2 - 15, 165, 30, 0.5, 'F');
+
+    // QR Code miniature sur la couverture
+    if (qrCodeImg) {
+      var cQrS = 25;
+      doc.addImage(qrCodeImg, 'PNG', pW / 2 - cQrS / 2, 175, cQrS, cQrS);
+      doc.link(pW / 2 - cQrS / 2, 175, cQrS, cQrS, { url: menuUrl });
+    }
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(150, 150, 150);
+    doc.text("ÉDITION \u2014 " + new Date().toLocaleDateString('fr-FR'), pW / 2, 210, { align: 'center' });
+
+    // ── PAGES INTÉRIEURES : LE CATALOGUE ────────────────────────────
+    doc.addPage();
+    drawPageBg();
+
+    var curY = 25;
+    var layoutIdx = 0; // Sert à alterner les mises en page
+
+    var checkPageBreak = function(h) {
+      if (curY + h > pH - 20) {
+        doc.addPage();
+        drawPageBg();
+        curY = 25;
+      }
+    };
+
+    // Groupement par catégories
     var sections = {};
     products.forEach(function(p) {
       var cat = (p.category || 'INCONTOURNABLES').toUpperCase();
@@ -256,94 +278,165 @@ async function exportCatalogPDF() {
       sections[cat].push(p);
     });
 
-    var curY = HY;
-    var cellH = IMG + 10;
-
     for (var sec in sections) {
       if (!sections.hasOwnProperty(sec)) continue;
+
+      // 1. BANNIÈRE DE CATÉGORIE
+      checkPageBreak(50);
+      doc.setFillColor.apply(doc, cRose);
+      doc.rect(0, curY, pW, 35, 'F');
+
+      doc.setFont('times', 'bold');
+      doc.setFontSize(26);
+      doc.setTextColor.apply(doc, cCreme);
+      doc.text(sec, pW / 2, curY + 22, { align: 'center' });
+
+      curY += 45;
+
       var prods = sections[sec];
 
-      if (curY > pH - 45) {
-        doc.addPage();
-        drawHeader();
-        curY = HY;
-      }
+      // 2. BOUCLE DES PRODUITS (RYTHME ÉDITORIAL)
+      prods.forEach(function(p) {
+        var isFeature = (layoutIdx % 5 === 0); // 1 produit sur 5 en grand
+        var isRight = (layoutIdx % 2 !== 0);   // Alterne image droite/gauche
 
-      doc.setFont('times', 'italic'); doc.setFontSize(18); doc.setTextColor(cRose[0], cRose[1], cRose[2]);
-      doc.text('\u2014 ' + sec + ' \u2014', pW / 2, curY + 6, { align: 'center' });
-      curY += 15;
+        if (isFeature && p._cachedImg) {
+          // --- CARTE EN VEDETTE (Pleine largeur) ---
+          var cardH = 115;
+          checkPageBreak(cardH + 10);
 
-      doc.autoTable({
-        startY: curY,
-        body: prods.map(function(p) {
-          return [
-            '',
-            (p.name || 'CRÉATION').toUpperCase() + '\n' + (p.description || ''),
-            p.price ? Number(p.price).toLocaleString('fr-FR') + ' FCFA' : '\u2014'
-          ];
-        }),
-        theme: 'plain',
-        margin: { top: HY, left: mg, right: mg },
-        bodyStyles: {
-          minCellHeight: cellH, fontSize: 11, textColor: cCreme,
-          valign: 'middle', cellPadding: { top: 5, right: 4, bottom: 5, left: 4 },
-          fillColor: cNoir
-        },
-        columnStyles: {
-          0: { cellWidth: 40, halign: 'left', valign: 'middle' },
-          1: { cellWidth: 100, font: 'times', fontStyle: 'bold', valign: 'middle' },
-          2: { cellWidth: 40, halign: 'right', textColor: cRose, font: 'times', fontSize: 12 },
-        },
-        didDrawCell: function(d) {
-          if (d.column.index === 0 && d.section === 'body') {
-            var p = prods[d.row.index];
-            var xo = d.cell.x;
-            var yo = d.cell.y + (d.cell.height - IMG) / 2;
+          doc.setFillColor.apply(doc, cCharbon);
+          doc.roundedRect(mg, curY, pW - 2 * mg, cardH, 4, 4, 'F');
 
-            if (p && p._cachedImg) {
-              try {
-                doc.addImage(p._cachedImg, 'PNG', xo, yo, IMG + 10, IMG);
-              } catch (e) {
-                console.warn(e);
-              }
-            }
+          var fImgH = 65;
+          doc.addImage(p._cachedImg, 'PNG', mg, curY, pW - 2 * mg, fImgH);
+
+          doc.setFillColor.apply(doc, cRose);
+          doc.rect(mg, curY + fImgH, pW - 2 * mg, 1.5, 'F');
+
+          doc.setFont('times', 'bold');
+          doc.setFontSize(16);
+          doc.setTextColor.apply(doc, cCreme);
+          doc.text((p.name || 'CRÉATION').toUpperCase(), pW / 2, curY + fImgH + 14, { align: 'center' });
+
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(10);
+          doc.setTextColor.apply(doc, cBlush);
+          var fDesc = doc.splitTextToSize(p.description || '', pW - 2 * mg - 30);
+          if(fDesc.length > 2) fDesc = [fDesc[0], fDesc[1] + '...']; // Limite à 2 lignes
+          doc.text(fDesc, pW / 2, curY + fImgH + 22, { align: 'center' });
+
+          var pStr = Number(p.price || 0).toLocaleString('fr-FR') + ' FCFA';
+          doc.setFont('times', 'bold'); doc.setFontSize(12);
+          var pWd = doc.getTextWidth(pStr) + 12;
+          var pX = (pW - pWd) / 2;
+
+          doc.setFillColor.apply(doc, cRose);
+          doc.roundedRect(pX, curY + cardH - 14, pWd, 8, 3, 3, 'F');
+          doc.setTextColor.apply(doc, cCreme);
+          doc.text(pStr, pX + 6, curY + cardH - 8);
+
+          curY += cardH + 10;
+
+        } else {
+          // --- CARTE STANDARD (Image à gauche ou à droite) ---
+          var cardH = 46;
+          checkPageBreak(cardH + 10);
+
+          doc.setFillColor.apply(doc, cCharbon);
+          doc.roundedRect(mg, curY, pW - 2 * mg, cardH, 4, 4, 'F');
+
+          var imgS = 46; // Image occupe toute la hauteur de la carte
+          var iX = isRight ? (pW - mg - imgS) : mg;
+          var tX = isRight ? (mg + 8) : (mg + imgS + 12);
+          var maxW = pW - 2 * mg - imgS - 20;
+
+          if (p._cachedImg) {
+            doc.addImage(p._cachedImg, 'PNG', iX, curY, imgS, imgS);
+          } else {
+            doc.setFillColor(50, 45, 55);
+            doc.rect(iX, curY, imgS, imgS, 'F');
           }
-        },
-        didDrawPage: function() {
-          var activePage = doc.internal.getNumberOfPages();
-          doc.setPage(activePage);
-          drawHeader();
+
+          // Bordure séparatrice subtile
+          doc.setDrawColor.apply(doc, cRose);
+          doc.setLineWidth(0.5);
+          var lineX = isRight ? iX : iX + imgS;
+          doc.line(lineX, curY, lineX, curY + imgS);
+
+          doc.setFont('times', 'bold');
+          doc.setFontSize(13);
+          doc.setTextColor.apply(doc, cCreme);
+          doc.text((p.name || 'CRÉATION').toUpperCase(), tX, curY + 12);
+
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(9);
+          doc.setTextColor.apply(doc, cBlush);
+          var lines = doc.splitTextToSize(p.description || '', maxW);
+          if (lines.length > 2) lines = [lines[0], lines[1] + '...'];
+          doc.text(lines, tX, curY + 20);
+
+          // Badge de prix façon Application Mobile
+          var pStr2 = Number(p.price || 0).toLocaleString('fr-FR') + ' FCFA';
+          doc.setFont('times', 'bold'); doc.setFontSize(11);
+          var pWd2 = doc.getTextWidth(pStr2) + 10;
+          doc.setFillColor.apply(doc, cRose);
+          doc.roundedRect(tX, curY + 32, pWd2, 8, 3, 3, 'F');
+          doc.setTextColor.apply(doc, cCreme);
+          doc.text(pStr2, tX + 5, curY + 37.5);
+
+          curY += cardH + 10;
         }
+        layoutIdx++;
       });
-      curY = doc.lastAutoTable.finalY + 15;
     }
 
-    // ── DERNIÈRE PAGE : CONTACT & QR ────────────────────────
+    // ── DERNIÈRE PAGE : CONCLUSION & CALL TO ACTION ─────────────────
     doc.addPage();
-    doc.setFillColor(cNoir[0], cNoir[1], cNoir[2]); doc.rect(0, 0, pW, pH, 'F');
+    drawPageBg();
 
-    doc.setFont('times', 'normal'); doc.setFontSize(24); doc.setTextColor(cCreme[0], cCreme[1], cCreme[2]);
-    doc.text('SHASHAP', pW / 2, 60, { align: 'center' });
+    doc.setFont('times', 'italic');
+    doc.setFontSize(28);
+    doc.setTextColor.apply(doc, cCreme);
+    doc.text("L'expérience continue", pW / 2, 60, { align: 'center' });
+    doc.text("chez vous.", pW / 2, 72, { align: 'center' });
 
-    var qrS = 50, qrX = (pW - qrS) / 2, qrY = 90;
-    doc.setFillColor(cCharbon[0], cCharbon[1], cCharbon[2]);
-    doc.roundedRect(qrX - 5, qrY - 5, qrS + 10, qrS + 10, 3, 3, 'F');
-    doc.setDrawColor(cRose[0], cRose[1], cRose[2]); doc.setLineWidth(0.3);
-    doc.roundedRect(qrX - 5, qrY - 5, qrS + 10, qrS + 10, 3, 3, 'S');
+    var qrS = 65, qrX = (pW - qrS) / 2, qrY = 100;
+
+    // Cadre luxueux pour le QR Code
+    doc.setFillColor.apply(doc, cCharbon);
+    doc.roundedRect(qrX - 12, qrY - 12, qrS + 24, qrS + 24, 6, 6, 'F');
+    doc.setDrawColor.apply(doc, cRose);
+    doc.setLineWidth(0.8);
+    doc.roundedRect(qrX - 8, qrY - 8, qrS + 16, qrS + 16, 4, 4, 'S');
 
     if (qrCodeImg) {
       doc.addImage(qrCodeImg, 'PNG', qrX, qrY, qrS, qrS);
+      doc.link(qrX, qrY, qrS, qrS, { url: menuUrl });
     }
-    doc.link(qrX, qrY, qrS, qrS, { url: menuUrl });
 
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(cBlush[0], cBlush[1], cBlush[2]);
-    doc.text("Scannez pour commander.", pW / 2, 160, { align: 'center' });
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor.apply(doc, cRose);
+    doc.text("SCANNEZ POUR COMMANDER IMMÉDIATEMENT", pW / 2, 205, { align: 'center' });
 
-    doc.setFontSize(8); doc.setTextColor(cCharbon[0], cCharbon[1], cCharbon[2]);
-    doc.text("S H A S H A P   C O  \u2014  N I A M E Y ,  N I G E R", pW / 2, pH - 20, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor.apply(doc, cBlush);
+    doc.text("Ou cliquez directement sur le QR code", pW / 2, 215, { align: 'center' });
 
-    doc.save('Catalogue_Shashap_' + new Date().toISOString().split('T')[0] + '.pdf');
-    showCatalogToast('Catalogue premium prêt !', 'success');
+    doc.setFont('times', 'bold');
+    doc.setFontSize(24);
+    doc.setTextColor.apply(doc, cCreme);
+    doc.text("S H A S H A P", pW / 2, 260, { align: 'center' });
+
+    doc.setFontSize(9);
+    doc.setTextColor(150, 150, 150);
+    doc.text("Niamey, Niger \u2022 @shashap_ne \u2022 L'Art de la Gastronomie", pW / 2, 270, { align: 'center' });
+
+    // ── SAUVEGARDE DU FICHIER ───────────────────────────────────────
+    doc.save('Magazine_Shashap_' + new Date().toISOString().split('T')[0] + '.pdf');
+    showCatalogToast('Magazine généré avec succès !', 'success');
 
   } catch (error) {
     console.error('Erreur PDF catalogue:', error);
