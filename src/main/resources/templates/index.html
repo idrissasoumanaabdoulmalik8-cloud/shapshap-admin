@@ -746,11 +746,112 @@
         </div><!-- /page events -->
 
         <!-- ════════════════════════════════════════════════════
-     PAGE : CATALOGUE
+     PAGE : CATALOGUE (DESIGN PREMIUM GEMINI)
      ════════════════════════════════════════════════════ -->
         <div id="catalog" class="page">
-            <!-- Insère ici le contenu HTML du catalogue que Gemini t'a donné -->
-        </div>
+
+            <style>
+                #catalog {
+                    --color-noir-velours: #0D0C10;
+                    --color-charbon-doux: #262029;
+                    --color-rose-poudre: #B8708F;
+                    --color-blush: #F0B8CD;
+                    --color-blanc-cremeux: #F8EEF3;
+                    --font-titre: 'Cormorant Garamond', serif;
+                    --font-texte: 'DM Sans', sans-serif;
+                    background-color: var(--color-noir-velours) !important;
+                    color: var(--color-blanc-cremeux) !important;
+                    font-family: var(--font-texte) !important;
+                    overflow-x: hidden;
+                    line-height: 1.6;
+                    padding: 0 !important;
+                    min-height: 100vh;
+                }
+                #catalog * { box-sizing: border-box; margin: 0; padding: 0; }
+                #catalog .magazine-header { min-height: 50vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 4rem 2rem; background: linear-gradient(180deg, rgba(38,32,41,0.6) 0%, var(--color-noir-velours) 100%); }
+                #catalog .brand-title { font-family: var(--font-titre); font-weight: 300; font-size: 3.5rem; letter-spacing: 0.3em; color: var(--color-blanc-cremeux); margin-bottom: 0.5rem; }
+                #catalog .brand-divider { width: 40px; height: 1px; background-color: var(--color-rose-poudre); margin: 1rem auto; }
+                #catalog .brand-tagline { font-family: var(--font-texte); font-weight: 300; font-size: 0.85rem; letter-spacing: 0.2em; color: var(--color-blush); text-transform: lowercase; }
+                #catalog .header-actions { margin-top: 2.5rem; }
+                #catalog .btn-prestige { background: transparent; border: 1px solid var(--color-rose-poudre); color: var(--color-blanc-cremeux); font-family: var(--font-texte); font-size: 0.9rem; letter-spacing: 0.15em; padding: 0.8rem 2rem; cursor: pointer; transition: all 0.4s ease; }
+                #catalog .btn-prestige:hover { background-color: var(--color-rose-poudre); color: var(--color-noir-velours); }
+                #catalog .manifesto-section { background-color: var(--color-charbon-doux); padding: 6rem 2rem; display: flex; justify-content: center; align-items: center; position: relative; }
+                #catalog .manifesto-line { position: absolute; left: 15%; height: 80px; width: 1px; background-color: var(--color-rose-poudre); }
+                #catalog .manifesto-quote { font-family: var(--font-titre); font-weight: 300; font-style: italic; font-size: 1.8rem; line-height: 1.8; color: var(--color-blanc-cremeux); text-align: center; max-width: 600px; }
+                #catalog .catalog-main { max-width: 1200px; margin: 0 auto; padding: 4rem 2rem; }
+                #catalog .category-block { margin-bottom: 5rem; }
+                #catalog .category-title { font-family: var(--font-titre); font-style: italic; font-weight: 400; font-size: 2.2rem; color: var(--color-rose-poudre); text-align: center; margin-bottom: 3rem; letter-spacing: 0.05em; }
+                #catalog .products-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2.5rem; }
+                #catalog .product-card { background-color: var(--color-charbon-doux); border-radius: 4px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.3s ease; }
+                #catalog .product-card:hover { transform: translateY(-4px); }
+                #catalog .product-image-container { width: 100%; height: 220px; overflow: hidden; position: relative; }
+                #catalog .product-image { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+                #catalog .product-card:hover .product-image { transform: scale(1.03); }
+                #catalog .product-info { padding: 2rem; display: flex; flex-direction: column; flex-grow: 1; justify-content: space-between; }
+                #catalog .product-name { font-family: var(--font-titre); font-weight: 600; font-size: 1.4rem; color: var(--color-blanc-cremeux); margin-bottom: 0.5rem; }
+                #catalog .product-desc { font-family: var(--font-texte); font-weight: 300; font-size: 0.9rem; color: var(--color-blush); margin-bottom: 1.5rem; }
+                #catalog .product-price { font-family: var(--font-titre); font-weight: 400; font-size: 1.25rem; color: var(--color-rose-poudre); }
+                #catalog .magazine-footer { background-color: var(--color-charbon-doux); text-align: center; padding: 3rem 2rem; border-top: 1px solid rgba(184, 112, 143, 0.2); }
+                #catalog .footer-edition { font-size: 0.85rem; color: var(--color-blush); margin-bottom: 0.5rem; }
+                #catalog .footer-brand { font-family: var(--font-titre); font-size: 0.8rem; letter-spacing: 0.3em; color: var(--color-rose-poudre); }
+                #catalog .toast-container { position: fixed; bottom: 2rem; right: 2rem; z-index: 1000; display: flex; flex-direction: column; gap: 0.75rem; }
+                #catalog .toast { background-color: var(--color-charbon-doux); color: var(--color-blanc-cremeux); border-left: 3px solid var(--color-rose-poudre); padding: 1rem 1.5rem; font-size: 0.9rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: fadeInOut 3s ease forwards; }
+                #catalog .toast.error { border-left-color: #E91E63; }
+                #catalog .toast.success { border-left-color: #B8708F; }
+                #catalog .product-image-fallback { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; background: var(--color-charbon-doux); font-size: 40px; }
+                @keyframes fadeInOut {
+                    0% { opacity: 0; transform: translateY(10px); }
+                    15% { opacity: 1; transform: translateY(0); }
+                    85% { opacity: 1; transform: translateY(0); }
+                    100% { opacity: 0; transform: translateY(-10px); }
+                }
+            </style>
+
+            <!-- En-tête de marque magazine -->
+            <header class="magazine-header">
+                <div class="brand-container">
+                    <h1 class="brand-title">S H A S H A P</h1>
+                    <div class="brand-divider"></div>
+                    <p class="brand-tagline">l'art de la gastronomie</p>
+                </div>
+                <div class="header-actions">
+                    <button id="exportPdfBtn" class="btn-prestige" onclick="exportTablePDF()">
+                        📕 Exporter le Catalogue PDF
+                    </button>
+                </div>
+            </header>
+
+            <!-- Page Manifeste -->
+            <section class="manifesto-section">
+                <div class="manifesto-line"></div>
+                <blockquote class="manifesto-quote">
+                    "Chaque plat est une intention.<br>
+                    Chaque saveur, une conversation.<br>
+                    Shashap est né à Niamey<br>
+                    pour que la gastronomie<br>
+                    devienne accessible,<br>
+                    sans jamais cesser<br>
+                    d'être exceptionnelle."
+                </blockquote>
+            </section>
+
+            <!-- Contenu dynamique du Catalogue -->
+            <main class="catalog-main" id="catalogMain">
+                <div style="text-align:center; padding:60px; color:#B8708F;">
+                    🌸 Chargement du catalogue...
+                </div>
+            </main>
+
+            <!-- Pied de page -->
+            <footer class="magazine-footer">
+                <p class="footer-edition">Édition Numérique & Physique — Niamey, Niger</p>
+                <p class="footer-brand">S H A S H A P   C O</p>
+            </footer>
+
+            <!-- Conteneur de Notifications (Toast) -->
+            <div id="toastContainer" class="toast-container"></div>
+
+        </div><!-- /page catalog -->
 
         <!-- ════════════════════════════════════════════════════
    PAGE : LOCALISATION (CARTE INTELLIGENTE PREMIUM)
