@@ -1962,3 +1962,268 @@ tr:hover .client-avatar {
 }
 .fav-item-name { flex: 1; font-weight: 600; font-size: 13px; color: #333; }
 .fav-item-price { font-weight: 800; color: #E91E63; font-size: 14px; }
+
+/* ============================================================
+   SHASHAP CO — DIRECTION ARTISTIQUE CATALOGUE GASTRONOMIQUE
+============================================================ */
+
+:root {
+    /* Palette de Joaillier */
+    --color-noir-velours: #0D0C10;
+    --color-charbon-doux: #262029;
+    --color-rose-poudre: #B8708F;
+    --color-blush: #F0B8CD;
+    --color-blanc-cremeux: #F8EEF3;
+
+    /* Typographie */
+    --font-titre: 'Cormorant Garamond', serif;
+    --font-texte: 'DM Sans', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--color-noir-velours);
+    color: var(--color-blanc-cremeux);
+    font-family: var(--font-texte);
+    overflow-x: hidden;
+    line-height: 1.6;
+}
+
+/* ── EN-TÊTE ────────────────────────────────────────────── */
+.magazine-header {
+    min-height: 50vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    background: linear-gradient(180deg, rgba(38,32,41,0.6) 0%, var(--color-noir-velours) 100%);
+}
+
+.brand-title {
+    font-family: var(--font-titre);
+    font-weight: 300;
+    font-size: 3.5rem;
+    letter-spacing: 0.3em;
+    color: var(--color-blanc-cremeux);
+    margin-bottom: 0.5rem;
+}
+
+.brand-divider {
+    width: 40px;
+    height: 1px;
+    background-color: var(--color-rose-poudre);
+    margin: 1rem auto;
+}
+
+.brand-tagline {
+    font-family: var(--font-texte);
+    font-weight: 300;
+    font-size: 0.85rem;
+    letter-spacing: 0.2em;
+    color: var(--color-blush);
+    text-transform: lowercase;
+}
+
+.header-actions {
+    margin-top: 2.5rem;
+}
+
+.btn-prestige {
+    background: transparent;
+    border: 1px solid var(--color-rose-poudre);
+    color: var(--color-blanc-cremeux);
+    font-family: var(--font-texte);
+    font-size: 0.9rem;
+    letter-spacing: 0.15em;
+    padding: 0.8rem 2rem;
+    cursor: pointer;
+    transition: all 0.4s ease;
+}
+
+.btn-prestige:hover {
+    background-color: var(--color-rose-poudre);
+    color: var(--color-noir-velours);
+}
+
+/* ── MANIFESTE ──────────────────────────────────────────── */
+.manifesto-section {
+    background-color: var(--color-charbon-doux);
+    padding: 6rem 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.manifesto-line {
+    position: absolute;
+    left: 15%;
+    height: 80px;
+    width: 1px;
+    background-color: var(--color-rose-poudre);
+}
+
+.manifesto-quote {
+    font-family: var(--font-titre);
+    font-weight: 300;
+    font-style: italic;
+    font-size: 1.8rem;
+    line-height: 1.8;
+    color: var(--color-blanc-cremeux);
+    text-align: center;
+    max-width: 600px;
+}
+
+/* ── CATALOGUE CORPS & GRILLE ───────────────────────────── */
+.catalog-main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+}
+
+.category-block {
+    margin-bottom: 5rem;
+}
+
+.category-title {
+    font-family: var(--font-titre);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 2.2rem;
+    color: var(--color-rose-poudre);
+    text-align: center;
+    margin-bottom: 3rem;
+    letter-spacing: 0.05em;
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2.5rem;
+}
+
+.product-card {
+    background-color: var(--color-charbon-doux);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+}
+
+.product-image-container {
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+    position: relative;
+}
+
+.product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.product-card:hover .product-image {
+    transform: scale(1.03);
+}
+
+.product-info {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: space-between;
+}
+
+.product-name {
+    font-family: var(--font-titre);
+    font-weight: 600;
+    font-size: 1.4rem;
+    color: var(--color-blanc-cremeux);
+    margin-bottom: 0.5rem;
+}
+
+.product-desc {
+    font-family: var(--font-texte);
+    font-weight: 300;
+    font-size: 0.9rem;
+    color: var(--color-blush);
+    margin-bottom: 1.5rem;
+}
+
+.product-price {
+    font-family: var(--font-titre);
+    font-weight: 400;
+    font-size: 1.25rem;
+    color: var(--color-rose-poudre);
+}
+
+/* ── PIED DE PAGE ───────────────────────────────────────── */
+.magazine-footer {
+    background-color: var(--color-charbon-doux);
+    text-align: center;
+    padding: 3rem 2rem;
+    border-top: 1px solid rgba(184, 112, 143, 0.2);
+}
+
+.footer-edition {
+    font-size: 0.85rem;
+    color: var(--color-blush);
+    margin-bottom: 0.5rem;
+}
+
+.footer-brand {
+    font-family: var(--font-titre);
+    font-size: 0.8rem;
+    letter-spacing: 0.3em;
+    color: var(--color-rose-poudre);
+}
+
+/* ── TOAST NOTIFICATIONS ────────────────────────────────── */
+.toast-container {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.toast {
+    background-color: var(--color-charbon-doux);
+    color: var(--color-blanc-cremeux);
+    border-left: 3px solid var(--color-rose-poudre);
+    padding: 1rem 1.5rem;
+    font-size: 0.9rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    animation: fadeInOut 3s ease forwards;
+}
+
+.toast.error {
+    border-left-color: #E91E63;
+}
+
+.toast.success {
+    border-left-color: #B8708F;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translateY(10px); }
+    15% { opacity: 1; transform: translateY(0); }
+    85% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-10px); }
+}
