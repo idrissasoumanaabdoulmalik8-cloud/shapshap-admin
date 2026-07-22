@@ -412,8 +412,3 @@ function fetchQrCodeBase64(targetUrl) {
   });
 }
 
-function loadCatalog() {
-    if (typeof loadCatalogFromAPI === 'function') {
-        loadCatalogFromAPI();
-    }
-}
