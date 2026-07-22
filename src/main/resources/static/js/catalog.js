@@ -80,7 +80,7 @@ function renderCatalogWeb() {
             cardEl.innerHTML = `
                 <div class="product-image-container">
                     ${imgSrc
-                        ? `<img src="${imgSrc}" alt="${p.name || ''}" class="product-image" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+? `<img src="/proxy-image?url=${encodeURIComponent(imgSrc)}" alt="${p.name || ''}" class="product-image" loading="lazy" onerror="...`
                            <div class="product-image-fallback" style="display:none; width:100%; height:100%; align-items:center; justify-content:center; background:var(--color-charbon-doux); font-size:40px;">
                                ${getCatalogCategoryEmoji(p.category)}
                            </div>`
