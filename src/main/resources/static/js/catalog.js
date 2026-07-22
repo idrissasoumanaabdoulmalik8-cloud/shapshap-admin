@@ -163,7 +163,7 @@ async function exportCatalogPDF() {
     var results = await Promise.all([
       fetchCatalogQrCodeBase64(menuUrl)
     ].concat(products.map(async function(p) {
-      p._cachedImg = p.imageUrl ? await urlToCatalogCircleBase64(p.imageUrl) : null;
+p._cachedImg = p.imageUrl ? await urlToCatalogCircleBase64('/proxy-image?url=' + encodeURIComponent(p.imageUrl)) : null;
     })));
 
     qrCodeImg = results[0];
