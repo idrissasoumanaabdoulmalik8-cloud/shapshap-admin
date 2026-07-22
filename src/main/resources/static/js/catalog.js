@@ -1,7 +1,7 @@
 // ============================================================
 // 📋 CATALOGUE — Chargement réel depuis l'API Shashap
 // ============================================================
-let allProducts = [];
+let catalogProducts = [];
 
 // Initialisation au chargement du DOM
 document.addEventListener('DOMContentLoaded', () => {
@@ -22,7 +22,7 @@ async function loadCatalogFromAPI() {
 
     try {
         const response = await axios.get(API + '/products');
-        allProducts = response.data || [];
+        catalogProducts = response.data || [];
         renderCatalogWeb();
     } catch (e) {
         console.error('Erreur chargement catalogue:', e);
@@ -42,7 +42,7 @@ function renderCatalogWeb() {
 
     container.innerHTML = '';
 
-    const available = allProducts.filter(p => p.isAvailable);
+    const available = catalogProducts.filter(p => p.isAvailable);
 
     if (available.length === 0) {
         container.innerHTML = `
@@ -82,10 +82,10 @@ function renderCatalogWeb() {
                     ${imgSrc
                         ? `<img src="${imgSrc}" alt="${p.name || ''}" class="product-image" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                            <div class="product-image-fallback" style="display:none; width:100%; height:100%; align-items:center; justify-content:center; background:var(--color-charbon-doux); font-size:40px;">
-                               ${getCategoryEmoji(p.category)}
+                               ${getCatalogCategoryEmoji(p.category)}
                            </div>`
                         : `<div class="product-image-fallback" style="display:flex; width:100%; height:100%; align-items:center; justify-content:center; background:var(--color-charbon-doux); font-size:40px;">
-                               ${getCategoryEmoji(p.category)}
+                               ${getCatalogCategoryEmoji(p.category)}
                            </div>`
                     }
                 </div>
@@ -108,7 +108,7 @@ function renderCatalogWeb() {
 // ============================================================
 // 🏷️ EMOJI PAR CATÉGORIE
 // ============================================================
-function getCategoryEmoji(cat) {
+function getCatalogCategoryEmoji(cat) {
     const map = {
         'Burger': '🍔', 'Pizza': '🍕', 'Boisson': '🥤',
         'Dessert': '🍰', 'Accompagnement': '🍟'
@@ -119,7 +119,7 @@ function getCategoryEmoji(cat) {
 // ============================================================
 // 🔔 SYSTÈME DE TOAST NOTIFICATION
 // ============================================================
-function showToast(message, type = 'success') {
+function showCatalogToast(message, type = 'success') {
     const toastContainer = document.getElementById('toastContainer');
     if (!toastContainer) return;
 
@@ -134,28 +134,28 @@ function showToast(message, type = 'success') {
 }
 
 // ============================================================
-// 📥 EXPORT DU CATALOGUE INTERACTIF PRESTIGE (PDF)
+// 📥 EXPORT DU CATALOGUE PREMIUM (PDF)
 // ============================================================
-async function exportTablePDF() {
+async function exportCatalogPDF() {
   try {
     if (!window.jspdf) {
-      showToast("Erreur : jsPDF n'est pas chargé", 'error');
+      showCatalogToast("Erreur : jsPDF n'est pas chargé", 'error');
       return;
     }
 
-    const products = allProducts.filter(p => p.isAvailable);
+    const products = catalogProducts.filter(p => p.isAvailable);
     if (!products.length) {
-      showToast("Aucun produit disponible pour l'export", 'error');
+      showCatalogToast("Aucun produit disponible pour l'export", 'error');
       return;
     }
 
-    showToast('Génération de l\'expérience premium...', 'info');
+    showCatalogToast('Génération du catalogue premium...', 'info');
 
     const menuUrl = 'https://shapshap-admin-malik.up.railway.app';
     const [qrCodeImg] = await Promise.all([
-      fetchQrCodeBase64(menuUrl),
+      fetchCatalogQrCodeBase64(menuUrl),
       ...products.map(async (p) => {
-        p._cachedImg = p.imageUrl ? await urlToCircleBase64(p.imageUrl) : null;
+        p._cachedImg = p.imageUrl ? await urlToCatalogCircleBase64(p.imageUrl) : null;
       })
     ]);
 
@@ -289,14 +289,6 @@ async function exportTablePDF() {
               }
             }
           }
-          if (d.column.index === 1 && d.section === 'body') {
-            const p = prods[d.row.index];
-            if (p && p.name) {
-              doc.link(d.cell.x, d.cell.y, d.cell.width, d.cell.height, {
-                url: 'https://shashap.com/menu?search=' + encodeURIComponent(p.name)
-              });
-            }
-          }
         },
         didDrawPage() {
           const activePage = doc.internal.getNumberOfPages();
@@ -326,24 +318,24 @@ async function exportTablePDF() {
     doc.link(qrX, qrY, qrS, qrS, { url: menuUrl });
 
     doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...cBlush);
-    doc.text("Scannez pour commander directement depuis votre téléphone.", pW / 2, 160, { align: 'center' });
+    doc.text("Scannez pour commander.", pW / 2, 160, { align: 'center' });
 
     doc.setFontSize(8); doc.setTextColor(...cCharbon);
     doc.text("S H A S H A P   C O  —  N I A M E Y ,  N I G E R", pW / 2, pH - 20, { align: 'center' });
 
     doc.save('Catalogue_Shashap_' + new Date().toISOString().split('T')[0] + '.pdf');
-    showToast('Catalogue premium prêt !', 'success');
+    showCatalogToast('Catalogue premium prêt !', 'success');
 
   } catch (error) {
-    console.error('Erreur PDF :', error);
-    showToast('Échec : ' + error.message, 'error');
+    console.error('Erreur PDF catalogue:', error);
+    showCatalogToast('Échec : ' + error.message, 'error');
   }
 }
 
 // ============================================================
 // 🖼️ CONVERTISSEUR D'IMAGE
 // ============================================================
-function urlToCircleBase64(url) {
+function urlToCatalogCircleBase64(url) {
   return new Promise((resolve) => {
     if (!url || typeof url !== 'string' || url === 'null' || url.trim() === '') {
       resolve(null);
@@ -385,7 +377,7 @@ function urlToCircleBase64(url) {
 // ============================================================
 // 🎨 GÉNÉRATEUR QR CODE
 // ============================================================
-function fetchQrCodeBase64(targetUrl) {
+function fetchCatalogQrCodeBase64(targetUrl) {
   return new Promise((resolve) => {
     const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(targetUrl)}&color=0D0C10&bgcolor=F8EEF3&qzone=1`;
 
@@ -411,4 +403,3 @@ function fetchQrCodeBase64(targetUrl) {
     img.src = qrApiUrl;
   });
 }
-
